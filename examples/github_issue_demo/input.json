@@ -1,0 +1,22 @@
+{
+  "task_id": "github-issue-demo",
+  "T": 0.7,
+  "E": 0.85,
+  "entropy": {
+    "contradiction_density": 0.3,
+    "uncertainty_variance": 0.25,
+    "memory_fragmentation": 0.4,
+    "recursion_instability": 0.2,
+    "context_decay": 0.35
+  },
+  "flow_quality": {
+    "task_completion_consistency": 0.65,
+    "reasoning_continuity": 0.7,
+    "semantic_coherence": 0.75,
+    "verification_success_rate": 0.5
+  },
+  "notes": [
+    "Issue context is partially mapped.",
+    "Tests and dependency traceability need strengthening before merge."
+  ]
+}

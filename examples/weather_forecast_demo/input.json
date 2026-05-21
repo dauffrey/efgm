@@ -1,0 +1,22 @@
+{
+  "task_id": "weather-test-moncton-2026-05-21",
+  "T": 0.8,
+  "E": 0.9,
+  "entropy": {
+    "contradiction_density": 0.2,
+    "uncertainty_variance": 0.45,
+    "memory_fragmentation": 0.25,
+    "recursion_instability": 0.1,
+    "context_decay": 0.3
+  },
+  "flow_quality": {
+    "task_completion_consistency": 0.8,
+    "reasoning_continuity": 0.75,
+    "semantic_coherence": 0.7,
+    "verification_success_rate": 0.55
+  },
+  "notes": [
+    "Forecast snapshots exist but actual-observation verification is incomplete.",
+    "Rain and UV claims require validation against observed conditions."
+  ]
+}
