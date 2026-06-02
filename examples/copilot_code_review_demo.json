@@ -1,0 +1,22 @@
+{
+  "task_id": "copilot-code-review-demo",
+  "T": 0.8,
+  "E": 0.9,
+  "entropy": {
+    "contradiction_density": 0.2,
+    "uncertainty_variance": 0.4,
+    "memory_fragmentation": 0.3,
+    "recursion_instability": 0.1,
+    "context_decay": 0.2
+  },
+  "flow_quality": {
+    "task_completion_consistency": 0.7,
+    "reasoning_continuity": 0.8,
+    "semantic_coherence": 0.75,
+    "verification_success_rate": 0.6
+  },
+  "notes": [
+    "Generated code appears useful but lacks deployment validation.",
+    "Architecture assumptions were not fully verified."
+  ]
+}

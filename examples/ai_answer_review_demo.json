@@ -1,0 +1,24 @@
+{
+  "task_id": "ai-answer-review-demo",
+  "T": 0.85,
+  "E": 0.85,
+  "entropy": {
+    "contradiction_density": 0.15,
+    "uncertainty_variance": 0.45,
+    "memory_fragmentation": 0.25,
+    "recursion_instability": 0.10,
+    "context_decay": 0.30
+  },
+  "flow_quality": {
+    "task_completion_consistency": 0.75,
+    "reasoning_continuity": 0.80,
+    "semantic_coherence": 0.82,
+    "verification_success_rate": 0.50
+  },
+  "notes": [
+    "The AI answer addressed the user's question and remained generally coherent.",
+    "Some claims were plausible but not directly supported by cited evidence.",
+    "The answer maintained good reasoning continuity but required additional verification before relying on it.",
+    "The main entropy source was unresolved uncertainty around source quality and factual confirmation."
+  ]
+}
