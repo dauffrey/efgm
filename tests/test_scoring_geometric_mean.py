@@ -3,7 +3,7 @@ from efgm.scoring import geometric_mean, score_efgm
 
 
 def test_geometric_mean():
-    assert round(geometric_mean([0.8, 0.9, 0.7225]), 4) == 0.8039
+    assert round(geometric_mean([0.8, 0.9, 0.7225]), 4) == 0.8042
 
 
 def test_score_efgm_uses_geometric_mean_for_positive_factors():
@@ -30,5 +30,5 @@ def test_score_efgm_uses_geometric_mean_for_positive_factors():
 
     assert result.e == 0.205
     assert result.Fq == 0.7225
-    assert result.F == 0.6671
+    assert result.F == 0.6674
     assert result.classification == "Stable with watch items"

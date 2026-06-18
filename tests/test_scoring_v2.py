@@ -47,7 +47,7 @@ def test_score_decision_efgm_incident_triage_example():
     result = score_decision_efgm(model_input)
 
     assert result.Ei == 0.62
-    assert result.Eo == 0.0525
+    assert result.Eo == 0.055
     assert result.CRC > 0.90
     assert result.Q > 0.88
     assert result.DQ > 0.80
