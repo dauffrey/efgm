@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from math import prod
+
 from .entropy import entropy_drivers, weighted_entropy
 from .flow_quality import weighted_flow_quality
 from .schemas import EFGMInput, EFGMResult, Classification
@@ -28,11 +30,26 @@ def recommended_action(classification: Classification) -> str:
     return actions[classification]
 
 
+def geometric_mean(values: list[float]) -> float:
+    """Return the geometric mean for normalized positive quality factors.
+
+    EFGM uses this instead of raw multiplication so strong-but-imperfect
+    factors do not collapse the final score too aggressively.
+    """
+    if not values:
+        raise ValueError("At least one value is required for geometric mean.")
+    if any(value < 0 for value in values):
+        raise ValueError("Geometric mean values must be non-negative.")
+
+    return prod(values) ** (1 / len(values))
+
+
 def score_efgm(input_data: EFGMInput) -> EFGMResult:
     e = weighted_entropy(input_data.entropy)
     fq = weighted_flow_quality(input_data.flow_quality)
 
-    coherent_flow = (input_data.T * input_data.E * fq) / (1 + e)
+    quality_core = geometric_mean([input_data.T, input_data.E, fq])
+    coherent_flow = quality_core / (1 + e)
     coherent_flow = round(coherent_flow, 4)
 
     classification = classify_flow(coherent_flow)
