@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "efgm"
-version = "0.1.0"
+version = "0.2.0"
 description = "Entropy-Flow Governance Model scoring framework"
 readme = "README.md"
 requires-python = ">=3.10"
