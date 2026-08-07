@@ -1,34 +1,80 @@
 {
   "task_id": "incident-triage-demo",
-  "T": 0.95,
-  "C": 0.85,
+  "T": {
+    "value": 0.95,
+    "status": "observed",
+    "rationale": "Multiple validated observations across the incident sequence.",
+    "evidence_refs": ["demo://timeline"],
+    "scorer_id": "demo-reviewer",
+    "scorer_type": "human",
+    "confidence": 0.90
+  },
+  "C": {
+    "value": 0.85,
+    "status": "observed",
+    "rationale": "Required diagnostic tools and source records are available.",
+    "evidence_refs": ["demo://tool-inventory"],
+    "scorer_id": "demo-reviewer",
+    "scorer_type": "human",
+    "confidence": 0.85
+  },
   "flow_quality": {
-    "task_completion_consistency": 0.92,
-    "reasoning_continuity": 0.90,
-    "semantic_coherence": 0.91,
-    "verification_success_rate": 0.86
+    "task_completion_consistency": {"value": 0.92, "status": "observed", "rationale": "Required triage steps were completed.", "evidence_refs": ["demo://checklist"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "reasoning_continuity": {"value": 0.90, "status": "observed", "rationale": "Later decisions preserve verified earlier facts.", "evidence_refs": ["demo://timeline"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "semantic_coherence": {"value": 0.91, "status": "observed", "rationale": "Terms and conclusions remain consistent.", "evidence_refs": ["demo://review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.88},
+    "verification_success_rate": {"value": 0.86, "status": "observed", "rationale": "Most verifiable claims were confirmed.", "evidence_refs": ["demo://verification"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.88}
   },
   "input_entropy": {
-    "input_contradiction": 0.55,
-    "input_ambiguity": 0.70,
-    "input_goal_conflict": 0.45,
-    "missing_context": 0.60,
-    "hidden_information_load": 0.80
+    "input_contradiction": {"value": 0.55, "status": "observed", "rationale": "Initial reports contained conflicting hypotheses.", "evidence_refs": ["demo://initial-reports"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.85},
+    "input_ambiguity": {"value": 0.70, "status": "observed", "rationale": "The initial failure mode was ambiguous.", "evidence_refs": ["demo://initial-reports"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "input_goal_conflict": {"value": 0.45, "status": "inferred", "rationale": "Restoration speed and diagnostic certainty partially competed.", "evidence_refs": ["demo://timeline"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.75},
+    "missing_context": {"value": 0.60, "status": "observed", "rationale": "Some dependency state was initially unavailable.", "evidence_refs": ["demo://dependency-gap"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.85},
+    "hidden_information_load": {"value": 0.80, "status": "inferred", "rationale": "Substantial environment state remained unobserved at decision time.", "evidence_refs": ["demo://dependency-gap"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.75}
   },
   "output_entropy": {
-    "output_contradiction": 0.05,
-    "uncertainty_mismatch": 0.10,
-    "goal_drift": 0.05,
-    "reasoning_instability": 0.00,
-    "context_decay": 0.05
+    "output_contradiction": {"value": 0.05, "status": "observed", "rationale": "Final response contains minimal contradiction.", "evidence_refs": ["demo://final-review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "uncertainty_mismatch": {"value": 0.10, "status": "observed", "rationale": "Confidence generally matches available evidence.", "evidence_refs": ["demo://final-review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "goal_drift": {"value": 0.05, "status": "observed", "rationale": "The response remains aligned to the triage objective.", "evidence_refs": ["demo://final-review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "reasoning_instability": {"value": 0.00, "status": "observed", "rationale": "No material reasoning reversals occurred after evidence converged.", "evidence_refs": ["demo://timeline"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.88},
+    "context_decay": {"value": 0.05, "status": "observed", "rationale": "Verified context was largely retained.", "evidence_refs": ["demo://final-review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90}
   },
   "grounding": {
-    "rule_support": 0.88,
-    "evidence_validity": 0.86,
-    "traceability": 0.90,
-    "factual_consistency": 0.88,
-    "domain_calibration": 0.88
+    "rule_support": {"value": 0.88, "status": "observed", "rationale": "Actions align with the stated triage procedure.", "evidence_refs": ["demo://procedure"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "evidence_validity": {"value": 0.86, "status": "observed", "rationale": "Evidence comes from the simulated source record.", "evidence_refs": ["demo://verification"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "traceability": {"value": 0.90, "status": "observed", "rationale": "Claims can be linked to evidence references.", "evidence_refs": ["demo://trace-map"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.92},
+    "factual_consistency": {"value": 0.88, "status": "observed", "rationale": "Final claims match the simulated ground truth.", "evidence_refs": ["demo://ground-truth"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "domain_calibration": {"value": 0.88, "status": "inferred", "rationale": "Assessment uses the intended incident-triage domain rubric.", "evidence_refs": ["demo://rubric"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.82}
   },
-  "uncertainty_calibration": 0.90,
-  "outcome_quality": 0.90
+  "uncertainty_calibration": {
+    "value": 0.90,
+    "status": "observed",
+    "rationale": "Confidence statements are proportional to the available evidence.",
+    "evidence_refs": ["demo://final-review"],
+    "scorer_id": "demo-reviewer",
+    "scorer_type": "human",
+    "confidence": 0.90
+  },
+  "behavioral_entropy": {
+    "chasing_behavior": {"value": 0.00, "status": "observed", "rationale": "No evidence of outcome-chasing behavior in the simulated timeline.", "evidence_refs": ["demo://timeline"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.85},
+    "outcome_bias": {"value": 0.00, "status": "observed", "rationale": "Decision-time scoring does not use the eventual outcome.", "evidence_refs": ["demo://review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "sunk_cost_pressure": {"value": 0.00, "status": "observed", "rationale": "No prior-investment pressure is present in the simulated decision record.", "evidence_refs": ["demo://timeline"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.85},
+    "false_pattern_detection": {"value": 0.00, "status": "observed", "rationale": "No unsupported pattern claim is present in the final assessment.", "evidence_refs": ["demo://final-review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.88},
+    "overconfidence_feedback": {"value": 0.00, "status": "observed", "rationale": "Confidence does not escalate because of prior confidence or success.", "evidence_refs": ["demo://final-review"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.88}
+  },
+  "operational_entropy": {
+    "timeout_rate": {"value": 0.00, "status": "observed", "rationale": "No timeout affected the simulated workflow.", "evidence_refs": ["demo://operations"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "retry_instability": {"value": 0.00, "status": "observed", "rationale": "No unstable retry cycle occurred.", "evidence_refs": ["demo://operations"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "tool_failure_rate": {"value": 0.00, "status": "observed", "rationale": "Required simulated tools completed successfully.", "evidence_refs": ["demo://operations"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90},
+    "latency_pressure": {"value": 0.00, "status": "observed", "rationale": "Latency did not materially distort the simulated decision.", "evidence_refs": ["demo://operations"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.85},
+    "workflow_interruption": {"value": 0.00, "status": "observed", "rationale": "The simulated workflow completed without interruption.", "evidence_refs": ["demo://operations"], "scorer_id": "demo-reviewer", "scorer_type": "human", "confidence": 0.90}
+  },
+  "outcome_quality": {
+    "value": 0.90,
+    "status": "observed",
+    "rationale": "The simulated outcome met the defined success criteria.",
+    "evidence_refs": ["demo://outcome"],
+    "scorer_id": "demo-reviewer",
+    "scorer_type": "human",
+    "confidence": 0.90
+  }
 }

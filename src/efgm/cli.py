@@ -9,7 +9,7 @@ from .reports import render_decision_markdown_report, render_markdown_report
 from .schemas import EFGMInput
 from .schemas_v2 import EFGMDecisionInput
 from .scoring import score_efgm
-from .scoring_v2 import score_decision_efgm
+from .scoring_v2 import IncompleteAssessmentError, ProvenanceError, score_decision_efgm
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -20,6 +20,15 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["v1", "v2"],
         default="v2",
         help="Scoring model. Defaults to v2; use v1 for compatibility inputs.",
+    )
+    parser.add_argument(
+        "--config",
+        help="Optional v2 scoring-config JSON path. Omit to use the packaged baseline configuration.",
+    )
+    parser.add_argument(
+        "--require-provenance",
+        action="store_true",
+        help="Require research-grade rationale, evidence references, and scorer metadata for v2 observations.",
     )
     parser.add_argument(
         "--format",
@@ -34,16 +43,39 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def score_payload(payload: dict, model: str):
+def score_payload(
+    payload: dict,
+    model: str,
+    config: str | None = None,
+    *,
+    require_provenance: bool = False,
+):
     if model == "v1":
+        if config:
+            raise ValueError("--config is supported only for the v2 model.")
+        if require_provenance:
+            raise ValueError("--require-provenance is supported only for the v2 model.")
         return score_efgm(EFGMInput.model_validate(payload))
-    return score_decision_efgm(EFGMDecisionInput.model_validate(payload))
+    return score_decision_efgm(
+        EFGMDecisionInput.model_validate(payload),
+        config=config,
+        require_provenance=require_provenance,
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
     payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
-    result = score_payload(payload, args.model)
+    try:
+        result = score_payload(
+            payload,
+            args.model,
+            args.config,
+            require_provenance=args.require_provenance,
+        )
+    except (IncompleteAssessmentError, ProvenanceError, ValueError) as exc:
+        parser.error(str(exc))
 
     if args.format == "markdown":
         output = (

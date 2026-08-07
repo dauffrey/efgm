@@ -1,0 +1,9 @@
+# Real holdout cases/labels must remain outside the tuning-visible repository.
+cases/
+labels/
+*.case.json
+*.cases.json
+*.label.json
+*.labels.json
+*.gold.json
+*.answer-key.*

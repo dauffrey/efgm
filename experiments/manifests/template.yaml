@@ -1,0 +1,79 @@
+experiment_id: EFGM-EXP-XXXX
+title: ""
+date: YYYY-MM-DD
+status: planned  # planned | running | complete | rejected | inconclusive
+research_type: falsification  # falsification | ablation | sensitivity | calibration | replication | benchmark
+
+hypothesis: ""
+null_hypothesis: ""
+predeclared_success_criteria: []
+predeclared_failure_criteria: []
+
+repository:
+  code_sha: ""
+  branch: ""
+  package_version: "0.2.0"
+  baseline_config_id: efgm-v2.0-baseline
+  baseline_config_sha256: ""
+  candidate_config_id: null
+  candidate_config_sha256: null
+
+assessment_identity:
+  input_sha256: ""
+  require_provenance: true
+  provenance_complete: false
+
+dataset:
+  version: ""
+  development_cases: 0
+  validation_cases: 0
+  holdout_cases: 0
+  label_source: ""
+  labels_independent_of_efgm: true
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  dataset_sha256: null
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  access_log_location: ""
+  custodian: ""
+
+scorers: []
+# - scorer_id: reviewer-1
+#   scorer_type: human
+#   blinded_to_preferred_label: true
+
+baselines:
+  efgm_derived:
+    - threshold_checklist
+    - grounding_calibration
+    - weighted_linear
+    - efgm_v1
+    - efgm_v2_baseline
+  independent:
+    - direct_five_criterion_checklist
+
+primary_metrics:
+  - pairwise_accuracy
+  - mean_dq_separation
+  - inter_rater_agreement
+  - false_reassurance_rate
+
+secondary_metrics:
+  - calibration_error
+  - driver_agreement
+  - perturbation_robustness
+  - performance_by_scenario_family
+  - incremental_value_vs_independent_baseline
+
+results_location: ""
+counterexamples: []
+regressions: []
+
+conclusion:
+  decision: null  # accept | reject | inconclusive
+  rationale: ""
+  limitations: []
