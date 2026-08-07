@@ -1,0 +1,61 @@
+experiment_id: EFGM-EXP-0001
+status: controlled_internal
+runner_version: 0.1.0
+benchmark_id: efgm-benchmark-v0.1
+benchmark_sha256: ff6d6cb3243093ab375951f5b75310ca2b5e3341eeccd14ada028b417499bc7e
+frozen_baseline_sha: b717f611a0d09bd8e52bc1b0be5ee178eecacf25
+
+purpose: >
+  Establish the first reproducible controlled comparison of EFGM v0.2 against
+  legacy v1 and simpler baselines across the initial EFGM scenario families.
+
+hypothesis: >
+  EFGM v2 will respond to a broader set of controlled decision-integrity
+  mutations than v1 or the G+U ablation, while maintaining strong ranking
+  robustness under normalized observation perturbation.
+
+null_hypothesis: >
+  EFGM v2 provides no meaningful discrimination or robustness advantage over
+  simpler comparison models, especially the weighted linear and independent
+  checklist baselines.
+
+comparison_models:
+  - v1
+  - v2
+  - g_plus_u
+  - linear
+  - independent_checklist
+
+primary_metrics:
+  - strict_pairwise_win_rate
+  - tie_adjusted_accuracy
+  - mean_score_separation
+  - per_family_wins_ties_losses
+  - sensitivity_mean_pair_preference_probability
+
+sensitivity:
+  distribution: uniform
+  perturbation: 0.10
+  trials_per_pair: 100
+  seed: 20260808
+
+partitions:
+  development_cases: 96
+  validation_cases: 48
+  sealed_holdout_accessed: false
+
+label_source: controlled_synthetic_construction_v0.1
+scorer_source: benchmark_generator_v0.1
+preregistration_status: not_independent
+
+limitations_declared_before_interpretation:
+  - Cases and labels are synthetic and internally constructed.
+  - Scenario families are drawn from EFGM's intended construct space.
+  - The independent checklist is structurally independent but authored by the same benchmark generator.
+  - V1 requires a lossy documented projection into its older input space.
+  - This experiment cannot establish external predictive validity or scientific proof.
+
+promotion_rule: >
+  No model/formula changes will be promoted from this experiment alone. Any
+  candidate change requires separate development/validation evidence and a
+  genuinely external or independently labeled evaluation before promotion.
