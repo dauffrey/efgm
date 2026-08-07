@@ -1,0 +1,62 @@
+{
+  "config_id": "efgm-v2.0-baseline",
+  "epsilon": 0.01,
+  "weights": {
+    "input_entropy": {
+      "input_contradiction": 0.20,
+      "input_ambiguity": 0.20,
+      "input_goal_conflict": 0.20,
+      "missing_context": 0.20,
+      "hidden_information_load": 0.20
+    },
+    "output_entropy": {
+      "output_contradiction": 0.25,
+      "uncertainty_mismatch": 0.25,
+      "goal_drift": 0.20,
+      "reasoning_instability": 0.15,
+      "context_decay": 0.15
+    },
+    "flow_quality": {
+      "task_completion_consistency": 0.30,
+      "reasoning_continuity": 0.25,
+      "semantic_coherence": 0.25,
+      "verification_success_rate": 0.20
+    },
+    "grounding": {
+      "rule_support": 0.25,
+      "evidence_validity": 0.25,
+      "traceability": 0.20,
+      "factual_consistency": 0.20,
+      "domain_calibration": 0.10
+    },
+    "behavioral_entropy": {
+      "chasing_behavior": 0.25,
+      "outcome_bias": 0.20,
+      "sunk_cost_pressure": 0.20,
+      "false_pattern_detection": 0.20,
+      "overconfidence_feedback": 0.15
+    },
+    "operational_entropy": {
+      "timeout_rate": 0.25,
+      "retry_instability": 0.20,
+      "tool_failure_rate": 0.25,
+      "latency_pressure": 0.15,
+      "workflow_interruption": 0.15
+    }
+  },
+  "driver_thresholds": {
+    "low_score": 0.60,
+    "high_score": 0.35
+  },
+  "classification": {
+    "critical_grounding_threshold": 0.40,
+    "coherent_dq_threshold": 0.80,
+    "coherent_grounding_threshold": 0.70,
+    "coherent_max_output_entropy": 0.20,
+    "weakly_grounded_dq_threshold": 0.70,
+    "weakly_grounded_grounding_threshold": 0.70,
+    "stable_dq_threshold": 0.60,
+    "degraded_dq_threshold": 0.40,
+    "high_entropy_dq_threshold": 0.20
+  }
+}
