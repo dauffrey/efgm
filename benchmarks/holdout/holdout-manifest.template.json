@@ -1,0 +1,13 @@
+{
+  "holdout_id": "EFGM-HOLDOUT-XXXX",
+  "dataset_version": "",
+  "case_count": 0,
+  "created_at": "YYYY-MM-DD",
+  "label_authority": "",
+  "labels_independent_of_efgm": true,
+  "custodian": "",
+  "storage_location_description": "external/not tuning-visible",
+  "dataset_sha256": "",
+  "access_log_location": "",
+  "notes": "Do not include case text, labels, prompts, responses, or answer-key details in this manifest."
+}
