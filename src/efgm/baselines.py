@@ -3,8 +3,8 @@ from __future__ import annotations
 from math import sqrt
 from typing import Mapping
 
-from .schemas_v2 import EFGMDecisionInput
-from .scoring_v2 import load_scoring_config, weighted_score
+from .schemas_v2 import EFGMDecisionInput, MetricObservation
+from .scoring_v2 import IncompleteAssessmentError, load_scoring_config, weighted_score
 
 
 BASELINE_VERSION = "efgm-comparison-baselines-v0.2"
@@ -17,16 +17,22 @@ INDEPENDENT_CHECKS = {
 }
 
 
+def _required_value(observation: MetricObservation, path: str) -> float:
+    if observation.status not in {"observed", "inferred"} or observation.value is None:
+        raise IncompleteAssessmentError(f"{path} must be observed/inferred for this baseline.")
+    return observation.value
+
+
 def _components(input_data: EFGMDecisionInput) -> dict[str, float]:
     """EFGM-derived components used only for aggregation/ablation baselines."""
     config = load_scoring_config()
     weights = config["weights"]
     return {
-        "T": input_data.T.value,
-        "C": input_data.C.value,
+        "T": _required_value(input_data.T, "T"),
+        "C": _required_value(input_data.C, "C"),
         "Fq": weighted_score(input_data.flow_quality, weights["flow_quality"], family_name="flow_quality"),
         "G": weighted_score(input_data.grounding, weights["grounding"], family_name="grounding"),
-        "U": input_data.uncertainty_calibration.value,
+        "U": _required_value(input_data.uncertainty_calibration, "uncertainty_calibration"),
         "Eo": weighted_score(input_data.output_entropy, weights["output_entropy"], family_name="output_entropy"),
         "Be": weighted_score(
             input_data.behavioral_entropy,
@@ -70,8 +76,7 @@ def grounding_calibration_baseline(input_data: EFGMDecisionInput) -> float:
 def weighted_linear_baseline(input_data: EFGMDecisionInput) -> float:
     """EFGM-derived linear aggregation baseline over the same major composites."""
     c = _components(input_data)
-    positive_values = [value for value in (c["T"], c["C"], c["Fq"], c["G"], c["U"]) if value is not None]
-    positive = sum(positive_values) / len(positive_values)
+    positive = (c["T"] + c["C"] + c["Fq"] + c["G"] + c["U"]) / 5
     degradation = (c["Eo"] + c["Be"] + c["Oe"]) / 3
     return round(max(0.0, min(1.0, positive - 0.50 * degradation)), 4)
 
