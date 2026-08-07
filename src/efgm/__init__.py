@@ -1,3 +1,4 @@
+from .baselines import checklist_baseline, grounding_calibration_baseline, weighted_linear_baseline
 from .schemas import EFGMInput, EFGMResult
 from .schemas_v2 import EFGMDecisionInput, EFGMDecisionResult, MetricObservation
 from .scoring import score_efgm
@@ -14,4 +15,7 @@ __all__ = [
     "load_scoring_config",
     "score_efgm",
     "score_decision_efgm",
+    "checklist_baseline",
+    "grounding_calibration_baseline",
+    "weighted_linear_baseline",
 ]
