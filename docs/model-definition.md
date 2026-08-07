@@ -11,6 +11,9 @@ The canonical EFGM v2 decision-integrity definition is:
 - executable implementation: `src/efgm/scoring_v2.py`
 - versioned baseline parameters: `src/efgm/config/efgm-v2.0-baseline.json`
 
-Do not use the former `F = (T × E × Fq) / (1 + e)` text at this path as the current EFGM model. That equation belongs to the historical v1/coherent-flow line and remains available only through compatibility mode and repository history.
+Do not use the former `F = (T × E × Fq) / (1 + e)` text at this path as the current EFGM model. That equation belongs to the historical v1/coherent-flow line.
 
-See [`legacy/model-definition-v1.md`](legacy/model-definition-v1.md) for the legacy summary.
+Historical material:
+
+- [`legacy/model-definition-v1.md`](legacy/model-definition-v1.md) — concise legacy summary;
+- [`legacy/v1/model-definition.md`](legacy/v1/model-definition.md) — verbatim pre-v2 model document preserved from the PR base commit.
