@@ -22,6 +22,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Scoring model. Defaults to v2; use v1 for compatibility inputs.",
     )
     parser.add_argument(
+        "--config",
+        help="Optional v2 scoring-config JSON path. Omit to use the packaged baseline configuration.",
+    )
+    parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -34,16 +38,18 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def score_payload(payload: dict, model: str):
+def score_payload(payload: dict, model: str, config: str | None = None):
     if model == "v1":
+        if config:
+            raise ValueError("--config is supported only for the v2 model.")
         return score_efgm(EFGMInput.model_validate(payload))
-    return score_decision_efgm(EFGMDecisionInput.model_validate(payload))
+    return score_decision_efgm(EFGMDecisionInput.model_validate(payload), config=config)
 
 
 def main(argv: Sequence[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
     payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
-    result = score_payload(payload, args.model)
+    result = score_payload(payload, args.model, args.config)
 
     if args.format == "markdown":
         output = (
