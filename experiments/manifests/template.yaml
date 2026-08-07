@@ -1,0 +1,58 @@
+experiment_id: EFGM-EXP-XXXX
+title: ""
+date: YYYY-MM-DD
+status: planned  # planned | running | complete | rejected | inconclusive
+research_type: falsification  # falsification | ablation | sensitivity | calibration | replication | benchmark
+
+hypothesis: ""
+null_hypothesis: ""
+predeclared_success_criteria: []
+predeclared_failure_criteria: []
+
+repository:
+  code_sha: ""
+  branch: ""
+  baseline_config_id: efgm-v2.0-baseline
+  candidate_config_id: null
+
+dataset:
+  version: ""
+  development_cases: 0
+  validation_cases: 0
+  holdout_cases: 0
+  holdout_accessed_during_tuning: false
+  label_source: ""
+  labels_independent_of_efgm: true
+
+scorers: []
+# - scorer_id: reviewer-1
+#   scorer_type: human
+#   blinded_to_preferred_label: true
+
+baselines:
+  - checklist
+  - grounding_calibration
+  - weighted_linear
+  - efgm_v1
+  - efgm_v2_baseline
+
+primary_metrics:
+  - pairwise_accuracy
+  - mean_dq_separation
+  - inter_rater_agreement
+  - false_reassurance_rate
+
+secondary_metrics:
+  - calibration_error
+  - driver_agreement
+  - perturbation_robustness
+  - performance_by_scenario_family
+
+results_location: ""
+counterexamples: []
+regressions: []
+
+conclusion:
+  decision: null  # accept | reject | inconclusive
+  rationale: ""
+  limitations: []
