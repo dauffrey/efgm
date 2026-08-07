@@ -12,17 +12,34 @@ predeclared_failure_criteria: []
 repository:
   code_sha: ""
   branch: ""
+  package_version: "0.2.0"
   baseline_config_id: efgm-v2.0-baseline
+  baseline_config_sha256: ""
   candidate_config_id: null
+  candidate_config_sha256: null
+
+assessment_identity:
+  input_sha256: ""
+  require_provenance: true
+  provenance_complete: false
 
 dataset:
   version: ""
   development_cases: 0
   validation_cases: 0
   holdout_cases: 0
-  holdout_accessed_during_tuning: false
   label_source: ""
   labels_independent_of_efgm: true
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  dataset_sha256: null
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  access_log_location: ""
+  custodian: ""
 
 scorers: []
 # - scorer_id: reviewer-1
@@ -30,11 +47,14 @@ scorers: []
 #   blinded_to_preferred_label: true
 
 baselines:
-  - checklist
-  - grounding_calibration
-  - weighted_linear
-  - efgm_v1
-  - efgm_v2_baseline
+  efgm_derived:
+    - threshold_checklist
+    - grounding_calibration
+    - weighted_linear
+    - efgm_v1
+    - efgm_v2_baseline
+  independent:
+    - direct_five_criterion_checklist
 
 primary_metrics:
   - pairwise_accuracy
@@ -47,6 +67,7 @@ secondary_metrics:
   - driver_agreement
   - perturbation_robustness
   - performance_by_scenario_family
+  - incremental_value_vs_independent_baseline
 
 results_location: ""
 counterexamples: []
