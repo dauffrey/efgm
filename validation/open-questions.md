@@ -56,10 +56,21 @@ Open questions:
 
 ## Observation provenance and missing data
 
-- How should `unknown` observations enter the mathematics?
-- Should unknown dimensions be excluded and remaining weights renormalized, explicitly penalized, or modeled probabilistically?
+The **current baseline behavior is now fixed for research reproducibility**:
+
+```text
+unknown        => completed scoring blocked
+not_applicable => excluded and remaining weights renormalized
+measured 0.00  => valid numeric observation
+```
+
+Remaining research questions:
+
+- Should a future model probabilistically marginalize unknown dimensions rather than block scoring?
+- Should uncertainty over a metric's value be propagated mathematically rather than recorded only as scorer confidence?
 - How much confidence should be required before an inferred observation can influence a high-stakes assessment?
 - Can evidence quality itself be scored without creating recursive scoring complexity?
+- Does strict provenance improve inter-rater/predictive validity enough to justify its added assessment burden?
 
 ## Outcome model
 
@@ -84,6 +95,18 @@ Open questions:
 - Are the bands stable across domains?
 - What false reassurance / false alarm trade-off is acceptable?
 - Should classification be domain/risk-specific while DQ remains common?
+
+## Baseline independence
+
+- Do EFGM-derived ablations overstate apparent advantage because they share EFGM observations?
+- How does EFGM compare against an independently defined direct checklist?
+- Which task-specific or external statistical baselines are appropriate by domain?
+
+## Holdout methodology
+
+- What external custody mechanism is practical while still allowing automated evaluation of a frozen candidate?
+- How frequently must holdouts be refreshed after exposure?
+- How can holdout access be independently logged/verified?
 
 ## Scientific differentiation
 
