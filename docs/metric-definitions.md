@@ -9,4 +9,7 @@ The current EFGM v2 metric definitions and scoring anchors are maintained in:
 
 The earlier metric set centered on a single entropy load `e`, capability `E`, and coherent-flow score `F` belongs to the v1 compatibility model and should not be used as the authoritative definition for new v2 research.
 
-See [`legacy/metric-definitions-v1.md`](legacy/metric-definitions-v1.md) for the legacy summary.
+Historical material:
+
+- [`legacy/metric-definitions-v1.md`](legacy/metric-definitions-v1.md) — concise legacy summary;
+- [`legacy/v1/metric-definitions.md`](legacy/v1/metric-definitions.md) — verbatim pre-v2 metric document preserved from the PR base commit.
