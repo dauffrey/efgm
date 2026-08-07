@@ -1,5 +1,6 @@
 {
   "config_id": "efgm-v2.0-baseline",
+  "schema_version": 1,
   "epsilon": 0.01,
   "weights": {
     "input_entropy": {
