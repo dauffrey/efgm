@@ -9,7 +9,8 @@ from typing import Any, Mapping
 from .schemas_v2 import DecisionClassification, EFGMDecisionInput, EFGMDecisionResult
 
 
-DEFAULT_CONFIG_RESOURCE = "config/efgm-v2.0-baseline.json"
+DEFAULT_CONFIG_DIR = "config"
+DEFAULT_CONFIG_NAME = "efgm-v2.0-baseline.json"
 
 
 def load_scoring_config(config: str | Path | Mapping[str, Any] | None = None) -> dict[str, Any]:
@@ -19,8 +20,8 @@ def load_scoring_config(config: str | Path | Mapping[str, Any] | None = None) ->
     be passed as a path or mapping so weight/threshold changes remain reproducible.
     """
     if config is None:
-        text = files("efgm").joinpath(DEFAULT_CONFIG_RESOURCE).read_text(encoding="utf-8")
-        loaded = json.loads(text)
+        resource = files("efgm").joinpath(DEFAULT_CONFIG_DIR).joinpath(DEFAULT_CONFIG_NAME)
+        loaded = json.loads(resource.read_text(encoding="utf-8"))
     elif isinstance(config, Mapping):
         loaded = dict(config)
     else:
@@ -58,7 +59,7 @@ def weighted_score(metrics: Any, weights: dict[str, float]) -> float:
 def low_score_drivers(metrics: Any, threshold: float = 0.60) -> list[str]:
     return [
         name
-        for name in metrics.model_fields
+        for name in metrics.__class__.model_fields
         if getattr(metrics, name).value < threshold
     ]
 
@@ -66,7 +67,7 @@ def low_score_drivers(metrics: Any, threshold: float = 0.60) -> list[str]:
 def high_score_drivers(metrics: Any, threshold: float = 0.35) -> list[str]:
     return [
         name
-        for name in metrics.model_fields
+        for name in metrics.__class__.model_fields
         if getattr(metrics, name).value >= threshold
     ]
 
