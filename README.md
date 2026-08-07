@@ -6,7 +6,7 @@ EFGM is **not** a proven scientific law, compliance standard, or production-read
 
 ## Canonical model
 
-**EFGM v2 is the primary research baseline in package version `0.2.0`.**
+**EFGM v2 is the primary research baseline in package version `0.2.0`.** There are currently no repository tags or releases establishing a stable public Python API; `0.2.0` is an unreleased research baseline.
 
 The authoritative v2 definition is [`docs/model-specification-v2.md`](docs/model-specification-v2.md). Metric scoring guidance is in [`docs/scoring-rubric-v2.md`](docs/scoring-rubric-v2.md). Older v1 material is retained only for compatibility/history and must not be treated as the current decision-integrity model.
 
@@ -66,20 +66,43 @@ V2 metric inputs use `MetricObservation` records:
 }
 ```
 
-Legacy numeric v2 inputs remain accepted for compatibility, but they are automatically marked as inferred observations without supplied provenance. Research-grade assessments should use explicit evidence-backed observations.
+Missing data is explicit:
 
-## Versioned scoring configuration
+```text
+0.00           = measured value
+unknown        = insufficient evidence; scoring is blocked
+not_applicable = excluded from the relevant weighted composite
+```
 
-V2 weights and classification thresholds are not embedded as unexplained constants in the scorer. The packaged baseline is:
+An omitted metric becomes `unknown`, **not zero**. Legacy numeric v2 inputs remain accepted for compatibility and are automatically marked as inferred observations without supplied provenance.
+
+Research-grade runs should require strict provenance:
+
+```bash
+efgm-score assessment.json --model v2 --require-provenance --format json
+```
+
+## Versioned scoring configuration and hashes
+
+V2 weights and classification thresholds live in:
 
 ```text
 src/efgm/config/efgm-v2.0-baseline.json
 ```
 
-Experimental configurations should receive unique IDs and be preserved with experiment results. The CLI can score with an alternate v2 configuration:
+Candidate configs are strictly validated. Every v2 result records:
+
+- human-readable `config_id`;
+- SHA-256 of the canonicalized scoring configuration;
+- SHA-256 of the canonicalized input assessment;
+- provenance completeness and any provenance issues.
+
+This prevents two different parameter files from masquerading as the same experiment merely because they reuse a config name.
+
+Use an alternate candidate configuration with:
 
 ```bash
-efgm-score assessment.json --model v2 --config path/to/candidate.json --format json
+efgm-score assessment.json --model v2 --config path/to/candidate.json --require-provenance --format json
 ```
 
 ## v1 — compatibility model
@@ -97,7 +120,7 @@ Use it explicitly:
 efgm-score examples/weather_forecast_demo/input.json --model v1 --format markdown
 ```
 
-V1 is **not** the canonical model for new decision-integrity validation.
+Full historical v1 documents are preserved under `docs/legacy/v1/` for reproducible comparison. V1 is **not** the canonical model for new decision-integrity validation.
 
 ## Installation
 
@@ -116,7 +139,7 @@ efgm-score examples/decision_integrity_demo/input.json --format markdown
 Write JSON or Markdown to a file:
 
 ```bash
-efgm-score assessment.json --model v2 --format json --output reports/assessment.json
+efgm-score assessment.json --model v2 --require-provenance --format json --output reports/assessment.json
 ```
 
 ## Python API
@@ -125,35 +148,35 @@ efgm-score assessment.json --model v2 --format json --output reports/assessment.
 from efgm import EFGMDecisionInput, score_decision_efgm
 
 assessment = EFGMDecisionInput.model_validate(payload)
-result = score_decision_efgm(assessment)
+result = score_decision_efgm(assessment, require_provenance=True)
 ```
 
 The v1 API remains available as `EFGMInput` and `score_efgm`.
+
+## Research controls
+
+EFGM should advance only if controlled testing shows that it is understandable, repeatable, evidence-traceable, actionable, and more useful than simpler alternatives. The research program should actively attempt to falsify EFGM rather than optimize tests to make it appear successful.
+
+Required controls include:
+
+- evidence, rationale, scorer identity/type, and confidence for research-grade applied scores;
+- explicit `unknown` / `not_applicable` handling;
+- config and input hashes plus repository code SHA in experiment records;
+- development and validation datasets visible to the tuning loop;
+- **externally sealed holdout cases/labels not stored in the tuning-visible repository**;
+- comparison against EFGM-derived ablations and independent baselines;
+- ablation and sensitivity testing;
+- explicit counterexample and rejected-candidate retention;
+- no rewriting gold-standard labels merely because EFGM disagrees;
+- human review before promotion of a candidate model to the canonical baseline.
+
+See [`research/README.md`](research/README.md) and [`validation/test-plan.md`](validation/test-plan.md).
 
 ## Governance loop
 
 ```text
 Detect entropy → Protect verified flow → Restore coherence → Reassess
 ```
-
-## Research and validation discipline
-
-EFGM should advance only if controlled testing shows that it is understandable, repeatable, evidence-traceable, actionable, and more useful than simpler alternatives. The research program should actively attempt to falsify EFGM rather than optimize tests to make it appear successful.
-
-Required controls include:
-
-- versioned model/configuration IDs;
-- evidence and rationale for applied scores;
-- scorer identity/type and confidence;
-- development, validation, and sealed holdout partitions;
-- comparison against simpler baselines;
-- ablation and sensitivity testing;
-- explicit counterexample retention;
-- no tuning against sealed holdouts;
-- no rewriting gold-standard labels merely because EFGM disagrees;
-- human review before promotion of a candidate model to the canonical baseline.
-
-See [`research/README.md`](research/README.md) and [`validation/test-plan.md`](validation/test-plan.md).
 
 ## Information handling
 
