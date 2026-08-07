@@ -20,14 +20,21 @@ A research PR that changes model behavior should include:
 
 - hypothesis and null hypothesis;
 - exact baseline and candidate configuration IDs;
-- code/config SHA or diff;
+- baseline/candidate configuration SHA-256 values;
+- repository code SHA;
+- assessment/dataset version and relevant input hashes;
+- confirmation that research-grade scoring used strict provenance validation;
 - development results;
 - validation results when available;
 - ablation or sensitivity evidence appropriate to the change;
 - known counterexamples and regressions;
-- simpler-baseline comparison;
-- whether holdout data was accessed;
+- both EFGM-derived ablation and independent-baseline comparison;
+- holdout ID/custodian/hash, whether it was accessed, and confirmation that real holdout cases/labels were not tuning-visible before the candidate was frozen;
 - limitations and unresolved questions.
+
+## Missing-data discipline
+
+A candidate must not gain apparent performance by exploiting missing observations. `unknown`, `not_applicable`, and measured `0.00` are distinct states under the canonical v2 specification. Research code must preserve that distinction.
 
 ## Promotion
 
