@@ -15,6 +15,9 @@ dependencies = [
 [project.scripts]
 efgm-score = "efgm.cli:main"
 
+[tool.setuptools.package-data]
+efgm = ["config/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
