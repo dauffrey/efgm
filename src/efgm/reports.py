@@ -31,6 +31,7 @@ def render_decision_markdown_report(result: EFGMDecisionResult) -> str:
     ]
     lines = [
         "# EFGM v2 Decision Integrity Report", "", "## Task", "", f"`{result.task_id}`", "",
+        f"Scoring configuration: `{result.config_id}`", "",
         "## Score Summary", "", "| Metric | Value |", "|---|---:|",
         f"| T | {result.T:.4f} |", f"| C | {result.C:.4f} |", f"| Fq | {result.Fq:.4f} |",
         f"| G | {result.G:.4f} |", f"| U | {result.U:.4f} |", f"| Ei | {result.Ei:.4f} |",
@@ -43,5 +44,10 @@ def render_decision_markdown_report(result: EFGMDecisionResult) -> str:
     lines.extend(["", "## Classification", "", f"**{result.classification}**", "", "## Recommended Action", "", result.recommended_action])
     for heading, items, empty in sections:
         lines.extend(["", f"## {heading}", "", _bullets(items, empty)])
-    lines.extend(["", "## Formula", "", "```text", "Ei = weighted input entropy", "Eo = weighted output entropy", "CRC = (Ei - Eo) / max(Ei, ε)", "Q = (T × C × Fq × G × U)^(1/5)", "DQ = Q / (1 + Eo + Be + Oe)", "OutcomeConfidence = DQ × (1 - H)", "OD = OQ - DQ", "```", ""])
+    lines.extend([
+        "", "## Formula", "", "```text", "Ei = weighted input entropy", "Eo = weighted output entropy",
+        "CRC = (Ei - Eo) / max(Ei, ε)", "Q = (T × C × Fq × G × U)^(1/5)",
+        "DQ = Q / (1 + Eo + Be + Oe)", "OutcomeConfidence = DQ × (1 - H)", "OD = OQ - DQ", "```", "",
+        "CRC is a recovery/amplification ratio and is intentionally not bounded to [-1, 1]. Positive values indicate entropy reduction; negative values indicate entropy amplification.", "",
+    ])
     return "\n".join(lines)
