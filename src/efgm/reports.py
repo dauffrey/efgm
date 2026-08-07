@@ -31,14 +31,23 @@ def render_decision_markdown_report(result: EFGMDecisionResult) -> str:
     ]
     lines = [
         "# EFGM v2 Decision Integrity Report", "", "## Task", "", f"`{result.task_id}`", "",
-        f"Scoring configuration: `{result.config_id}`", "",
+        "## Reproducibility", "",
+        f"Scoring configuration: `{result.config_id}`  ",
+        f"Configuration SHA-256: `{result.config_sha256}`  ",
+        f"Input SHA-256: `{result.input_sha256}`  ",
+        f"Research provenance complete: `{'yes' if result.provenance_complete else 'no'}`", "",
+    ]
+    if result.provenance_issues:
+        lines.extend(["### Provenance issues", "", _bullets(result.provenance_issues, "None"), ""])
+
+    lines.extend([
         "## Score Summary", "", "| Metric | Value |", "|---|---:|",
         f"| T | {result.T:.4f} |", f"| C | {result.C:.4f} |", f"| Fq | {result.Fq:.4f} |",
         f"| G | {result.G:.4f} |", f"| U | {result.U:.4f} |", f"| Ei | {result.Ei:.4f} |",
         f"| Eo | {result.Eo:.4f} |", f"| Be | {result.Be:.4f} |", f"| Oe | {result.Oe:.4f} |",
         f"| CRC | {result.CRC:.4f} |", f"| Q | {result.Q:.4f} |", f"| DQ | {result.DQ:.4f} |",
         f"| Outcome confidence | {result.outcome_confidence:.4f} |",
-    ]
+    ])
     if result.OQ is not None:
         lines.extend([f"| OQ | {result.OQ:.4f} |", f"| OD | {result.OD:.4f} |"])
     lines.extend(["", "## Classification", "", f"**{result.classification}**", "", "## Recommended Action", "", result.recommended_action])
