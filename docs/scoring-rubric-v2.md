@@ -4,7 +4,22 @@
 
 This rubric defines provisional scoring anchors for EFGM v2 so different reviewers can apply the model more consistently. These anchors are research hypotheses and should be refined from inter-rater and predictive-validity evidence.
 
-Every applied score should be supported by a `MetricObservation`. A reviewer should prefer `unknown`/low-confidence evidence over invented precision.
+Every applied score should be supported by a `MetricObservation`. A reviewer should prefer `unknown` over invented precision.
+
+## Observation states
+
+These states are intentionally different:
+
+| State | Meaning | Numeric value used? |
+|---|---|---:|
+| `observed` | directly supported by evidence | yes |
+| `inferred` | estimated from indirect evidence or reviewer judgment | yes |
+| `unknown` | evidence is insufficient to characterize the metric | **no** |
+| `not_applicable` | metric genuinely does not apply to the scenario | **no** |
+
+`0.00` means an applicable metric was assessed at the bottom of its normalized scale. It never means “not measured.”
+
+The baseline scorer blocks on `unknown` observations rather than silently substituting zero. Explicit `not_applicable` observations are excluded from weighted composites and remaining applicable weights are renormalized. A whole behavioral/operational entropy family may contribute zero only when all of its members are explicitly N/A.
 
 ## Common normalized anchors
 
@@ -12,7 +27,7 @@ Unless a metric has a stronger domain-specific formula, use these anchors:
 
 | Value | Positive metric | Entropy metric |
 |---:|---|---|
-| `0.00` | absent / unusable | no observable entropy |
+| `0.00` | absent / unusable | measured absence of observable entropy |
 | `0.25` | weak | low entropy |
 | `0.50` | partial / mixed | moderate entropy |
 | `0.75` | strong | high entropy |
@@ -164,6 +179,8 @@ Score only behavioral distortion relevant to the decision, not generic undesirab
 - false pattern detection: asserting structure unsupported by the evidence;
 - overconfidence feedback: confidence escalating because of prior confidence/success rather than new evidence.
 
+If the entire behavioral family truly does not apply, mark every member `not_applicable` with rationale. Do not omit the family and assume zero.
+
 ## Operational entropy (`Oe`) metrics
 
 Use observed execution evidence where possible:
@@ -174,18 +191,21 @@ Use observed execution evidence where possible:
 - latency pressure when it materially changes decisions/actions;
 - workflow interruption.
 
-## Observation status
+If the entire operational family truly does not apply, mark every member `not_applicable` with rationale. Do not omit the family and assume zero.
 
-| Status | Meaning |
-|---|---|
-| `observed` | directly supported by evidence |
-| `inferred` | estimated from indirect evidence or reviewer judgment |
-| `unknown` | evidence is insufficient to characterize the metric reliably |
-| `not_applicable` | metric does not meaningfully apply to the scenario |
+## Evidence and provenance rules
 
-The current scorer still requires a numeric value. For `unknown` observations, reviewers must document any placeholder/estimate and assign low confidence. A future model may formally marginalize or exclude unknown observations; that is an open research question.
+For ordinary compatibility scoring, legacy numeric inputs are promoted to `inferred` observations and clearly marked as having no supplied provenance.
 
-## Evidence quality rules
+For research-grade scoring, use `require_provenance=True`. Strict provenance requires:
+
+1. a rationale for every applicable or N/A observation;
+2. scorer ID and scorer type;
+3. at least one evidence reference for every applied numeric value;
+4. positive confidence for every applied numeric value;
+5. no `unknown` values in a completed score.
+
+Research evidence rules:
 
 1. Cite evidence that existed at the decision time when scoring decision quality.
 2. Do not leak outcome information into decision-time metrics.
@@ -193,6 +213,7 @@ The current scorer still requires a numeric value. For `unknown` observations, r
 4. Do not improve a score because the eventual outcome happened to be good.
 5. Record scorer identity/type so inter-rater behavior can be analyzed.
 6. If a score cannot be defended in one or two evidence-based sentences, treat it as insufficiently supported.
+7. Preserve the original input assessment and its SHA-256 hash with the result.
 
 ## Classification caution
 
