@@ -6,7 +6,7 @@ This document is the **canonical specification** for the EFGM v2 decision-integr
 
 If another repository document conflicts with this specification, this document and the executable v2 implementation take precedence until the conflict is resolved. V1 documents are historical/compatibility material.
 
-EFGM v2 is experimental. Its constructs, equations, weights, and thresholds are hypotheses to be tested, not established scientific constants.
+EFGM v2 is experimental. Its constructs, equations, weights, and thresholds are hypotheses to be tested, not established scientific constants. Package version `0.2.0` is an unreleased research baseline; there are currently no repository tags or releases establishing a stable public Python API.
 
 ## Research objective
 
@@ -41,7 +41,25 @@ The model deliberately separates:
 | `OQ` | Outcome quality | higher is better |
 | `OD` | Outcome divergence (`OQ - DQ`) | descriptive, not inherently good/bad |
 
-All base observations are normalized to `[0, 1]`. `CRC` and `OD` are derived values and are not constrained to that same interpretation.
+Applicable base observations are normalized to `[0, 1]`. `unknown` and `not_applicable` observations do **not** receive numeric placeholder values. `CRC` and `OD` are derived values and are not constrained to the base-metric interpretation.
+
+## Missing-data semantics
+
+EFGM must distinguish three states that are not interchangeable:
+
+```text
+0.00           = measured absence / lowest normalized value
+unknown        = evidence is insufficient to score the observation
+not_applicable = the construct genuinely does not apply to the case
+```
+
+Rules:
+
+- `unknown` blocks scoring rather than silently becoming zero or any other favorable value;
+- `not_applicable` is excluded from a weighted composite and the remaining applicable weights are renormalized;
+- a whole behavioral or operational entropy family may contribute zero only when every member is explicitly marked `not_applicable` with rationale; omission is not equivalent to N/A;
+- scalar formula inputs (`T`, `C`, `U`, and `H`) must be observed/inferred numeric values for the baseline formula to run;
+- future probabilistic/marginalized missing-data treatments are research candidates, not implicit behavior.
 
 ## Equations
 
@@ -132,6 +150,8 @@ Baseline grounding metrics:
 - latency pressure;
 - workflow interruption.
 
+Whether operational entropy belongs inside `DQ` or downstream in a separate execution-reliability construct remains an explicit research question.
+
 ## DQ versus CRC
 
 These constructs are intentionally different.
@@ -187,9 +207,9 @@ Thresholds must be evaluated against blinded validation evidence and may only ch
 
 ## Observation provenance
 
-Each research-grade metric should be represented by a `MetricObservation` containing:
+Each research-grade metric is represented by a `MetricObservation` containing:
 
-- normalized value;
+- normalized value when applicable;
 - observation status;
 - rationale;
 - evidence references;
@@ -198,7 +218,24 @@ Each research-grade metric should be represented by a `MetricObservation` contai
 - scorer confidence;
 - timestamp when available.
 
-Raw numeric v2 inputs are accepted only for compatibility and are automatically identified as inferred observations without supplied provenance.
+Raw numeric v2 inputs are accepted for compatibility and automatically identified as inferred observations without supplied provenance. They are scoreable when complete, but they fail strict research-provenance validation.
+
+Research experiments should invoke the scorer with `require_provenance=True`. In strict mode, applicable values require rationale, evidence references, scorer identity/type, and positive confidence. Explicit N/A observations require rationale and scorer identity/type.
+
+## Reproducibility identity
+
+A human-readable `config_id` is not sufficient to prove that two experiments used identical parameters. Every v2 result therefore records:
+
+- `config_id`;
+- SHA-256 of the canonicalized scoring configuration;
+- SHA-256 of the canonicalized input assessment;
+- provenance-completeness status and any provenance issues.
+
+Experiment manifests must also record the repository/code commit SHA. Together these identifiers make silent parameter drift detectable.
+
+## Holdout isolation
+
+Real holdout case contents and labels must not be stored in a repository readable by the autonomous tuning loop. `benchmarks/holdout/` is metadata-only. Blind holdout cases require external custody or equivalent access control until a candidate is frozen.
 
 ## Scope limits
 
