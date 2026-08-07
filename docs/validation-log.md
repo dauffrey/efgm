@@ -61,3 +61,21 @@ A dedicated research branch was created to prepare EFGM for autonomous falsifica
 - v1 legacy documentation separation.
 
 This stabilization work changes the research infrastructure and one classification safeguard. It does not claim the current mathematical form has been validated.
+
+## 2026-08-07 — Draft PR #5 Independent Review Corrections
+
+Status: **repository/research-control hardening; not model validation**.
+
+A second-pass review identified several ways the initial stabilization could bias or weaken autonomous experiments. The branch was corrected before merge:
+
+- omitted metric observations now become explicit `unknown` values rather than favorable zero defaults;
+- `unknown` blocks completed scoring; explicit `not_applicable` observations are excluded with weight renormalization;
+- research-grade provenance can be enforced with `require_provenance=True`;
+- result artifacts now include canonical input/configuration SHA-256 hashes and provenance status;
+- candidate configuration validation now rejects malformed metric keys, negative/non-finite weights, non-normalized weight sets, invalid epsilon/schema versions, and invalid classification thresholds;
+- real holdout contents/labels are prohibited from the tuning-visible repository and require external custody/access control;
+- verbatim v1 model, metric, and validation documents were preserved from the PR base commit under `docs/legacy/v1/`;
+- baseline documentation now separates EFGM-derived ablations from an independent direct checklist comparator;
+- CI was expanded to test strict-provenance scoring, Python 3.13, and the built wheel outside the source tree so packaged configuration data is verified.
+
+Interpretation: these changes reduce false reassurance, missing-data bias, configuration drift, benchmark leakage, and reproducibility risk. They do not provide evidence that the EFGM equations themselves are correct.
