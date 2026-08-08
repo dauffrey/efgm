@@ -36,12 +36,17 @@ jobs:
         if: matrix.python-version == '3.12'
         run: |
           efgm-experiment --benchmark v0.1 --sensitivity-trials 100 --perturbation 0.10 --format markdown
+      - name: Run experimental EFGM Benchmark v0.2 agent-governance experiment
+        if: matrix.python-version == '3.12'
+        run: |
+          efgm-agent-experiment --sensitivity-trials 100 --perturbation 0.10 --format markdown
       - name: Build distributable wheel
         run: python -m build --wheel
-      - name: Verify packaged config and experiment CLI from installed wheel
+      - name: Verify packaged config and experiment CLIs from installed wheel
         run: |
           python -m pip uninstall -y efgm
           python -m pip install --force-reinstall dist/*.whl
           cd /tmp
           efgm-score "$GITHUB_WORKSPACE/examples/decision_integrity_demo/input.json" --model v2 --require-provenance --format json
           efgm-experiment --benchmark v0.1 --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-experiment-smoke.json
+          efgm-agent-experiment --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-agent-experiment-smoke.json
