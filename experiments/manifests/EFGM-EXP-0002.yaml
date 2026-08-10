@@ -1,0 +1,54 @@
+experiment_id: EFGM-EXP-0002
+title: EFGM v0.3 agent-governance construct-responsiveness experiment
+status: planned_on_branch
+evidence_status: controlled_synthetic_internal
+
+frozen_baseline:
+  name: EFGM v0.2
+  sha: b717f611a0d09bd8e52bc1b0be5ee178eecacf25
+  modification_allowed: false
+
+parent_research:
+  branch: research/experiment-runner-v0.1
+  sha: a15007daeed221bde1f7a0f0e64cc870c1ae110b
+
+benchmark:
+  id: efgm-benchmark-v0.2-agentic-governance
+  canonical_sha256: d7495d203f8a9e37ab777b4f4bbf4395f43a4f7ed3e306f684dff65b41f4ca5b
+  cases: 132
+  pairs: 66
+  families: 11
+  development_cases: 88
+  validation_cases: 44
+  external_holdout_cases: 0
+
+research_question: >-
+  Do governance-specific dimensions distinguish autonomous-agent states that remain
+  equally coherent and task-effective under the frozen v0.2 decision-flow construct space?
+
+models:
+  - v2_task_flow
+  - governed_product
+  - risk_adjusted_product
+  - governed_linear
+  - independent_governance_checklist
+
+design_guardrails:
+  - Hold v2 decision/task-flow observations constant inside each pair.
+  - Mutate only experimental governance and agency-amplification dimensions.
+  - Treat Black Hat USA 2026 as empirical inspiration only, not benchmark ground truth.
+  - Treat all v0.3 equations as candidate hypotheses.
+  - Preserve unknown and not_applicable semantics.
+  - Do not infer external validity from synthetic ranking performance.
+
+primary_outputs:
+  - paired wins_ties_losses
+  - mean_and_median_separation
+  - family_level_responsiveness
+  - perturbation_sensitivity
+
+next_stage_requirements:
+  - independently authored labels
+  - aggregation-conflict cases
+  - externally authored scenarios
+  - sealed holdout

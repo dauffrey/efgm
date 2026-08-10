@@ -1,0 +1,15 @@
+{
+  "benchmark_id": "efgm-benchmark-v0.2-agentic-governance",
+  "benchmark_version": "0.2.0",
+  "canonical_dataset_sha256": "d7495d203f8a9e37ab777b4f4bbf4395f43a4f7ed3e306f684dff65b41f4ca5b",
+  "case_count": 132,
+  "pair_count": 66,
+  "family_count": 11,
+  "development_cases": 88,
+  "validation_cases": 44,
+  "external_holdout_cases": 0,
+  "evidence_status": "controlled_synthetic_internal",
+  "black_hat_role": "empirical_inspiration_only_not_incident_reconstruction",
+  "frozen_efgm_v0_2_sha": "b717f611a0d09bd8e52bc1b0be5ee178eecacf25",
+  "parent_research_sha": "a15007daeed221bde1f7a0f0e64cc870c1ae110b"
+}

@@ -15,6 +15,7 @@ dependencies = [
 [project.scripts]
 efgm-score = "efgm.cli:main"
 efgm-experiment = "efgm.experiment_cli:main"
+efgm-agent-experiment = "efgm.agent_governance_cli:main"
 
 [tool.setuptools.package-data]
 efgm = ["config/*.json"]
