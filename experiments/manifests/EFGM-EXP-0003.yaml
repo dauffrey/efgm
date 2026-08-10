@@ -1,0 +1,81 @@
+experiment_id: EFGM-EXP-0003
+title: "Critical-dimension gate falsification cycle"
+date_started: 2026-08-08
+date_completed: 2026-08-10
+status: completed
+research_type: falsification
+reconstructed_manifest: true
+
+hypothesis: "Aggregate family means can hide sparse catastrophic positive-control failures and sparse maximal degradation, producing false reassurance."
+null_hypothesis: "Sparse single-dimension failures do not materially survive EFGM aggregation or perturbation."
+
+historical_repository_identity:
+  initial_result_commit: 3faaad2b956494b5d79b5c5078f801a88b60c123
+  flow_quality_extension_commit: b9c33b5e4e0916d17affd13c9d3c3eb64118e5a2
+  penalty_dilution_extension_commit: bf7cc33b56205e8eee2457cdd0a6d99a5f271201
+  frozen_v2_baseline_sha: b717f611a0d09bd8e52bc1b0be5ee178eecacf25
+  agent_governance_reference_sha: 7b452f40b545cd83ae84b42b6ee1c0fc99c68d54
+  execution_identity_limitation: "The experiment evolved across three committed cycles before the one-execution-SHA rule was enforced; no single execution SHA is retrospectively invented."
+
+dataset:
+  version: "critical-dimension-counterexamples-v0.3"
+  label_source: "internally authored preregistered semantic invariants"
+  labels_independent_of_efgm: false
+  holdout_cases: 0
+  holdout_accessed: false
+
+cycles:
+  - cycle: 1
+    targets:
+      - v2_grounding_sparse_collapse
+      - agent_trust_boundary_sparse_collapse
+    perturbation_trials_per_target: 10000
+  - cycle: 2
+    targets:
+      - task_completion_consistency_zero
+      - reasoning_continuity_zero
+      - semantic_coherence_zero
+      - verification_success_rate_zero
+    perturbation_trials_per_target: 10000
+  - cycle: 3
+    targets:
+      - sparse_maximal_output_entropy
+      - sparse_maximal_behavioral_entropy
+      - sparse_maximal_operational_entropy
+    perturbation_trials_per_target: 10000
+
+key_results:
+  v2_evidence_validity_zero:
+    grounding: 0.7125
+    decision_quality_approx: 0.8228
+    classification: "Coherent and grounded"
+    reassuring_rate_under_perturbation: 0.7884
+  agent_trust_boundary_zero:
+    governance_integrity_approx: 0.9532
+    uncontrolled_agency_risk_approx: 0.0239
+    classification: "Governed autonomous operation"
+    reassuring_rate_under_perturbation: 1.0
+  v2_flow_sparse_failures:
+    strongest_label_persistence_range: "0.9159-0.9997"
+  v2_penalty_sparse_extremes:
+    strongest_label_central_cases: "10/15"
+    low_weight_strongest_label_perturbation_range: "0.7903-0.7968"
+
+decision:
+  classification: "material_and_reproducible_counterexample"
+  promote_formula_change: false
+  rationale: "Critical-dimension dilution is structural and reproducible, but obvious hard-min/hard-max replacements were not justified because benign-control false alarms and simpler alternatives were not yet tested."
+
+rejected_changes:
+  - "Replace v2 DQ with a minimum-based formula."
+  - "Replace penalty-family means with raw hard maxima."
+  - "Replace Agent Governance geometric aggregation with a hard minimum."
+  - "Apply only a grounding-family gate."
+  - "Tune against sealed holdout data."
+  - "Rewrite benchmark labels after observing model outputs."
+
+results_location: "experiments/results/EFGM-EXP-0003-critical-dimension-gates.md"
+limitations:
+  - "This manifest was reconstructed after the result cycles and therefore documents, rather than repairs, the earlier execution-identity limitation."
+  - "Cases were internally authored and EFGM-aware."
+  - "No sealed holdout was accessed."

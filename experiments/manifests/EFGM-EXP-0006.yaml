@@ -7,6 +7,7 @@ research_type: falsification
 hypothesis: "Agency Exposure (AE) and Coherent Unsafe Execution (CUE) are distinguishable constructs: AE captures insufficiently governed consequential capacity while CUE captures effective task execution operating through that exposure."
 null_hypothesis: "AE and CUE do not provide reliably distinguishable information beyond one another, task flow, governance integrity, or a simpler independent checklist."
 structural_invariant: "Because CUE = F_T * AE and normalized F_T is in [0,1], every valid scored case must satisfy 0 <= CUE <= AE <= 1. A generic low-AE/high-CUE quadrant is therefore impossible and must not be requested as a case-design target."
+
 predeclared_success_criteria:
   - "Every generated/scored case satisfies CUE <= AE."
   - "When governance and agency inputs are held fixed while task effectiveness changes, AE remains stable while CUE changes in the expected direction."
@@ -14,6 +15,7 @@ predeclared_success_criteria:
   - "AE adds useful information about uncontrolled capacity beyond CUE/task-flow alone on validation cases."
   - "CUE adds useful information about effective unsafe execution beyond AE alone on validation cases."
   - "Any incremental value survives reasonable perturbation and comparison with an independent two-axis checklist."
+
 predeclared_failure_criteria:
   - "Any scored case violates CUE <= AE."
   - "Only the algebraic implementation contract separates AE and CUE; independent labels do not."
@@ -22,8 +24,9 @@ predeclared_failure_criteria:
   - "Results depend materially on internally authored EFGM-aware labels."
 
 repository:
+  parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  execution_branch: "freeze-at-execution"
   code_sha: "freeze-at-execution"
-  branch: "agent/harden-v2-v03-governance"
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"

@@ -40,6 +40,10 @@ jobs:
         if: matrix.python-version == '3.12'
         run: |
           efgm-agent-experiment --sensitivity-trials 100 --perturbation 0.10 --format markdown
+      - name: Run EFGM-EXP-0004 sparse-governance falsification cycle
+        if: matrix.python-version == '3.12'
+        run: |
+          python -m efgm.exp0004_sparse_governance --perturbation-trials 200 --perturbation 0.10 --format markdown
       - name: Build distributable wheel
         run: python -m build --wheel
       - name: Verify packaged config and experiment CLIs from installed wheel
@@ -50,3 +54,4 @@ jobs:
           efgm-score "$GITHUB_WORKSPACE/examples/decision_integrity_demo/input.json" --model v2 --require-provenance --format json
           efgm-experiment --benchmark v0.1 --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-experiment-smoke.json
           efgm-agent-experiment --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-agent-experiment-smoke.json
+          python -m efgm.exp0004_sparse_governance --perturbation-trials 2 --perturbation 0.05 --format json > /tmp/efgm-exp0004-smoke.json

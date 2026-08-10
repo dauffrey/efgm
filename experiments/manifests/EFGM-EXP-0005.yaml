@@ -6,6 +6,7 @@ research_type: falsification
 
 hypothesis: "Agent-governance state transitions and residual-state evidence contain useful information not represented by a single static Agent Governance v0.3 snapshot, especially after governance intervention."
 null_hypothesis: "Static governance-state scores are sufficient; transition deltas, residual-state checks, and recovery signals add no stable diagnostic value."
+
 predeclared_success_criteria:
   - "Every compared transition belongs to one explicit sequence_id; unrelated sequences are rejected rather than compared as recovery states."
   - "State transitions preserve candidate config identity, before/after input hashes, residual-state hash, and direction of GI, AE, and CUE changes."
@@ -16,6 +17,7 @@ predeclared_success_criteria:
   - "Clear, present, and not-applicable residual-state claims require rationale, scorer provenance, confidence, and evidence references before residual evidence is considered complete."
   - "Complete-control cases with evidence-backed clear/not-applicable residual states can receive verified recovery when all other criteria are satisfied."
   - "Transition diagnostics add information beyond comparing final static classifications alone."
+
 predeclared_failure_criteria:
   - "States from different sequence identities can be interpreted as one recovery transition."
   - "Recovery progress is emitted for an invalid intervention phase transition."
@@ -26,8 +28,9 @@ predeclared_failure_criteria:
   - "Results are unstable under small evidence perturbations."
 
 repository:
+  parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  execution_branch: "freeze-at-execution"
   code_sha: "freeze-at-execution"
-  branch: "agent/harden-v2-v03-governance"
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"

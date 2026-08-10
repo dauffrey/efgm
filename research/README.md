@@ -24,6 +24,18 @@ Evaluate externally sealed holdout
 Accept / reject / remain inconclusive
 ```
 
+## Current execution sequence
+
+The post-PR-#9 research program is deliberately sequenced so that discovered failures are tested before new model promotion:
+
+1. **EFGM-EXP-0004** — execute Agent Governance sparse-failure diagnostics against development and validation controls.
+2. **EFGM-EXP-0007** — test non-compensatory diagnostics for the canonical EFGM v2 sparse-failure problem exposed by EXP-0003 while preserving frozen `DQ`.
+3. **EFGM-EXP-0005** — evaluate temporal intervention, residual state, recovery progress, and verified recovery after the prerequisite semantics have been tested.
+4. **EFGM-EXP-0006** — require independently authored labels to test whether Agency Exposure and Coherent Unsafe Execution add semantic value beyond their algebraic definitions.
+5. Freeze only surviving candidates before any sealed-holdout access.
+
+The merged baseline for this execution program is `fd70317e4bad193c00763a398f41db6e75700b55`. Experiment execution SHAs must still be frozen separately; the merged baseline SHA is not a substitute for the code SHA of an experiment run.
+
 ## Non-negotiable controls
 
 - The objective is to find where EFGM fails, not to manufacture confirming examples.
@@ -101,6 +113,8 @@ holdout access state
 ```
 
 A human-readable config name is not enough. If two files have the same `config_id` but different SHA-256 values, they are different experimental conditions.
+
+For post-PR-#9 experiments also preserve the **parent merged baseline SHA** separately from the **execution code SHA**. This prevents a stable parent lineage from being confused with the exact code that produced an experimental result.
 
 ## Required experiment metadata
 

@@ -1,11 +1,12 @@
 experiment_id: EFGM-EXP-0004
 title: "Agent Governance critical-dimension diagnostics"
 date: 2026-08-10
-status: planned
+status: execution_ready
 research_type: falsification
 
 hypothesis: "A non-compensatory diagnostic layer can reduce false reassurance from sparse catastrophic governance failures without treating every low observation as a prerequisite or replacing the continuous Agent Governance v0.3 aggregate scores."
 null_hypothesis: "Observation-floor, low-percentile, and explicit candidate-prerequisite diagnostics do not reduce false reassurance relative to aggregate-only scoring, merely encode authored labels, or create unacceptable false alarms on benign low-score controls."
+
 predeclared_success_criteria:
   - "The neutral governance observation floor exposes all preregistered sparse collapses without itself being interpreted as a prerequisite verdict."
   - "Only metric paths explicitly listed in the candidate configuration can produce candidate-prerequisite breaches."
@@ -14,6 +15,7 @@ predeclared_success_criteria:
   - "Materially reduce false reassurance versus aggregate-only classification."
   - "Do not materially increase false alarms on preregistered benign controls."
   - "Provide incremental value beyond the independent invariant checklist on at least one validation dimension before any promotion proposal."
+
 predeclared_failure_criteria:
   - "The candidate prerequisite list merely encodes authored labels without generalizing to validation cases."
   - "A low non-prerequisite observation is incorrectly treated as a prerequisite failure."
@@ -21,8 +23,9 @@ predeclared_failure_criteria:
   - "Candidate prerequisite membership or threshold choice is unstable under reasonable perturbation/ablation."
 
 repository:
+  parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  execution_branch: agent/execute-falsification-program
   code_sha: "freeze-at-execution"
-  branch: "agent/harden-v2-v03-governance"
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"
@@ -38,11 +41,14 @@ assessment_identity:
 
 dataset:
   version: "sparse-governance-failures-v0.2"
-  development_cases: 0
-  validation_cases: 0
+  dataset_sha256: "999b60706e7a20d5a2b4eda123511a7a39922038854aacab2c2c6edc1698a758"
+  development_cases: 12
+  validation_cases: 12
   holdout_cases: 0
   label_source: "preregistered semantic invariants plus benign controls"
   labels_independent_of_efgm: false
+  development_materialization: "benchmarks/development/EFGM-EXP-0004/cases.json"
+  validation_materialization: "benchmarks/validation/EFGM-EXP-0004/cases.json"
 
 holdout:
   holdout_id: null
@@ -55,7 +61,7 @@ holdout:
   custodian: ""
 
 scorers:
-  - scorer_id: synthetic-generator
+  - scorer_id: EFGM-EXP-0004-synthetic-generator
     scorer_type: automated
     blinded_to_preferred_label: false
 
@@ -86,6 +92,14 @@ secondary_metrics:
   - threshold_sensitivity
   - incremental_value_vs_independent_baseline
 
+runner:
+  module: "efgm.exp0004_sparse_governance"
+  runner_version: "0.1.0"
+  ci_python: "3.12"
+  perturbation_trials: 200
+  perturbation: 0.10
+  seed: 20260810
+
 results_location: "experiments/results/EFGM-EXP-0004.md"
 counterexamples:
   - EFGM-CE-0001
@@ -97,4 +111,4 @@ conclusion:
   limitations:
     - "Initial cases are internally authored and EFGM-terminology aware."
     - "The configured candidate prerequisite set is a research hypothesis, not an established control invariant."
-    - "No external sealed holdout is included in this planned cycle."
+    - "No external sealed holdout is included in this cycle."

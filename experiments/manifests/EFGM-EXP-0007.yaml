@@ -1,0 +1,108 @@
+experiment_id: EFGM-EXP-0007
+title: "Canonical EFGM v2 sparse-failure diagnostic comparison"
+date: 2026-08-10
+status: planned
+research_type: falsification
+
+hypothesis: "A classification-only non-compensatory diagnostic layer can reduce the canonical EFGM v2 false reassurance demonstrated in EXP-0003 without changing frozen DQ and without producing unacceptable false alarms on benign controls."
+null_hypothesis: "Positive-prerequisite floors, extreme-degradation vetoes, or soft-min diagnostics do not improve false-reassurance behavior beyond the frozen aggregate classifier or a simpler independent invariant checklist."
+
+motivation:
+  parent_counterexample: EFGM-EXP-0003
+  reason: "EXP-0003 demonstrated critical-dimension dilution in canonical v2 grounding, flow-quality, output-entropy, behavioral-entropy, and operational-entropy families. Agent Governance EXP-0004 does not resolve the canonical v2 failure."
+
+predeclared_success_criteria:
+  - "Frozen EFGM v2 DQ remains numerically unchanged for every case."
+  - "At least one candidate diagnostic materially reduces false reassurance on preregistered sparse catastrophic cases."
+  - "The same candidate does not produce an unacceptable false-alarm increase on preregistered benign low-score/high-penalty controls."
+  - "The claimed mechanism survives path/family ablation and reasonable perturbation."
+  - "Any promotion proposal must add validation value beyond an independent invariant checklist at materially comparable complexity."
+
+predeclared_failure_criteria:
+  - "A candidate catches authored catastrophes only by broadly flagging benign controls."
+  - "A hard minimum or hard maximum dominates solely because the case set was constructed around one-dimensional extremes."
+  - "An independent invariant checklist matches or exceeds the candidate at lower complexity."
+  - "Candidate thresholds or semantic membership are unstable under reasonable perturbation."
+  - "The candidate changes frozen DQ rather than remaining a classification/diagnostic comparison."
+
+repository:
+  parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  execution_branch: "freeze-at-execution"
+  code_sha: "freeze-at-execution"
+  canonical_model: "EFGM v2"
+  package_version: "0.2.0"
+  baseline_config_id: efgm-v2.0-baseline
+  baseline_config_sha256: "record-at-execution"
+
+dataset:
+  version: "v2-sparse-failure-controls-v0.1"
+  development_cases: 0
+  validation_cases: 0
+  holdout_cases: 0
+  label_source: "preregistered sparse-failure invariants plus benign controls"
+  labels_independent_of_efgm: false
+
+required_case_families:
+  positive_sparse_failures:
+    - flow_quality
+    - grounding
+  negative_sparse_extremes:
+    - output_entropy
+    - behavioral_entropy
+    - operational_entropy
+  benign_controls:
+    - low_positive_observation_without_material_decision_invalidity
+    - elevated_single_penalty_with_bounded_operational_impact
+    - noisy_or_uncertain_measurement_near_candidate_threshold
+
+baselines:
+  frozen:
+    - efgm_v2_aggregate_classifier
+    - efgm_v2_DQ
+  candidate_diagnostics:
+    - positive_prerequisite_floor
+    - extreme_degradation_veto
+    - soft_min_or_low_percentile
+  independent:
+    - preregistered_invariant_checklist
+
+ablation:
+  compare_each_candidate_family_removed: true
+  compare_threshold_sweeps: true
+  preserve_frozen_DQ: true
+
+primary_metrics:
+  - false_reassurance_rate
+  - false_alarm_rate
+  - perturbation_robustness
+  - pairwise_accuracy
+  - incremental_value_vs_independent_baseline
+
+secondary_metrics:
+  - performance_by_v2_family
+  - threshold_sensitivity
+  - diagnostic_driver_agreement
+  - complexity_adjusted_value
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  custodian: ""
+
+results_location: "experiments/results/EFGM-EXP-0007.md"
+counterexamples:
+  - EFGM-CE-0001
+  - EFGM-CE-0002
+  - EFGM-CE-0003
+regressions: []
+
+conclusion:
+  decision: null
+  rationale: ""
+  limitations:
+    - "The first cycle will be internally authored and cannot establish generalization."
+    - "No candidate threshold is canonical before validation and sealed-holdout support."
+    - "The experiment intentionally preserves frozen EFGM v2 DQ for baseline comparability."
