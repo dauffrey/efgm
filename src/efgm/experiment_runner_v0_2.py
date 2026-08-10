@@ -235,6 +235,20 @@ def _summarize(
             by_family[family]["ties"] += 1
 
     total = wins + ties + losses
+    if total == 0:
+        return {
+            "direction": direction,
+            "pairs": 0,
+            "wins": 0,
+            "ties": 0,
+            "losses": 0,
+            "strict_win_rate": None,
+            "tie_adjusted_accuracy": None,
+            "mean_separation": None,
+            "median_separation": None,
+            "by_family": {},
+        }
+
     return {
         "direction": direction,
         "pairs": total,
@@ -412,6 +426,8 @@ def run_experiment(
     code_sha: str | None = None,
 ) -> dict[str, Any]:
     materialized = cases if cases is not None else generate_cases()
+    if not materialized:
+        raise ValueError("At least one benchmark pair is required.")
     actual_hash = dataset_sha256(materialized)
     if cases is None and actual_hash != EXPECTED_DATASET_SHA256:
         raise ValueError(
