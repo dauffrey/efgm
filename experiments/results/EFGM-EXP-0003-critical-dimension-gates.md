@@ -75,45 +75,85 @@ Fraction of v2 trials still classified `Coherent and grounded`:
 - semantic coherence collapse: **99.09%**;
 - verification success collapse: **99.97%**.
 
+## Novel falsification cases — cycle 3
+
+Cycle 3 tested the opposite side of the v2 equation: whether a *maximal degradation* observation can also be diluted inside penalty-family averaging.
+
+Construct a strong state with `T=C=Fq=G=U=0.99`, set all non-target penalty observations to `0.00`, and set exactly one output-, behavioral-, or operational-entropy observation to `1.00`.
+
+Result: **10 of 15** single-maximal-degradation cases still receive `Coherent and grounded`.
+
+Examples:
+
+- `output_entropy.reasoning_instability=1.00` -> `Eo=0.15`, `DQ≈0.8609`, `Coherent and grounded`;
+- `output_entropy.context_decay=1.00` -> `Eo=0.15`, `DQ≈0.8609`, `Coherent and grounded`;
+- `behavioral_entropy.overconfidence_feedback=1.00` -> `Be=0.15`, `DQ≈0.8609`, `Coherent and grounded`;
+- `operational_entropy.latency_pressure=1.00` -> `Oe=0.15`, `DQ≈0.8609`, `Coherent and grounded`;
+- `operational_entropy.workflow_interruption=1.00` -> `Oe=0.15`, `DQ≈0.8609`, `Coherent and grounded`.
+
+Weight-0.20 cases (`goal_drift`, `outcome_bias`, `sunk_cost_pressure`, `false_pattern_detection`, `retry_instability`) also remain `Coherent and grounded` at the exact central point (`DQ=0.8250`). Weight-0.25 cases fall to `Stable with watch items` (`DQ=0.7920`).
+
+The existing driver diagnostics can therefore identify a target metric as a severe entropy driver while the top-level classifier simultaneously emits its strongest reassuring label.
+
+## Sensitivity — cycle 3
+
+For the five low-weight (`0.15`) maximal-degradation cases above, 10,000 bounded trials per case varied:
+
+- positive factors near `0.99`;
+- the target degraded observation in `[0.90,1.00]`;
+- all non-target penalty observations in `[0.00,0.05]`.
+
+The strongest `Coherent and grounded` label persisted in **79.03%–79.68%** of trials. This shows the defect is not limited to an exact `1.00/0.00` corner case.
+
+Weight-0.20 cases are less perturbation-robust because their central DQ lies close to the `0.80` classification threshold; they nevertheless demonstrate the same compensatory structure deterministically.
+
 ## Ablation / candidate comparison
 
-Aggregate-only classification fails because averaging is compensatory: strong neighboring metrics can offset a catastrophic critical metric.
+Aggregate-only classification fails because averaging is compensatory: strong neighboring metrics can offset a catastrophic critical metric, and low-weight penalty observations can be diluted before they reach `DQ`.
 
 Candidate ablation: retain all continuous scores unchanged and add only a preregistered prerequisite/critical-floor diagnostic. On the constructed invariant-violation cases, the gate corrects false reassurance by construction. This is not enough to claim general improvement because the cases were internally authored specifically to test those invariants.
 
+Cycle 3 adds a distinct candidate worth testing: a **classification-only extreme-degradation veto** over applicable output-, behavioral-, and operational-entropy base observations. A direct hard-max replacement formula detects the sparse failures but is rejected as premature because it can over-penalize benign moderate single-dimension degradation.
+
 The cycle-2 result rejects a **narrow grounding-only gate** as incomplete. Any candidate gate must be specified semantically across applicable families before evaluation, rather than declaring metrics critical after observing failures.
 
-No threshold has been promoted. `0.40` remains only an initial candidate aligned with the existing aggregate critical-grounding threshold and must be swept on non-holdout development/validation data with benign controls.
+No threshold has been promoted. `0.40` remains only an initial candidate for positive prerequisites; any extreme-degradation threshold on penalty metrics must be independently justified and swept on non-holdout development/validation data with benign controls.
 
 Candidate alternatives retained for testing:
 
 1. aggregate-only frozen classifier;
-2. aggregate classifier + preregistered critical floor;
-3. soft-min / low-percentile diagnostic layer;
-4. independent invariant checklist.
+2. aggregate classifier + preregistered positive prerequisite floor;
+3. aggregate classifier + preregistered extreme-degradation veto;
+4. soft-min / low-percentile diagnostic layer;
+5. independent invariant checklist.
 
 ## Counterexample classification
 
 **Material and reproducible.** The failure is structural and survives substantial perturbation. It is distinct from the prior benchmarks because those benchmarks primarily mutate multiple correlated dimensions and therefore do not exercise sparse catastrophic failures.
 
+Cycle 3 further shows that the same structural weakness exists on both sides of v2 aggregation: positive prerequisites can be averaged upward and negative degradation can be averaged downward.
+
 ## Rejected changes
 
 - Replacing v2 DQ with a minimum-based formula: rejected as premature and would destroy baseline comparability.
+- Replacing penalty-family means with raw hard maxima: rejected as premature because it can overreact to isolated moderate/noisy measurements.
 - Replacing v0.3 governance geometric mean with a hard minimum: rejected as premature because it could overreact to noisy submetrics.
 - Applying only a grounding-family gate: rejected as incomplete after the cross-version flow-quality counterexample.
-- Tuning the gate threshold on any sealed holdout: prohibited.
+- Tuning any gate threshold on sealed holdout: prohibited.
 - Changing benchmark labels after observing model outputs: prohibited.
 
 ## Recommended next experiment
 
-Build a dedicated sparse-failure development/validation suite with both invariant violations and benign low-score controls. The critical set must be preregistered by semantic role before outcomes are inspected. Include at minimum:
+Build a dedicated sparse-failure development/validation suite with both invariant violations and benign low-score/high-penalty controls. The prerequisite and veto sets must be preregistered by semantic role before outcomes are inspected. Include at minimum:
 
 - flow-quality prerequisites;
 - grounding prerequisites;
-- execution prerequisites for tasks that require successful tool/action completion;
+- output-entropy sparse extremes;
+- behavioral-entropy sparse extremes;
+- execution prerequisites and sparse operational failures for tasks that require successful tool/action completion;
 - agent authorization, boundary, observability, and control prerequisites.
 
-Compare aggregate-only scoring, hard prerequisite floors, continuous soft-min diagnostics, and a simple independent invariant checklist. Promotion requires reduced false reassurance without unacceptable false alarms and survival on independently authored cases.
+Compare aggregate-only scoring, hard prerequisite floors, extreme-degradation vetoes, continuous soft-min diagnostics, and a simple independent invariant checklist. Promotion requires reduced false reassurance without unacceptable false alarms and survival on independently authored cases.
 
 ## Research log
 
@@ -122,10 +162,12 @@ Compare aggregate-only scoring, hard prerequisite floors, continuous soft-min di
 - **Result 1:** reproducible false reassurance; persisted under perturbation.
 - **Test 2:** flow-quality single-metric collapse in frozen v1/v2.
 - **Result 2:** same failure pattern; strongest classification persisted in 91.59%–99.97% of perturbed v2 trials.
-- **Counterexamples retained:** `EFGM-CE-0001`, `EFGM-CE-0002`.
-- **Rejected:** hard-min formula replacement; grounding-only patch; holdout tuning.
-- **Current proposal:** classification-only prerequisite layer or soft-min diagnostic, with frozen continuous scores unchanged.
+- **Test 3:** single maximal output/behavioral/operational degradation with strong neighbors.
+- **Result 3:** 10/15 central cases still receive the strongest v2 label; five low-weight maximal failures remain strongest-label cases in ~79% of noisy trials.
+- **Counterexamples retained:** `EFGM-CE-0001`, `EFGM-CE-0002`, `EFGM-CE-0003`.
+- **Rejected:** hard-min formula replacement; raw hard-max penalty replacement; grounding-only patch; holdout tuning.
+- **Current proposal:** evaluate a classification-only positive prerequisite layer plus an extreme-degradation veto or soft-min diagnostic, with frozen continuous scores unchanged.
 
 ## Conclusion
 
-Current evidence strongly justifies testing a general prerequisite/critical-dimension diagnostic layer. It does **not** justify silently changing the frozen v0.2 baseline or promoting the experimental v0.3 candidate.
+Current evidence strongly justifies testing a broader non-compensatory diagnostic/classification layer. It does **not** justify silently changing the frozen v0.2 baseline or promoting the experimental v0.3 candidate.
