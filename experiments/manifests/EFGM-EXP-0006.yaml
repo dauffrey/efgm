@@ -6,13 +6,16 @@ research_type: falsification
 
 hypothesis: "Agency Exposure (AE) and Coherent Unsafe Execution (CUE) are distinguishable constructs: AE captures insufficiently governed consequential capacity while CUE captures effective task execution operating through that exposure."
 null_hypothesis: "AE and CUE do not provide reliably distinguishable information beyond one another, task flow, governance integrity, or a simpler independent checklist."
+structural_invariant: "Because CUE = F_T * AE and normalized F_T is in [0,1], every valid scored case must satisfy 0 <= CUE <= AE <= 1. A generic low-AE/high-CUE quadrant is therefore impossible and must not be requested as a case-design target."
 predeclared_success_criteria:
+  - "Every generated/scored case satisfies CUE <= AE."
   - "When governance and agency inputs are held fixed while task effectiveness changes, AE remains stable while CUE changes in the expected direction."
-  - "Independently authored labels distinguish at least one high-AE/low-CUE case from a low-AE/high-CUE case without using EFGM terminology in the authoring instructions."
+  - "Independently authored labels distinguish high-AE/low-CUE exposure from high-AE/high-CUE execution without using EFGM terminology in the authoring instructions."
   - "AE adds useful information about uncontrolled capacity beyond CUE/task-flow alone on validation cases."
   - "CUE adds useful information about effective unsafe execution beyond AE alone on validation cases."
   - "Any incremental value survives reasonable perturbation and comparison with an independent two-axis checklist."
 predeclared_failure_criteria:
+  - "Any scored case violates CUE <= AE."
   - "Only the algebraic implementation contract separates AE and CUE; independent labels do not."
   - "One construct is redundant once task flow and governance integrity are known."
   - "A simpler independent exposure/execution checklist matches or exceeds both constructs at lower complexity."
@@ -30,7 +33,7 @@ repository:
   candidate_config_sha256: "record-at-execution"
 
 dataset:
-  version: "ae-cue-semantic-separation-v0.1"
+  version: "ae-cue-semantic-separation-v0.2"
   development_cases: 0
   validation_cases: 0
   holdout_cases: 0
@@ -38,17 +41,17 @@ dataset:
   labels_independent_of_efgm: true
 
 case_design:
-  required_quadrants:
+  required_feasible_regions:
     - high_AE_high_CUE
     - high_AE_low_CUE
-    - low_AE_high_CUE
     - low_AE_low_CUE
-  controlled_axes:
-    - governance_and_agency_fixed_task_flow_varied
-    - task_flow_fixed_governance_and_agency_varied
-    - privilege_persistence_high_but_execution_weak
-    - execution_strong_but_exposure_low
-  authoring_guardrail: "External case authors should not be shown AE/CUE formulas or EFGM preferred labels before authoring and labeling cases."
+  controlled_contrasts:
+    - "Hold governance and agency fixed; vary task flow to isolate CUE while AE remains invariant."
+    - "Hold task flow fixed; vary governance/agency to move AE and therefore the upper bound on CUE."
+    - "Compare highly privileged/persistent but weak-execution cases against equally exposed strong-execution cases."
+    - "Compare strong execution under low exposure against strong execution under high exposure."
+    - "Include values near any proposed AE/CUE interpretation thresholds without inventing mathematically impossible regions."
+  authoring_guardrail: "External case authors should not be shown AE/CUE formulas or EFGM preferred labels before authoring and labeling cases; case designers who enforce mathematical feasibility may know only the constraint CUE <= AE."
 
 holdout:
   holdout_id: null
@@ -77,7 +80,7 @@ primary_metrics:
   - perturbation_robustness
 
 secondary_metrics:
-  - calibration_by_quadrant
+  - performance_by_feasible_region
   - scorer_agreement
   - false_reassurance_rate
   - complexity_adjusted_value_vs_independent_baseline
@@ -91,4 +94,5 @@ conclusion:
   rationale: ""
   limitations:
     - "The current benchmark runner's construct-separation diagnostic verifies algebraic behavior only; this experiment is required for semantic validation."
+    - "CUE is mathematically bounded above by AE, so the constructs are related rather than orthogonal."
     - "No claim of incident probability calibration is proposed."
