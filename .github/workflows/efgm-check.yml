@@ -32,11 +32,16 @@ jobs:
         run: efgm-score examples/weather_forecast_demo/input.json --model v1 --format markdown
       - name: Run v2 decision-integrity demo with strict provenance
         run: efgm-score examples/decision_integrity_demo/input.json --model v2 --require-provenance --format markdown
+      - name: Run EFGM Benchmark v0.1 experiment
+        if: matrix.python-version == '3.12'
+        run: |
+          efgm-experiment --benchmark v0.1 --sensitivity-trials 100 --perturbation 0.10 --format markdown
       - name: Build distributable wheel
         run: python -m build --wheel
-      - name: Verify packaged config from installed wheel
+      - name: Verify packaged config and experiment CLI from installed wheel
         run: |
           python -m pip uninstall -y efgm
           python -m pip install --force-reinstall dist/*.whl
           cd /tmp
           efgm-score "$GITHUB_WORKSPACE/examples/decision_integrity_demo/input.json" --model v2 --require-provenance --format json
+          efgm-experiment --benchmark v0.1 --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-experiment-smoke.json
