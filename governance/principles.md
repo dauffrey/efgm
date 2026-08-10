@@ -99,12 +99,15 @@ Therefore:
 
 For autonomous-agent research, high privilege, connectivity, persistence, coordination, or action velocity is not automatically unsafe.
 
-Agent Governance v0.3 preserves distinctions between:
+Agent Governance v0.3 preserves distinctions between agency amplification, governance integrity (`GI`), agency exposure (`AE`), and coherent unsafe execution (`CUE`).
 
-- agency amplification;
-- governance integrity (`GI`);
-- agency exposure (`AE`);
-- coherent unsafe execution (`CUE`).
+```text
+AE  = A_a × (1 - GI)
+CUE = F_T × AE
+0 <= CUE <= AE <= 1
+```
+
+AE and CUE are related rather than orthogonal. A generic low-AE/high-CUE case is structurally impossible and must not be used as a research target.
 
 A capable agent with strong governance is not equivalent to a capable agent with weak governance.
 
@@ -127,6 +130,8 @@ In the current Agent Governance implementation, **whole-family N/A is permitted 
 The family is excluded from `GI` rather than assumed perfect. Results expose applicable/excluded governance families and family count because cross-case comparisons may require stratification.
 
 No other whole-family N/A semantics are currently supported.
+
+For temporal residual-state verification, an N/A claim is stronger than ordinary omission: it is a scope assertion and therefore requires rationale, scorer identity/type, positive confidence, and evidence references before it can contribute to a verified-recovery candidate.
 
 ---
 
@@ -195,11 +200,11 @@ For autonomous agents:
 Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
 ```
 
-Agent Governance temporal research distinguishes:
+Temporal states must share an explicit `sequence_id` before they can be interpreted as one trajectory. Cross-sequence state comparisons are rejected rather than treated as recovery evidence. Transition results should retain candidate config identity/hash, before/after input hashes, and residual-state identity where applicable.
 
 ### Recovery progress
 
-A valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
+A same-sequence valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
 
 Recovery progress means movement in the intended direction. It is not proof control has been restored.
 
@@ -207,14 +212,17 @@ Recovery progress means movement in the intended direction. It is not proof cont
 
 A stronger experimental signal requiring recovery progress plus:
 
+- the post-intervention state itself is classified as governed;
 - no remaining candidate-prerequisite breach;
 - no elevated AE/CUE diagnostic;
 - complete residual-state evidence;
 - no material residual credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps marked present.
 
-An `unknown` residual state prevents verified recovery. Even verified recovery is a **research signal, not a production containment attestation**.
+For verified-recovery assessment, `clear`, `present`, and `not_applicable` residual claims require evidence and scorer provenance; `unknown` prevents verified recovery.
 
-`EFGM-EXP-0005` must actively test partial recovery and residual-state failure cases.
+Even verified recovery is a **research signal, not a production containment attestation**.
+
+`EFGM-EXP-0005` must actively test unrelated sequences, governance-deficient post-states, partial recovery, residual-state failure cases, and N/A misuse.
 
 ---
 
@@ -226,9 +234,10 @@ Examples:
 
 - monotonic classification boundary tests verify implementation consistency;
 - lowering task flow while holding governance/agency fixed can verify `AE` remains unchanged and `CUE` decreases;
+- `CUE <= AE` is a structural formula invariant, not evidence that either construct is useful;
 - independent semantic labels are still required to determine whether `AE` and `CUE` are useful distinct constructs.
 
-`EFGM-EXP-0006` is reserved for that semantic validation.
+`EFGM-EXP-0006` is reserved for that semantic validation using only mathematically feasible contrasts.
 
 ---
 
