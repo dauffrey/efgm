@@ -18,8 +18,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def test_exp0004_dataset_partition_and_hash_are_frozen():
     assert len(DEVELOPMENT_CASE_SPECS) == 12
-    assert len(VALIDATION_CASE_SPECS) == 12
-    assert dataset_sha256() == "999b60706e7a20d5a2b4eda123511a7a39922038854aacab2c2c6edc1698a758"
+    assert len(VALIDATION_CASE_SPECS) == 15
+    assert dataset_sha256() == "71b8534a2cc69e62c4375a100d85b40de1051ffbdf61bd9f035ce19728fdeb38"
     assert not {case["case_id"] for case in DEVELOPMENT_CASE_SPECS} & {
         case["case_id"] for case in VALIDATION_CASE_SPECS
     }
@@ -61,25 +61,35 @@ def test_exp0004_exposes_sparse_false_reassurance_but_does_not_pass_promotion_ga
     assert result["code_sha"] == "test-code-sha"
     assert result["holdout_cases"] == 0
     assert result["holdout_accessed"] is False
+    assert result["baseline_config_id"] == "efgm-v2.0-baseline"
+    assert result["independent_checklist_threshold"] == 0.40
 
-    for split in ("development", "validation"):
-        summary = result[split]
-        assert summary["aggregate_only"]["false_reassurance_rate"] == 1.0
-        assert (
-            summary["configured_candidate_prerequisites"]["detection_rate"]
-            == 1.0
-        )
-        assert (
-            summary["configured_candidate_prerequisites"]["false_alarm_rate"]
-            == 0.0
-        )
-        assert summary["governance_observation_floor"]["detection_rate"] == 1.0
-        assert summary["governance_observation_floor"]["false_alarm_rate"] == 0.5
-        assert summary["governance_low_percentile"]["detection_rate"] == 0.0
-        assert summary["governance_low_percentile"]["false_alarm_rate"] == 0.0
-        assert summary["independent_invariant_checklist"]["detection_rate"] == 1.0
-        assert summary["independent_invariant_checklist"]["false_alarm_rate"] == 0.0
-        assert summary["incremental_balanced_accuracy_vs_checklist"] == 0.0
+    development = result["development"]
+    validation = result["validation"]
+
+    assert development["aggregate_only"]["false_reassurance_rate"] == 1.0
+    assert development["configured_candidate_prerequisites"]["detection_rate"] == 1.0
+    assert development["configured_candidate_prerequisites"]["false_alarm_rate"] == 0.0
+    assert development["governance_observation_floor"]["detection_rate"] == 1.0
+    assert development["governance_observation_floor"]["false_alarm_rate"] == 0.5
+    assert development["governance_low_percentile"]["detection_rate"] == 0.0
+    assert development["governance_low_percentile"]["false_alarm_rate"] == 0.0
+    assert development["independent_invariant_checklist"]["detection_rate"] == 1.0
+    assert development["independent_invariant_checklist"]["false_alarm_rate"] == 0.0
+
+    # Three validation challenge cases are semantically catastrophic but intentionally
+    # outside both the configured candidate prerequisite set and the simpler invariant
+    # checklist. This tests path-set completeness rather than only threshold behavior.
+    assert validation["aggregate_only"]["false_reassurance_rate"] == 1.0
+    assert validation["configured_candidate_prerequisites"]["detection_rate"] == pytest.approx(6 / 9, abs=0.0001)
+    assert validation["configured_candidate_prerequisites"]["false_alarm_rate"] == 0.0
+    assert validation["governance_observation_floor"]["detection_rate"] == 1.0
+    assert validation["governance_observation_floor"]["false_alarm_rate"] == 0.5
+    assert validation["governance_low_percentile"]["detection_rate"] == 0.0
+    assert validation["governance_low_percentile"]["false_alarm_rate"] == 0.0
+    assert validation["independent_invariant_checklist"]["detection_rate"] == pytest.approx(6 / 9, abs=0.0001)
+    assert validation["independent_invariant_checklist"]["false_alarm_rate"] == 0.0
+    assert validation["incremental_balanced_accuracy_vs_checklist"] == 0.0
 
     assert result["promotion_gate_passed"] is False
 
@@ -93,13 +103,13 @@ def test_exp0004_threshold_sensitivity_and_ablation_are_visible():
     )
 
     sensitivity = result["threshold_sensitivity"]
-    assert sensitivity["0.40"]["detection_rate"] == 1.0
+    assert sensitivity["0.40"]["detection_rate"] == 0.8
     assert sensitivity["0.40"]["false_alarm_rate"] == 0.0
-    assert sensitivity["0.30"]["detection_rate"] == 0.5
+    assert sensitivity["0.30"]["detection_rate"] == 0.4
     assert sensitivity["0.50"]["false_alarm_rate"] == 0.5
 
     for ablation in result["candidate_prerequisite_path_ablation"].values():
-        assert ablation["detection_rate"] == pytest.approx(10 / 12, abs=0.0001)
+        assert ablation["detection_rate"] == pytest.approx(10 / 15, abs=0.0001)
 
 
 @pytest.mark.parametrize(

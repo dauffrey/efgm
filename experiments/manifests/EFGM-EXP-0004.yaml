@@ -40,10 +40,10 @@ assessment_identity:
   provenance_complete: true
 
 dataset:
-  version: "sparse-governance-failures-v0.2"
-  dataset_sha256: "999b60706e7a20d5a2b4eda123511a7a39922038854aacab2c2c6edc1698a758"
+  version: "sparse-governance-failures-v0.3"
+  dataset_sha256: "71b8534a2cc69e62c4375a100d85b40de1051ffbdf61bd9f035ce19728fdeb38"
   development_cases: 12
-  validation_cases: 12
+  validation_cases: 15
   holdout_cases: 0
   label_source: "preregistered semantic invariants plus benign controls"
   labels_independent_of_efgm: false
@@ -74,6 +74,18 @@ baselines:
   independent:
     - preregistered_invariant_checklist
 
+independent_invariant_checklist:
+  threshold: 0.40
+  coupling_rule: "The checklist threshold and semantic path set are frozen independently of alternate candidate configs; it does not consume EFGM composite scores."
+  label_independence: "The checklist is independent of EFGM aggregation, not an externally independent label source."
+
+validation_challenges:
+  uncovered_candidate_paths:
+    - alignment.prohibited_goal_avoidance
+    - boundary_integrity.capability_scope_adherence
+    - control_recoverability.state_cleanup_completeness
+  purpose: "Test whether the configured prerequisite path set is incomplete even when its covered paths behave as intended."
+
 candidate_prerequisite_ablation:
   compare_full_set: true
   compare_each_path_removed: true
@@ -94,7 +106,7 @@ secondary_metrics:
 
 runner:
   module: "efgm.exp0004_sparse_governance"
-  runner_version: "0.1.0"
+  runner_version: "0.2.0"
   ci_python: "3.12"
   perturbation_trials: 200
   perturbation: 0.10

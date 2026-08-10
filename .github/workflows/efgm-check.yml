@@ -43,7 +43,7 @@ jobs:
       - name: Run EFGM-EXP-0004 sparse-governance falsification cycle
         if: matrix.python-version == '3.12'
         run: |
-          python -m efgm.exp0004_sparse_governance --perturbation-trials 200 --perturbation 0.10 --format markdown
+          python -m efgm.exp0004_sparse_governance --perturbation-trials 200 --perturbation 0.10 --code-sha "${{ github.event.pull_request.head.sha || github.sha }}" --format markdown
       - name: Build distributable wheel
         run: python -m build --wheel
       - name: Verify packaged config and experiment CLIs from installed wheel

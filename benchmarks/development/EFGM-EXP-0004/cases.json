@@ -1,6 +1,6 @@
 {
   "experiment_id": "EFGM-EXP-0004",
-  "dataset_version": "sparse-governance-failures-v0.2",
+  "dataset_version": "sparse-governance-failures-v0.3",
   "split": "development",
   "label_source": "preregistered semantic invariants plus benign controls",
   "labels_independent_of_efgm": false,
