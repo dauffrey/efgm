@@ -1,238 +1,183 @@
-# Security Policy
+# EFGM Security Policy
 
 ## Purpose
 
-This document defines security and information-handling expectations for the Entropy-Flow Governance Model (EFGM) repository.
+This document defines security and information-handling expectations for the Entropy-Flow Governance Model (EFGM) repository and its experimental tooling.
 
-EFGM is currently an early-stage governance framework and prototype scoring concept. The repository may contain model definitions, examples, validation material, templates, and future prototype code. Contributors and reviewers should treat the repository as a shared investigation space and avoid adding sensitive, confidential, or operationally restricted material.
+EFGM is an experimental governance and measurement framework. It is not a production security control, compliance engine, autonomous approval system, or substitute for formal security review.
 
----
+## Supported Research State
 
-## Supported Versions
-
-EFGM is currently in early investigation status. No production release or formally supported version is available yet.
-
-| Version / Branch | Supported | Notes |
+| Version / Branch | Status | Notes |
 |---|---:|---|
-| `main` | Yes | Current investigation and review branch |
-| Prototype branches | Limited | Reviewed case by case |
-| Archived drafts | No | Retained for reference only |
-
----
+| Canonical v2 on `main` | Research baseline | Decision-integrity baseline; not a production security product |
+| Experimental v0.3 | Research candidate | Autonomous-agent governance research only |
+| Historical v1 | Compatibility / history | Not canonical for new research |
 
 ## Reporting a Security Issue
 
-If you identify a security concern in this repository, report it privately through the appropriate internal channel before opening a public issue.
+Report sensitive repository concerns privately through an appropriate authorized channel before opening a public issue.
 
-Security concerns may include:
+Potential concerns include:
 
-- exposed credentials;
-- client-sensitive information;
-- production system details;
+- exposed credentials or secrets;
+- client-sensitive or personal information;
+- production architecture or access details;
 - confidential incident information;
-- sensitive architecture details;
-- personal information;
 - unsafe prototype behavior;
-- misleading governance recommendations that could create operational risk;
-- misuse of the model in a way that creates false confidence.
+- misleading governance recommendations that could create false confidence;
+- sealed-holdout leakage into the tuning-visible repository.
 
-Do not disclose sensitive details in a public GitHub issue, pull request, discussion, commit message, or example file.
-
----
+Do not reproduce sensitive details in a public issue, pull request, discussion, commit message, benchmark, or example.
 
 ## Information That Must Not Be Committed
 
-Do not commit any of the following:
+Do not commit:
 
-| Restricted Information | Examples |
-|---|---|
-| Credentials | Passwords, tokens, API keys, certificates, private keys |
-| Production access details | Connection strings, privileged accounts, firewall rules, VPN details |
-| Client-sensitive information | Client names, internal system details, confidential workflows, unapproved documentation |
-| Personal information | Names, contact details, user identifiers, employment or HR information unless explicitly approved |
-| Incident-sensitive material | Raw incident timelines, security findings, exploit details, breach information |
-| Restricted architecture details | Network diagrams, security zones, internal IP mappings, privileged system topology |
-| Proprietary material | Vendor documentation, third-party confidential content, restricted screenshots |
-| Unredacted logs | Application logs, database logs, audit logs, monitoring exports, stack traces with identifiers |
+- passwords, tokens, API keys, private keys, certificates, or connection secrets;
+- privileged account details or production access instructions;
+- confidential client or government information;
+- personal information unless explicitly approved for publication;
+- restricted incident timelines or exploit details;
+- sensitive architecture, network, host, or security-zone information;
+- proprietary third-party material without authorization;
+- unredacted logs containing identifiers or restricted values;
+- real sealed-holdout case contents or preferred labels visible to the tuning loop.
 
-Use sanitized examples wherever possible.
-
----
+Use public, simulated, sanitized, or explicitly approved evidence.
 
 ## Sanitized Example Requirements
 
-Examples in this repository should be generalized and safe to share.
+Repository examples should:
 
-A sanitized example should:
+- remove real credentials, IPs, internal hostnames, private identifiers, and client-specific details;
+- preserve only the minimum structure required to test the research question;
+- identify synthetic or fictional values when appropriate;
+- avoid implying that a synthetic scenario reconstructs a real client or security incident.
 
-- remove real names, credentials, IP addresses, hostnames, client identifiers, and ticket numbers unless approved;
-- avoid production-specific architecture details;
-- avoid copying restricted email, chat, or incident content;
-- preserve only the minimum structure needed to demonstrate the EFGM concept;
-- clearly indicate when values are fictional or illustrative;
-- avoid implying that the example represents an actual client or production incident.
+## Canonical Evidence Vocabulary
 
-Recommended language:
+Security-relevant EFGM assessments must use the same observation states as the executable model:
+
+| Status | Meaning |
+|---|---|
+| `observed` | Directly supported by evidence |
+| `inferred` | Estimated from indirect evidence or reviewer judgment |
+| `unknown` | Evidence is insufficient to characterize the metric |
+| `not_applicable` | The construct genuinely does not apply |
+
+Do not use a parallel canonical scoring vocabulary such as `verified` / `assumed`. Those terms may appear in prose, but when evidence enters an EFGM `MetricObservation` it must map to the executable states above.
+
+Security invariant:
 
 ```text
-This example is fictional and uses sanitized values for demonstration only.
+unknown != safe
+0.00 != unknown
+not_applicable != unknown
 ```
-
----
-
-## Model-Specific Security Considerations
-
-EFGM is intended to support governance judgment, not replace it. Security-sensitive use of EFGM should be handled conservatively.
-
-Do not use EFGM as:
-
-- a substitute for security review;
-- a substitute for privacy review;
-- a substitute for architecture review;
-- a substitute for threat modeling;
-- a substitute for change management approval;
-- a substitute for incident response procedures;
-- a guarantee that a system is safe, correct, or compliant.
-
-EFGM scores should be treated as decision-support signals. They should not be treated as authoritative proof of safety or readiness.
-
----
 
 ## Safe Use of EFGM Scores
 
-When using EFGM in security-relevant contexts:
+In security-relevant contexts:
 
-1. Preserve evidence and rationale for each score.
-2. Distinguish verified facts from assumptions.
-3. Mark unknown evidence explicitly.
-4. Escalate high-entropy or low-verification cases for human review.
-5. Avoid presenting provisional scores as final approval.
-6. Do not use the model to override required enterprise controls.
-7. Do not use a high score to bypass formal security, architecture, privacy, or change-management gates.
+1. Preserve evidence, rationale, scorer identity/type, and confidence.
+2. Do not use a high aggregate score to bypass a critical security control.
+3. Inspect prerequisite/critical-dimension diagnostics where available.
+4. Treat material unknowns conservatively and obtain evidence before relying on the result.
+5. Keep accountable human/security ownership for consequential decisions.
+6. Do not use EFGM as authorization to access, test, exploit, or modify systems.
+7. Do not use EFGM to override existing security, privacy, architecture, legal, regulatory, or change-management gates.
 
-Recommended evidence labels:
+## Autonomous-Agent Security Research
 
-| Label | Meaning |
-|---|---|
-| Verified | Supported by evidence |
-| Inferred | Reasonable conclusion from available evidence |
-| Assumed | Working assumption that needs validation |
-| Unknown | Evidence is missing or insufficient |
-| Not Applicable | Metric does not apply in the current context |
+Experimental v0.3 research distinguishes:
 
----
+```text
+G  = v2 Grounding
+GI = v0.3 Governance Integrity
+AE = Agency Exposure
+CUE = Coherent Unsafe Execution
+```
+
+High privilege, connectivity, persistence, coordination, or action velocity is not automatically a security failure. The experimental question is whether consequential agency remains adequately governed, observable, bounded, and recoverable.
+
+Unknown boundary state, unknown persistence surfaces, unknown credential propagation, or unknown recoverability must not be interpreted as integrity.
+
+## Critical-Dimension Limitation
+
+Retained EFGM counterexamples show that aggregate means can hide a sparse catastrophic failure. Therefore:
+
+- aggregate EFGM scores are not sufficient security approval;
+- critical controls must remain visible individually;
+- non-compensatory prerequisite/veto/low-percentile diagnostics are experimental research aids, not substitutes for security policy;
+- a reassuring aggregate classification must not overrule an independently known security violation.
+
+## Temporal Intervention and Recovery
+
+For autonomous-agent experiments, a post-intervention score is not proof that control has been fully restored.
+
+Security review should consider residual state such as:
+
+- cached credentials;
+- persistent files or external memory;
+- delegated goals in peer agents;
+- retained privileges;
+- queues or scheduled actions;
+- side effects that rollback cannot reverse;
+- observability gaps during containment.
+
+The experimental `recovery_signal` in `temporal_v0_3.py` indicates only that Governance Integrity increased and Agency Exposure decreased after a declared intervention. It is not a production containment attestation.
 
 ## Prototype Code Security
 
-If prototype code is added to this repository, contributors should follow these rules:
+Prototype code should:
 
-- do not hard-code credentials;
-- do not call external systems without explicit approval;
-- do not process sensitive data by default;
-- do not upload logs or datasets containing restricted information;
-- validate input files before processing;
-- handle errors without exposing sensitive paths, values, or system details;
-- document any third-party dependencies;
-- keep generated outputs sanitized.
+- avoid external system calls by default;
+- avoid sensitive data processing by default;
+- validate input structures;
+- fail closed on unknown observations rather than invent favorable values;
+- expose calculated scores and diagnostic inputs clearly;
+- keep scoring configurations versioned and hashable;
+- avoid secrets in fixtures, examples, generated reports, and CI logs.
 
-If a prototype scoring engine is later added, it should clearly distinguish between:
+## Dependency and Supply-Chain Guidance
 
-- calculated scores;
-- reviewer-entered scores;
-- inferred scores;
-- missing data;
-- confidence values;
-- recommended governance actions.
-
----
-
-## Dependency and Supply Chain Guidance
-
-If software dependencies are introduced later:
-
-- use minimal dependencies;
-- prefer well-maintained packages;
-- document dependency purpose;
-- pin versions where appropriate;
-- review licenses;
-- scan dependencies before release if the prototype becomes operationally relevant.
-
----
-
-## Handling Sensitive Findings in Reviews
-
-If a reviewer discovers sensitive or restricted information in this repository:
-
-1. Do not quote the sensitive content in a public issue.
-2. Notify the repository owner or responsible maintainer through an approved private channel.
-3. Identify the file path and general issue type without repeating the secret or sensitive content.
-4. Remove or rotate exposed credentials if applicable.
-5. Replace the material with a sanitized example if the content is still useful for model validation.
-
-Example safe report wording:
-
-```text
-Potential sensitive information found in docs/example-file.md. The file appears to include environment-specific operational details. Recommend private review and sanitization.
-```
-
----
+- Keep dependencies minimal.
+- Prefer maintained packages.
+- Document dependency purpose.
+- Review licenses.
+- Test built artifacts, not only editable/source-tree behavior.
+- Add dependency scanning before any operationally meaningful distribution.
 
 ## Security Review Triggers
 
-A security review should be considered before EFGM is used for any of the following:
+A formal security review should occur before EFGM is used for:
 
-- production release decisions;
-- security incident review;
-- privacy-impacting workflows;
-- autonomous or semi-autonomous agent governance;
-- access-control review;
-- regulated data handling;
-- client-facing reporting;
-- external publication;
-- tooling that processes real operational data.
-
----
-
-## Responsible Disclosure Expectations
-
-Contributors and reviewers are expected to act responsibly when identifying potential security concerns.
-
-Do:
-
-- report sensitive issues privately;
-- minimize disclosure;
-- preserve evidence safely;
-- avoid spreading restricted information;
-- support remediation and sanitization.
-
-Do not:
-
-- post secrets in issues or comments;
-- commit unredacted logs;
-- publish exploit details;
-- use the repository to test unauthorized access;
-- use EFGM scores to bypass required governance controls.
-
----
+- production autonomous-agent governance;
+- access-control approval;
+- security incident containment or restoration decisions;
+- regulated or privacy-impacting workflows;
+- production release approval;
+- tooling that processes real confidential operational data;
+- external publication that may contain sensitive evidence.
 
 ## Current Security Status
 
-Current status: **Early-stage investigation**
+Current status: **research prototype**.
 
-EFGM is not currently a production security tool, compliance tool, or risk engine. Any security-related use should be limited, reviewed, and supported by existing enterprise governance processes.
+EFGM must not be used as:
 
----
+- security certification;
+- compliance attestation;
+- authorization to take privileged action;
+- autonomous production go/no-go authority;
+- proof that an agent or workflow is safe.
 
-## Summary
-
-The EFGM repository should remain safe, sanitized, and reviewable.
-
-Security expectations are simple:
+The repository security principle is:
 
 ```text
-Do not commit sensitive information.
-Do not treat EFGM scores as security approval.
-Use sanitized examples.
-Escalate sensitive concerns privately.
-Preserve human review and formal governance controls.
+Keep evidence sanitized.
+Keep unknowns explicit.
+Keep critical controls visible.
+Keep formal security authority outside the EFGM score.
 ```
