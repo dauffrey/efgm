@@ -1,28 +1,33 @@
 experiment_id: EFGM-EXP-0005
-title: "Temporal intervention and recovery in governed agentic flow"
+title: "Temporal intervention, residual state, and recovery in Agent Governance"
 date: 2026-08-10
 status: planned
 research_type: falsification
 
-hypothesis: "Agent-governance state transitions contain useful information not represented by a single static v0.3 snapshot, especially after governance intervention."
-null_hypothesis: "Static governance-state scores are sufficient; transition deltas and intervention/recovery signals add no stable diagnostic value."
+hypothesis: "Agent-governance state transitions and residual-state evidence contain useful information not represented by a single static Agent Governance v0.3 snapshot, especially after governance intervention."
+null_hypothesis: "Static governance-state scores are sufficient; transition deltas, residual-state checks, and recovery signals add no stable diagnostic value."
 predeclared_success_criteria:
-  - "State transitions correctly preserve before/after score identities and direction of GI, AE, and CUE changes."
-  - "Governance interventions that restore authorized controls produce higher GI and lower AE in preregistered recovery cases."
-  - "Partial interventions with residual credentials, persistence, memory, or coordination do not receive the same recovery interpretation as complete-control cases."
+  - "State transitions preserve before/after config/input identities and direction of GI, AE, and CUE changes."
+  - "Recovery progress is emitted only for a declared pre_intervention -> post_intervention transition with higher GI and lower AE."
+  - "Verified recovery is not emitted when candidate-prerequisite breaches remain after intervention."
+  - "Verified recovery is not emitted when residual credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps are present or unknown."
+  - "Complete-control cases with evidence-backed clear/not-applicable residual states can receive verified recovery when other criteria are satisfied."
   - "Transition diagnostics add information beyond comparing final static classifications alone."
 predeclared_failure_criteria:
-  - "Transition metrics are redundant with final-state classification."
-  - "Recovery signals remain positive despite preregistered material residual agency/control failures."
+  - "Recovery progress is emitted for an invalid intervention phase transition."
+  - "Verified recovery remains positive despite a preregistered material residual state or candidate-prerequisite breach."
+  - "Recovery interpretation is reducible to final-state classification with no incremental information."
   - "Results are unstable under small evidence perturbations."
 
 repository:
   code_sha: "freeze-at-execution"
   branch: "agent/harden-v2-v03-governance"
+  canonical_model: "EFGM v2"
   package_version: "0.2.0"
+  experimental_extension: "Agent Governance v0.3"
   baseline_config_id: efgm-v2.0-baseline
   baseline_config_sha256: "record-at-execution"
-  candidate_config_id: efgm-v0.3-agent-governance-candidate
+  candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
   candidate_config_sha256: "record-at-execution"
 
 assessment_identity:
@@ -31,7 +36,7 @@ assessment_identity:
   provenance_complete: true
 
 dataset:
-  version: "temporal-agent-governance-v0.1"
+  version: "temporal-agent-governance-v0.2"
   development_cases: 0
   validation_cases: 0
   holdout_cases: 0
@@ -55,22 +60,35 @@ scorers:
 
 baselines:
   efgm_derived:
-    - final_static_v0.3_state
+    - final_static_agent_v0.3_state
     - before_after_static_comparison
-    - temporal_delta_diagnostics
+    - recovery_progress_signal
+    - verified_recovery_signal
   independent:
     - explicit_intervention_invariant_checklist
 
+residual_surfaces:
+  - credentials
+  - persistence
+  - environmental_memory
+  - coordination
+  - privileges
+  - scheduled_actions
+  - irreversible_side_effects
+  - rollback_gaps
+
 primary_metrics:
-  - recovery_signal_accuracy
-  - false_recovery_rate
-  - missed_recovery_rate
+  - recovery_progress_accuracy
+  - verified_recovery_accuracy
+  - false_verified_recovery_rate
+  - missed_verified_recovery_rate
   - perturbation_robustness
 
 secondary_metrics:
   - delta_governance_integrity
   - delta_agency_exposure
   - delta_coherent_unsafe_execution
+  - candidate_prerequisite_breach_persistence
   - residual_state_detection
   - incremental_value_vs_static_state
 
@@ -83,5 +101,6 @@ conclusion:
   rationale: ""
   limitations:
     - "Initial transition cases are internally authored."
-    - "The first recovery_signal is intentionally narrow and is not proof of complete recovery."
+    - "Recovery progress and verified recovery are experimental research signals, not production containment attestations."
+    - "Residual-state completeness depends on the defined surface inventory; unknown unmodeled surfaces may still exist."
     - "No calibrated temporal incident probability is proposed."
