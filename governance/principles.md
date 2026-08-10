@@ -2,361 +2,270 @@
 
 ## Purpose
 
-This document defines the governance principles for applying the **Entropy-Flow Governance Model (EFGM)** responsibly.
+This document defines responsible-use and research-governance principles for the Entropy-Flow Governance Model (EFGM).
 
-EFGM is intended to help reviewers identify when a system, workflow, decision path, AI-assisted output, or operational process is maintaining coherent flow or degrading under entropy. These principles are intended to prevent misuse, overclaiming, false precision, and inappropriate reliance on the score alone.
+```text
+Canonical model:        EFGM v2
+Python package:         0.2.0
+Experimental extension: Agent Governance v0.3
+```
 
 EFGM should support judgment. It should not replace judgment.
 
 ---
 
-## 1. Treat EFGM as a Governance Aid, Not an Absolute Truth Engine
+## 1. Treat EFGM as a Governance Aid, Not a Truth or Approval Engine
 
-EFGM scores should be interpreted as structured indicators, not definitive proof.
+EFGM scores and diagnostics do not prove that an output is correct, a system is safe, a decision is compliant, a release is approved, an autonomous agent is adequately controlled, or available evidence is complete.
 
-A score can help answer:
-
-> Is this system, workflow, or reasoning chain coherent enough to proceed?
-
-A score should not be treated as proof that:
-
-- the output is correct;
-- the system is safe;
-- the decision is risk-free;
-- the evidence is complete;
-- the process no longer requires human review.
-
-EFGM provides a coherence signal. It does not determine objective truth by itself.
+A high EFGM score must not bypass required security, privacy, architecture, legal, regulatory, change-management, safety, or domain-review controls.
 
 ---
 
 ## 2. Preserve Evidence and Rationale
 
-Every EFGM assessment should record the evidence behind the score.
+Every research-grade applied normalized metric should use `MetricObservation` semantics:
 
-Each metric score should include:
-
-- the observed signal;
-- the evidence source;
-- the rationale for the score;
-- the confidence level;
-- any assumptions or unknowns.
-
-A score without evidence should be treated as weak or provisional.
-
-### Minimum Evidence Standard
-
-| Field | Description |
+| Field | Purpose |
 |---|---|
-| Metric | The EFGM metric being scored |
-| Score | Normalized value, usually `0.00–1.00` |
-| Evidence | Observable reason for the score |
-| Rationale | Explanation of how the evidence maps to the score |
-| Confidence | Reviewer confidence in the score |
-| Status | Verified, Inferred, Assumed, Unknown, or Not Applicable |
+| `value` | Normalized value when applicable |
+| `status` | Evidence/observation state |
+| `rationale` | Why evidence maps to the value/state |
+| `evidence_refs` | Traceable support |
+| `scorer_id` | Reviewer/model identity |
+| `scorer_type` | Human, model, automated, or hybrid |
+| `confidence` | Scorer confidence |
+
+A numeric score without defensible evidence is weak research evidence even where compatibility mode can technically score it.
 
 ---
 
-## 3. Distinguish Verified, Inferred, Assumed, Unknown, and Not Applicable
+## 3. Use One Canonical Observation Vocabulary
 
-EFGM assessments should clearly separate evidence states.
-
-| Label | Meaning |
+| Status | Meaning |
 |---|---|
-| Verified | Supported by direct evidence |
-| Inferred | Reasonable conclusion from available evidence |
-| Assumed | Used as a working assumption, but not verified |
-| Unknown | Evidence is missing, incomplete, or unavailable |
-| Not Applicable | Metric does not apply to the assessment context |
+| `observed` | Directly supported by evidence |
+| `inferred` | Estimated from indirect evidence or reviewer judgment |
+| `unknown` | Evidence is insufficient to score the observation |
+| `not_applicable` | The construct genuinely does not apply |
 
-This distinction is critical because uncertainty should not be hidden inside a numeric score.
-
-Unknown evidence should not automatically be treated as failure. However, significant unknowns may increase entropy if they materially affect the decision.
-
----
-
-## 4. Do Not Confuse Activity with Coherent Flow
-
-A system may appear active, productive, or formally compliant while becoming less coherent.
-
-Examples include:
-
-- a release checklist is complete, but rollback has not been verified;
-- an AI answer is fluent, but unsupported by evidence;
-- an incident response is busy, but investigation theories keep changing;
-- a migration plan exists, but source and target assumptions conflict;
-- documentation exists, but no longer matches operational reality.
-
-EFGM should help reviewers evaluate whether work is not only moving, but moving coherently toward a validated objective.
-
----
-
-## 5. Use Conservative Interpretation When Entropy Is High
-
-When entropy indicators are high, recommendations should become more conservative.
-
-High entropy may indicate:
-
-- contradiction;
-- uncertainty;
-- fragmented context;
-- stale assumptions;
-- verification gaps;
-- recurring instability;
-- operational drift;
-- hidden dependencies.
-
-In these cases, the preferred governance response is usually:
+Do not introduce parallel canonical scoring states such as `verified` or `assumed`.
 
 ```text
-Pause → Verify → Restore coherence → Reassess
-```
-
-High entropy should not be ignored simply because capability, tooling, or execution velocity appears strong.
-
----
-
-## 6. Use EFGM to Support Decisions, Not Replace Accountability
-
-EFGM can help structure a recommendation, but it should not remove decision accountability.
-
-The responsible owner, reviewer, architect, release manager, incident lead, or governance authority remains accountable for the final decision.
-
-EFGM should clarify:
-
-- what is known;
-- what is uncertain;
-- what is contradictory;
-- what requires verification;
-- what action is recommended.
-
-It should not obscure who owns the decision.
-
----
-
-## 7. Avoid False Precision
-
-EFGM uses numeric scoring, but the model is currently heuristic and investigational.
-
-Scores should be interpreted as approximate governance indicators, not exact measurements.
-
-For example, the difference between `0.62` and `0.64` should not be overinterpreted. The classification band and supporting evidence usually matter more than small numeric differences.
-
-Recommended practice:
-
-- use decimals consistently;
-- avoid excessive precision;
-- explain scoring rationale;
-- focus on entropy drivers and governance actions.
-
----
-
-## 8. Calibrate Weights by Domain
-
-Default metric weights should be treated as provisional.
-
-Different domains may require different weighting.
-
-| Domain | Likely Higher-Weight Metrics |
-|---|---|
-| AI reasoning review | Contradiction Density, Context Decay, Verification Success Rate |
-| Release readiness | Verification Success Rate, Environment Inconsistency, Recovery Integrity |
-| Incident response | Reasoning Continuity, Memory Fragmentation, Recursion Instability |
-| Migration planning | Hidden Dependencies, Environment Inconsistency, Operational Traceability |
-| Documentation review | Context Decay, Memory Fragmentation, Semantic Coherence |
-
-Weights should be reviewed and adjusted based on evidence, expert judgment, and observed outcomes.
-
----
-
-## 9. Prefer Explainable Scoring Over Black-Box Scoring
-
-EFGM should remain explainable.
-
-A reviewer should be able to understand:
-
-- why each score was assigned;
-- which evidence contributed to the score;
-- which entropy drivers mattered most;
-- which flow-quality indicators remained strong;
-- why the final recommendation was produced.
-
-If an automated EFGM engine is created, it should expose intermediate scoring logic and not only produce a final score.
-
----
-
-## 10. Do Not Use EFGM Where Evidence Cannot Be Reasonably Assessed
-
-EFGM is not appropriate for every situation.
-
-It should be avoided or used cautiously when:
-
-- evidence is unavailable;
-- the evaluator lacks domain understanding;
-- the metric definitions cannot be applied consistently;
-- the decision requires specialized legal, medical, financial, safety, or regulatory authority;
-- the scoring would create a false sense of certainty;
-- the work is simple enough that EFGM would add unnecessary overhead.
-
-EFGM is most useful where coherence, uncertainty, evidence, and operational alignment materially affect the decision.
-
----
-
-## 11. Preserve Human Review for High-Impact Decisions
-
-For high-impact decisions, EFGM should trigger or support human review rather than replace it.
-
-High-impact contexts may include:
-
-- production releases;
-- security-relevant changes;
-- client-facing decisions;
-- incident restoration decisions;
-- AI-generated recommendations used for operational action;
-- migrations or upgrades with material service impact;
-- decisions involving sensitive, confidential, or regulated information.
-
-When impact is high and entropy is non-trivial, escalation should be preferred over automated approval.
-
----
-
-## 12. Use Sanitized Examples for Repository Documentation
-
-Repository examples should avoid sensitive or confidential information.
-
-Do not include:
-
-- credentials;
-- production secrets;
-- private client data;
-- confidential architecture details;
-- personal information;
-- restricted government or enterprise material;
-- real incident details unless sanitized and approved.
-
-Use synthetic, generalized, or sanitized examples wherever possible.
-
----
-
-## 13. Maintain Clear Boundaries With Existing Governance
-
-EFGM should complement existing governance frameworks. It should not be positioned as a replacement for:
-
-- enterprise risk management;
-- architecture review;
-- security review;
-- privacy assessment;
-- change management;
-- compliance review;
-- quality assurance;
-- incident management;
-- release management;
-- human expert judgment.
-
-EFGM adds a coherence-and-entropy lens. Existing governance remains necessary.
-
----
-
-## 14. Make Governance Actions Explicit
-
-An EFGM assessment should end with an explicit recommended action.
-
-Recommended action categories:
-
-| Action | Meaning |
-|---|---|
-| Proceed | Coherence is strong enough to continue |
-| Proceed with Monitoring | Flow is acceptable, but some entropy drivers should be watched |
-| Verify | Additional evidence is needed before relying on the result |
-| Stabilize | Entropy must be reduced before major action |
-| Pause | The system is not coherent enough to proceed safely |
-| Escalate | Human or specialized review is required |
-| Stop | The output, workflow, or decision path is materially incoherent |
-
-The recommendation should be supported by the score, evidence, and reviewer rationale.
-
----
-
-## 15. Reassess After Coherence-Restoration Actions
-
-EFGM should support iterative governance.
-
-If an assessment recommends verification, stabilization, or escalation, the system should be reassessed after corrective action.
-
-Example loop:
-
-```text
-Initial Assessment → Entropy Identified → Corrective Action → Reassessment → Decision
-```
-
-This prevents EFGM from becoming a one-time scoring exercise and reinforces the core governance loop:
-
-```text
-Detect Entropy → Protect Flow → Restore Coherence
+0.00 != unknown
+unknown != not_applicable
+unknown != safe
 ```
 
 ---
 
-## 16. Record Limitations and Unknowns
+## 4. Do Not Confuse Activity With Coherent Flow
 
-Every assessment should include a limitations section.
+A system may remain active or productive while degrading. Examples include a fluent but unsupported AI answer, a release checklist without rollback evidence, or an agent completing tasks outside authorized boundaries.
+
+EFGM should evaluate whether progress remains coherent and governed, not merely whether activity occurred.
+
+---
+
+## 5. Keep Decision Quality Separate From Outcome Quality
+
+```text
+DQ != OQ
+```
+
+A favorable outcome does not retroactively improve decision-time evidence. Decision-time metrics should use only information available at the assessed decision point.
+
+---
+
+## 6. Preserve Non-Compensatory Concerns Without Inventing Hard Rules
+
+Current counterexamples show that aggregate means can dilute sparse catastrophic failures.
+
+Therefore:
+
+- aggregate scores are not proof every critical condition is healthy;
+- `governance_observation_floor` may expose a weak observation but is **not itself a prerequisite verdict**;
+- low-percentile/soft-min diagnostics may be tested separately;
+- only explicitly configured **candidate prerequisite metric paths** may produce candidate-prerequisite breaches;
+- possible veto rules require separate preregistration and validation;
+- independent invariant checklists remain required comparators;
+- no candidate threshold, prerequisite set, or veto becomes canonical merely because it fixes a known counterexample.
+
+`EFGM-EXP-0004` is intended to falsify candidate prerequisite semantics against catastrophic cases, benign low-score controls, ablations, perturbation, and an independent checklist.
+
+---
+
+## 7. Separate Agency From Governance Failure
+
+For autonomous-agent research, high privilege, connectivity, persistence, coordination, or action velocity is not automatically unsafe.
+
+Agent Governance v0.3 preserves distinctions between agency amplification, governance integrity (`GI`), agency exposure (`AE`), and coherent unsafe execution (`CUE`).
+
+```text
+AE  = A_a × (1 - GI)
+CUE = F_T × AE
+0 <= CUE <= AE <= 1
+```
+
+AE and CUE are related rather than orthogonal. A generic low-AE/high-CUE case is structurally impossible and must not be used as a research target.
+
+A capable agent with strong governance is not equivalent to a capable agent with weak governance.
+
+---
+
+## 8. Unknown Governance Evidence Is Not Safety Evidence
+
+An unobserved boundary violation, missing trace, unknown persistence surface, or untested revocation mechanism must not be treated as evidence of integrity.
+
+If a material observation is `unknown`, completed scoring remains blocked according to applicable model rules.
+
+---
+
+## 9. Explicit N/A Must Be Evidence-Backed and Narrowly Scoped
+
+`not_applicable` should be used only when a construct genuinely does not apply.
+
+In the current Agent Governance implementation, **whole-family N/A is permitted only for coordination governance** in a strictly single-agent scenario. Every coordination observation must be explicitly `not_applicable` with defensible rationale and scorer provenance.
+
+The family is excluded from `GI` rather than assumed perfect. Results expose applicable/excluded governance families and family count because cross-case comparisons may require stratification.
+
+No other whole-family N/A semantics are currently supported.
+
+For temporal residual-state verification, an N/A claim is stronger than ordinary omission: it is a scope assertion and therefore requires rationale, scorer identity/type, positive confidence, and evidence references before it can contribute to a verified-recovery candidate.
+
+---
+
+## 10. Avoid False Precision
+
+Small decimal differences should not be overinterpreted. Focus on evidence, uncertainty, dominant drivers, counterexamples, classification stability, sensitivity to perturbation, and recommended action.
+
+Versioned thresholds are research parameters, not natural constants.
+
+---
+
+## 11. Prefer Explainable Scoring
+
+An EFGM result should expose enough intermediate state to explain which observations were applied, which values were unknown/N/A, how composites were calculated, which drivers dominated, which diagnostics fired, which governance families were applicable, and why a label was produced.
+
+Do not reduce EFGM to an opaque final number.
+
+---
+
+## 12. Preserve Human Accountability for Consequential Decisions
+
+High-impact contexts require accountable human or authorized institutional review. EFGM may structure evidence but does not become the decision owner.
+
+---
+
+## 13. Falsification Comes Before Promotion
+
+Required practices include:
+
+- frozen baseline comparison;
+- simpler EFGM-derived ablations;
+- genuinely independent baselines;
+- controlled mutations;
+- sensitivity and perturbation analysis;
+- counterexample retention;
+- rejected-candidate retention;
+- no label rewriting to favor EFGM;
+- sealed holdouts outside the tuning-visible repository;
+- human approval before candidate promotion.
+
+A more elaborate candidate is not automatically better.
+
+---
+
+## 14. Keep Holdouts Sealed
+
+Real holdout case contents and preferred labels must not be visible to the tuning loop before candidate freeze.
+
+Freeze hypothesis/success criteria, code SHA, configuration identity/hash, dataset identity, scorer information, and holdout access state before exposure.
+
+Once a holdout is exposed to a tuning lineage, it is no longer unseen evidence for that lineage.
+
+---
+
+## 15. Distinguish Recovery Progress From Verified Recovery
+
+EFGM is iterative:
+
+```text
+Assess → Detect degradation → Intervene → Reassess
+```
+
+For autonomous agents:
+
+```text
+Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
+```
+
+Temporal states must share an explicit `sequence_id` before they can be interpreted as one trajectory. Cross-sequence state comparisons are rejected rather than treated as recovery evidence. Transition results should retain candidate config identity/hash, before/after input hashes, and residual-state identity where applicable.
+
+### Recovery progress
+
+A same-sequence valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
+
+Recovery progress means movement in the intended direction. It is not proof control has been restored.
+
+### Verified recovery signal
+
+A stronger experimental signal requiring recovery progress plus:
+
+- the post-intervention state itself is classified as governed;
+- no remaining candidate-prerequisite breach;
+- no elevated AE/CUE diagnostic;
+- complete residual-state evidence;
+- no material residual credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps marked present.
+
+For verified-recovery assessment, `clear`, `present`, and `not_applicable` residual claims require evidence and scorer provenance; `unknown` prevents verified recovery.
+
+Even verified recovery is a **research signal, not a production containment attestation**.
+
+`EFGM-EXP-0005` must actively test unrelated sequences, governance-deficient post-states, partial recovery, residual-state failure cases, and N/A misuse.
+
+---
+
+## 16. Separate Implementation Invariants From Scientific Validation
+
+A unit test can prove that code obeys a formula or classification rule. It cannot establish that the construct is useful in the world.
 
 Examples:
 
-- evidence was incomplete;
-- only one reviewer scored the assessment;
-- no independent verification was performed;
-- scoring weights were default values;
-- the scenario was synthetic;
-- some claims were not verifiable;
-- the assessment was time-limited.
+- monotonic classification boundary tests verify implementation consistency;
+- lowering task flow while holding governance/agency fixed can verify `AE` remains unchanged and `CUE` decreases;
+- `CUE <= AE` is a structural formula invariant, not evidence that either construct is useful;
+- independent semantic labels are still required to determine whether `AE` and `CUE` are useful distinct constructs.
 
-Limitations do not invalidate the assessment, but they should affect confidence.
+`EFGM-EXP-0006` is reserved for that semantic validation using only mathematically feasible contrasts.
 
 ---
 
-## 17. Use EFGM as an Early-Warning Framework
+## 17. Use Sanitized Repository Material
 
-EFGM is strongest when used to detect coherence degradation before failure.
+Do not commit credentials, production secrets, personal information, client-confidential material, restricted architecture, unapproved incident details, sensitive logs, or real sealed-holdout contents/labels.
 
-It should help teams identify patterns such as:
-
-- increasing contradiction;
-- declining verification;
-- growing uncertainty;
-- process drift;
-- context fragmentation;
-- repeated rework;
-- hidden dependency exposure;
-- unstable decision confidence.
-
-The goal is not only to classify the current state. The goal is to intervene before incoherence becomes failure.
+Prefer public, simulated, sanitized, or independently approved evidence.
 
 ---
 
-## 18. Review and Improve the Model Over Time
+## 18. Record Limitations
 
-EFGM should be treated as a developing framework.
+Every serious assessment or experiment should disclose material limitations such as synthetic authorship, internal labels, missing external replication, uncalibrated thresholds, domain assumptions, known counterexamples, and incomplete temporal evidence.
 
-The principles, metrics, thresholds, and weights should be revised as more examples are tested.
-
-Recommended review triggers:
-
-- after each pilot assessment;
-- after reviewer feedback;
-- after false positives or false negatives are identified;
-- after new use cases are added;
-- after the scoring engine changes;
-- after the model is compared to real outcomes.
+Limitations are part of the result, not an optional appendix.
 
 ---
 
-## Summary
+## 19. Current Responsible-Use Principle
 
-EFGM should be used carefully, transparently, and conservatively.
+```text
+Use EFGM to make coherence and governance degradation visible,
+not to manufacture certainty or bypass accountable controls.
+```
 
-The model is intended to help reviewers identify when coherent flow is weakening under entropy pressure. Its value depends on evidence-based scoring, explainable rationale, calibrated interpretation, and responsible human oversight.
+The core governance loop remains:
 
-The core responsible-use principle is:
-
-> Use EFGM to make coherence degradation visible, not to create false certainty.
+```text
+Detect entropy → Protect verified flow → Restore coherence → Reassess
+```

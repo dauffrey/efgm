@@ -2,207 +2,137 @@
 
 ## Purpose
 
-The **Entropy-Flow Governance Model (EFGM)** is a proposed governance framework for evaluating how coherent flow is maintained, degraded, or restored under entropy accumulation across AI-assisted reasoning, software delivery, and operational systems.
+The **Entropy-Flow Governance Model (EFGM)** is an experimental governance and measurement framework for evaluating whether AI-assisted reasoning, operational decisions, software-delivery workflows, and autonomous-agent activity remain coherent, grounded, calibrated, traceable, and governed under degradation pressure.
 
-This document provides a concise overview for reviewers, architecture teams, AI governance stakeholders, and operational leaders who need to understand the model before reviewing the full white paper or prototype implementation.
+EFGM is not a proven scientific law, compliance standard, or production-ready risk engine.
 
----
+## Version Identity
 
-## Summary
+```text
+Canonical model:        EFGM v2 — Decision Integrity
+Python package:         0.2.0 — unreleased research package
+Experimental extension: Agent Governance v0.3
+```
 
-EFGM is based on a simple premise:
+Package `0.2.0` is not a model name. Agent Governance v0.3 is experimental and does not replace EFGM v2.
 
-> Systems remain useful only while coherent flow exceeds entropy accumulation.
+## Current Model Authority
 
-In practical terms, any intelligent or operational system can degrade over time as uncertainty, contradiction, fragmented context, duplicated logic, stale assumptions, and hidden dependencies accumulate. EFGM attempts to make that degradation visible and measurable through a structured scoring model.
-
-The framework is intended to help teams identify when an AI-assisted workflow, software delivery process, release activity, incident response, or operational decision path is still coherent enough to proceed, or when it should pause for verification, correction, or escalation.
-
----
-
-## Core Model
-
-The current operational equation is:
+The earlier coherent-flow equation:
 
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-Where:
+belongs to historical v1 compatibility material. It is not the current operational research equation.
 
-| Variable | Meaning |
-|---|---|
-| `F` | Coherent flow score |
-| `T` | Time, iteration continuity, or observation continuity |
-| `E` | Capability, tooling, compute, or operational capacity |
-| `Fq` | Flow quality |
-| `e` | Entropy load |
-
-The score is intended to indicate the degree to which a system, workflow, or reasoning chain is maintaining useful alignment under entropy pressure.
-
----
-
-## Governance Loop
-
-EFGM uses a three-step governance loop:
+The canonical EFGM v2 formula family is:
 
 ```text
-Detect Entropy → Protect Flow → Restore Coherence
+Ei = weighted input entropy
+Eo = weighted output entropy
+CRC = (Ei - Eo) / max(Ei, ε)
+G = weighted grounding
+Q = (T × C × Fq × G × U)^(1/5)
+DQ = Q / (1 + Eo + Be + Oe)
+OutcomeConfidence = DQ × (1 - H)
+OD = OQ - DQ
 ```
 
-### Detect Entropy
+EFGM v2 intentionally separates input disorder from output degradation, internal coherence from grounding, uncertainty from calibration, decision quality from outcome quality, decision quality from coherence recovery, and missing evidence from measured low values.
 
-Identify signs of degradation, including contradiction, uncertainty, stale assumptions, missing verification, fragmented documentation, duplicated logic, or operational drift.
+A successful outcome does not prove that the decision was good, and a poor outcome does not prove that the decision was bad.
 
-### Protect Flow
+## Evidence Discipline
 
-Preserve verified facts, stable assumptions, traceable decisions, validated artifacts, and reliable process steps.
+Research-grade scoring uses auditable `MetricObservation` records with canonical states:
 
-### Restore Coherence
+```text
+observed
+inferred
+unknown
+not_applicable
+```
 
-Apply corrective action through verification, context repair, task decomposition, peer review, test coverage, documentation cleanup, or escalation.
+`unknown` is never silently interpreted as safe or numeric zero.
 
----
+## Experimental Agent Governance v0.3
 
-## What EFGM Is Intended to Do
+The core hypothesis is:
 
-EFGM is intended to provide a practical language and scoring structure for evaluating coherence and degradation across complex work.
+> High coherent task flow can coexist with weak governance integrity.
 
-It may help teams:
+The candidate measures objective alignment, boundary integrity, observability, environmental-memory governance, coordination governance, control recoverability, and agency amplification.
 
-- assess AI-generated reasoning and recommendations;
-- review GitHub Copilot-assisted code changes;
-- evaluate release readiness;
-- structure incident reviews;
-- detect workflow degradation earlier;
-- improve traceability of assumptions and decisions;
-- identify when additional verification is required;
-- discuss operational risk using a repeatable model.
+```text
+G  = EFGM v2 Grounding
+GI = Agent Governance v0.3 Governance Integrity
+```
 
----
+The current experimental decomposition is:
 
-## Candidate Use Cases
+```text
+AE  = A_a × (1 - GI)
+CUE = F_T × AE
+0 <= CUE <= AE <= 1
+```
 
-### AI Reasoning Governance
+- `AE` — **Agency Exposure**: consequential agency that is insufficiently governed.
+- `CUE` — **Coherent Unsafe Execution**: effective task flow operating through that exposure.
 
-EFGM can be used to evaluate whether AI-assisted reasoning remains coherent across long conversations, multi-step tasks, or decision-support workflows.
+Because `CUE <= AE`, the constructs are related rather than orthogonal; a generic low-AE/high-CUE state is mathematically impossible. The current benchmark treats both as lower-is-better comparators. A controlled task-flow mutation verifies that `AE` can remain stable while `CUE` changes, but that is only an implementation contract. Independent semantic validation using feasible contrasts is preregistered as `EFGM-EXP-0006`.
 
-Potential concerns include hallucinated facts, unsupported assumptions, inconsistent recommendations, overconfidence, or loss of the original task objective.
+## Known Aggregation Limitation
 
-### AI-Assisted Software Development
+Current falsification work shows that aggregate means can hide a sparse catastrophic dimension. The current response is deliberately experimental:
 
-EFGM can support review of AI-generated code or Copilot recommendations by assessing whether the output is consistent with architecture, requirements, test coverage, security expectations, and deployment constraints.
+- report a **neutral governance observation floor**;
+- report a low-percentile diagnostic;
+- configure an explicit set of **candidate prerequisite metric paths**;
+- compare candidate prerequisites and possible veto logic with benign controls and independent invariant checklists.
 
-### Release Readiness
+A low observation does **not** automatically become a prerequisite failure. Candidate prerequisites remain hypotheses under `EFGM-EXP-0004`.
 
-EFGM can be applied to release decisions by measuring whether artifacts, testing, dependency state, rollback planning, and operational readiness are coherent enough to proceed.
+## N/A Semantics
 
-### Incident Review
+A whole governance family can currently be `not_applicable` only for **coordination governance** in a strictly single-agent case. The family is excluded rather than assumed perfect, and the result exposes applicable/excluded family names and family count so cross-case comparisons can be stratified when needed.
 
-EFGM can help assess whether incident response is converging toward verified understanding or diverging into competing theories, fragmented evidence, and unresolved uncertainty.
+For temporal residual-state verification, `not_applicable` is itself an evidence-backed scope claim rather than an evidence-free omission.
 
-### Operational Governance
+## Temporal Governance and Recovery
 
-EFGM can support workflow reviews where handoffs, documentation, ownership, dependencies, or environment differences create operational entropy.
+The autonomous-agent research loop tests whether governance can regain control after intervention:
 
----
+```text
+Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
+```
 
-## Expected Benefits
+Temporal states carry an explicit `sequence_id`; unrelated sequences are rejected rather than compared as one recovery trajectory. Transition results preserve candidate config identity/hash, before/after input hashes, and residual-state identity when supplied.
 
-If validated, EFGM could provide the following benefits:
+The temporal scaffold distinguishes:
 
-- a shared vocabulary for coherence, entropy, degradation, and recovery;
-- earlier detection of unstable reasoning or operational workflows;
-- more structured AI governance reviews;
-- improved explainability for AI-assisted decisions;
-- clearer release and incident readiness discussions;
-- a lightweight method for identifying when to proceed, pause, verify, or escalate;
-- a practical bridge between conceptual AI governance and day-to-day delivery work.
+- **recovery progress** — same-sequence valid pre→post intervention transition, declared intervention, higher `GI`, lower `AE`;
+- **verified recovery signal** — recovery progress plus a governed post-state, no remaining candidate-prerequisite breach, no elevated AE/CUE condition, complete residual-state evidence, and no material residual state present.
 
----
+Residual-state checks currently cover credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, and rollback gaps. For verified recovery, `clear`, `present`, and `not_applicable` residual claims require rationale, scorer identity/type, positive confidence, and evidence references; `unknown` blocks verified recovery.
+
+Even verified recovery is an experimental research signal, not a production containment attestation. `EFGM-EXP-0005` is designed to falsify these semantics.
 
 ## Current Maturity
 
-EFGM is currently an early-stage investigation model.
+EFGM is currently executable, versioned, evidence-traceable, falsification-oriented, and benchmarked on controlled synthetic cases. It is suitable for research, critique, and controlled pilots.
 
-It is:
+It is not externally validated, independently replicated, a production autonomous-governance engine, a security approval mechanism, or a substitute for existing enterprise governance and accountable human review.
 
-- conceptual;
-- heuristic;
-- explainable by design;
-- partially operational through a prototype scoring approach;
-- suitable for review, critique, and controlled testing.
+## Immediate Research Priorities
 
-It is not currently:
+1. Preserve the frozen EFGM v2 baseline.
+2. Run `EFGM-EXP-0004` on candidate prerequisites and benign controls.
+3. Run `EFGM-EXP-0005` on temporal sequence identity, intervention, residual state, and recovery.
+4. Run `EFGM-EXP-0006` on independently authored, mathematically feasible AE/CUE semantic contrasts.
+5. Continue inter-rater, construct-validity, sensitivity, and sealed-holdout work.
+6. Keep confidence propagation as an explicit future experiment rather than silently altering scores.
 
-- a proven mathematical law;
-- a trained AI model;
-- a production-ready governance product;
-- a replacement for existing enterprise governance;
-- a substitute for architecture, security, privacy, change management, or human review.
+The current defensible positioning is:
 
----
-
-## Review Focus for the AI Team
-
-The AI team should evaluate EFGM against the following questions:
-
-1. Is the core premise understandable and useful?
-2. Are the variables meaningful and distinct?
-3. Can entropy be measured consistently enough to be useful?
-4. Can flow quality be measured without excessive subjectivity?
-5. Are the scoring bands practical?
-6. Does the model provide useful governance insight beyond standard checklists?
-7. Which AI or software delivery use cases provide the strongest validation path?
-8. Where could the model create false confidence or overreach?
-9. How should it be positioned relative to existing AI governance frameworks?
-10. Should the model continue as a research concept, a lightweight checklist, or a prototype scoring engine?
-
----
-
-## Suggested Initial Validation Path
-
-A practical validation path should include:
-
-1. **Concept review**  
-   Confirm that the terminology, equation, and governance loop are understandable and not overclaimed.
-
-2. **Scenario testing**  
-   Apply the model to a small set of sanitized examples, such as AI answer review, Copilot code review, release readiness, and incident response.
-
-3. **Metric calibration**  
-   Test whether the entropy and flow-quality metrics produce results that align with expert judgment.
-
-4. **Reviewer feedback**  
-   Capture critique from AI governance, architecture, DevOps, risk, and operations reviewers.
-
-5. **Decision point**  
-   Decide whether EFGM should be refined, simplified, expanded, or retired.
-
----
-
-## Recommended Positioning
-
-EFGM should be introduced as:
-
-> A proposed governance framework for investigation, intended to evaluate coherence and entropy in AI-assisted and operational systems.
-
-It should not be presented as a completed theory or finalized product.
-
-The safest and most accurate positioning is:
-
-```text
-Status: Early-stage governance framework and prototype scoring concept.
-Audience: CGI AI team and related reviewers.
-Objective: Review, challenge, validate, and determine practical usefulness.
-```
-
----
-
-## Conclusion
-
-The Entropy-Flow Governance Model is intended to help teams reason about system coherence, entropy accumulation, and governance intervention in a structured way.
-
-Its value will depend on whether it can be applied consistently to real-world AI and operational scenarios, whether its metrics can be calibrated, and whether it improves decision quality without adding unnecessary complexity.
-
-At this stage, EFGM should proceed as a controlled investigation with clear limits, sanitized examples, and structured reviewer feedback.
+> **EFGM is an experimental, evidence-traceable framework for studying decision integrity, entropy recovery, and governed autonomous flow.**

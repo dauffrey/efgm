@@ -2,462 +2,354 @@
 
 ## Purpose
 
-This document identifies the working assumptions behind the Entropy-Flow Governance Model (EFGM).
+This document records working assumptions behind the **canonical EFGM v2 decision-integrity baseline** and the **experimental Agent Governance v0.3 extension**.
 
-The purpose of this file is to make the model’s underlying assumptions explicit so they can be reviewed, challenged, refined, validated, or rejected during testing.
+```text
+Canonical model:        EFGM v2
+Python package:         0.2.0
+Experimental extension: Agent Governance v0.3
+```
 
-EFGM should be treated as an early-stage governance framework and prototype scoring concept. The assumptions in this document are not proven facts. They are starting points for structured investigation.
+These are hypotheses to test, not facts to defend. If an assumption fails under controlled evidence, EFGM should be simplified, revised, or rejected accordingly.
 
----
-
-## 1. Foundational Assumptions
-
-### 1.1 Coherence Can Be Assessed
-
-EFGM assumes that the coherence of a system, workflow, reasoning chain, or decision path can be assessed using observable signals.
-
-In this context, coherence means that the system’s current state remains aligned with:
-
-- the intended objective;
-- verified evidence;
-- known constraints;
-- traceable decisions;
-- current operating conditions;
-- validated assumptions;
-- expected process flow.
-
-This does not mean coherence can be measured perfectly. It means coherence may be assessed well enough to support governance decisions.
-
-### 1.2 Entropy Can Be Observed Through Degradation Signals
-
-EFGM assumes that entropy is not directly observed as a physical quantity in this model. Instead, entropy is inferred from practical degradation signals such as:
-
-- contradiction;
-- uncertainty instability;
-- memory fragmentation;
-- recursion instability;
-- context decay;
-- duplicated logic;
-- operational drift;
-- stale assumptions;
-- hidden dependencies;
-- environment inconsistency.
-
-These indicators are treated as observable proxies for coherence degradation.
-
-### 1.3 Coherent Flow Weakens as Entropy Accumulates
-
-EFGM assumes that increasing entropy reduces the reliability of coherent flow.
-
-This is represented operationally as:
+The historical v1 equation:
 
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-Where higher entropy load `e` reduces the coherent flow score `F`.
-
-This relationship is provisional and should be tested against practical examples.
-
-### 1.4 Capability Alone Is Not Sufficient
-
-EFGM assumes that high capability, tooling, compute, automation, or expertise does not guarantee coherent outcomes.
-
-A capable system can still degrade if it is affected by:
-
-- contradictory inputs;
-- fragmented context;
-- weak verification;
-- poor traceability;
-- stale assumptions;
-- unstable decision logic.
-
-This assumption is central to EFGM because the model distinguishes between capability and coherent flow.
-
-### 1.5 Activity Is Not the Same as Coherent Progress
-
-EFGM assumes that a system may remain active, productive, or technically functional while its understanding, decision path, or workflow becomes less coherent.
-
-Examples include:
-
-- a team completing tasks while working from conflicting assumptions;
-- an AI system producing fluent output with weak verification;
-- a release checklist being completed while rollback readiness is unclear;
-- an incident response generating updates without converging on cause.
-
-EFGM is intended to help identify this difference.
+belongs to the legacy coherent-flow model and is not the current canonical operational equation. Historical v1 material is preserved under `docs/legacy/`.
 
 ---
 
-## 2. Measurement Assumptions
+# 1. Canonical EFGM v2 Model Assumptions
 
-### 2.1 Metrics Can Be Normalized
+## A-001 — Decision Integrity Can Be Assessed From Observable Evidence
 
-EFGM assumes that entropy and flow-quality indicators can be normalized to a common `0.00–1.00` scale.
+EFGM assumes that a decision process can be characterized well enough to support governance analysis using observable evidence about sequence continuity, capability suitability, flow quality, grounding, uncertainty calibration, input/output degradation, behavioral pressure, and operational disruption.
 
-This allows multiple indicators to be compared and aggregated.
+**Status:** Unvalidated  
+**Primary test:** inter-rater agreement, construct validity, predictive comparison.
 
-However, normalization rules may differ by use case. A release readiness assessment, incident review, and AI reasoning review may require different scoring guidance.
+## A-002 — Input and Output Entropy Are Distinguishable
 
-### 2.2 Metrics May Require Human Judgment
-
-EFGM assumes that some scoring will require human interpretation, especially during early validation.
-
-Examples include:
-
-- deciding whether two claims are truly contradictory;
-- determining whether uncertainty is justified;
-- assessing whether reasoning continuity was preserved;
-- determining whether documentation is stale;
-- evaluating whether a workflow has drifted.
-
-The model should therefore capture both the score and the rationale behind the score.
-
-### 2.3 Evidence Quality Affects Score Confidence
-
-EFGM assumes that the quality of available evidence affects the reliability of the final assessment.
-
-A score based on verified artifacts should carry more confidence than a score based on assumptions or incomplete information.
-
-Each assessment should distinguish between:
-
-| Evidence Status | Meaning |
-|---|---|
-| Verified | Supported by reliable evidence |
-| Inferred | Reasonably concluded from available evidence |
-| Assumed | Used as a working assumption |
-| Unknown | Not enough evidence available |
-| Not Applicable | Metric does not apply in the current context |
-
-### 2.4 Unknown Should Not Automatically Mean Bad
-
-EFGM assumes that missing evidence should not always be scored as failure.
-
-Unknown values should be explicitly marked as unknown unless the absence of evidence itself creates operational risk.
-
-For example:
-
-- If rollback evidence is missing before a production release, that may increase entropy.
-- If a metric does not apply to a simple documentation review, it should be marked not applicable.
-
-### 2.5 Metric Weighting Is Context-Dependent
-
-EFGM assumes that different domains may require different metric weights.
-
-For example:
-
-| Use Case | Metrics That May Need Higher Weight |
-|---|---|
-| AI reasoning review | Verification Success Rate, Contradiction Density, Context Decay |
-| Release readiness | Verification Success Rate, Environment Inconsistency, Recovery Integrity |
-| Incident response | Reasoning Continuity, Memory Fragmentation, Recursion Instability |
-| Documentation review | Context Decay, Memory Fragmentation, Semantic Coherence |
-| Migration planning | Hidden Dependencies, Environment Inconsistency, Operational Traceability |
-
-Default weights should be treated as provisional until calibrated.
-
----
-
-## 3. Model Assumptions
-
-### 3.1 The Operational Equation Is Heuristic
-
-EFGM assumes the current operational equation is a useful governance heuristic, not a proven mathematical law.
+EFGM assumes the disorder presented to a decision process (`Ei`) can be distinguished from degradation introduced or retained by the process (`Eo`).
 
 ```text
-F = (T × E × Fq) / (1 + e)
+CRC = (Ei - Eo) / max(Ei, ε)
 ```
 
-The equation is intended to support structured reasoning and comparative assessment. It should not be treated as a precise physical, statistical, or predictive equation without further validation.
+**Status:** Unvalidated  
+**Primary test:** controlled input/output mutation cases and scorer agreement.
 
-### 3.2 Entropy and Flow Quality Are Distinct but Related
-
-EFGM assumes that entropy and flow quality are separate dimensions that interact.
-
-- Entropy measures degradation pressure.
-- Flow quality measures coherent execution and reasoning strength.
-
-A system may have high flow quality and still be at risk if entropy is increasing. Likewise, a system may have low entropy but still perform poorly if flow quality is weak.
-
-### 3.3 Flow and Entropy May Form a Feedback Loop
-
-EFGM assumes that flow and entropy may influence each other over time.
+## A-003 — Decision Quality and Outcome Quality Are Different Constructs
 
 ```text
-F ↔ e
+DQ != OQ
+OD = OQ - DQ
 ```
 
-This means:
+A decision should be evaluated using information available at decision time rather than judged only by eventual outcome.
 
-- entropy can weaken coherent flow;
-- sustained work, complexity, or workload can create new entropy;
-- governance activity may be required to restore coherence.
+**Status:** Required research principle; empirical usefulness still unvalidated.
 
-This supports the governance loop:
+## A-004 — Flow Quality, Grounding, and Calibration Are Distinguishable
+
+- `Fq` measures coherent progression;
+- `G` measures evidentiary/rule grounding;
+- `U` measures confidence calibration.
+
+**Status:** Unvalidated  
+**Primary test:** blinded scorer agreement and construct-selective mutations.
+
+## A-005 — Behavioral Entropy Adds Information
+
+Decision distortion from chasing behavior, outcome bias, sunk-cost pressure, false-pattern detection, or overconfidence feedback may add value beyond grounding and calibration alone.
+
+**Status:** Unvalidated  
+**Primary test:** ablation and independent-label comparison.
+
+## A-006 — Operational Entropy May Affect Decision Reliability
+
+The frozen EFGM v2 model currently penalizes `DQ` for tool failures, retries, timeouts, latency pressure, and workflow interruptions. This placement remains an explicit open question.
+
+**Status:** Open.
+
+## A-007 — The Geometric Positive-Factor Composite Is Useful
 
 ```text
-Detect Entropy → Protect Flow → Restore Coherence
+Q = (T × C × Fq × G × U)^(1/5)
 ```
 
-### 3.4 Linear Weighting Is a Starting Point
+This is a frozen baseline hypothesis, not a claim that geometric aggregation is scientifically necessary.
 
-EFGM currently assumes weighted averages are a practical starting point for calculating entropy and flow quality.
+**Status:** Provisional.
 
-Example entropy expression:
+## A-008 — Additive Entropy Penalties Are a Useful Baseline
 
 ```text
-e = w1CD + w2UV + w3MF + w4RI + w5CX
+DQ = Q / (1 + Eo + Be + Oe)
 ```
 
-Example flow-quality expression:
+This is a reproducible hypothesis, not an established law.
+
+**Status:** Provisional.
+
+## A-009 — Missing Evidence Must Not Become a Favorable Number
 
 ```text
-Fq = w1TC + w2RC + w3SC + w4VS
+observed
+inferred
+unknown
+not_applicable
 ```
 
-This may later need refinement into nonlinear, threshold-based, or domain-specific scoring.
+```text
+unknown != 0.00
+unknown != safe
+not_applicable != unknown
+```
+
+**Status:** Required governance invariant.
+
+## A-010 — Evidence Provenance Improves Research Quality
+
+Recording rationale, evidence references, scorer identity/type, and confidence improves auditability and supports analysis of disagreement. Whether the additional burden improves predictive validity remains empirical.
+
+**Status:** Required for research-grade runs; incremental benefit unvalidated.
+
+## A-011 — Classification Bands Can Add Governance Value
+
+Provisional labels may improve actionability, but current thresholds are not assumed calibrated across domains.
+
+**Status:** Unvalidated.
+
+## A-012 — Some Dimensions May Be Non-Compensatory
+
+Retained counterexamples demonstrate that family means can dilute sparse catastrophic failures. Non-compensatory mechanisms are therefore legitimate candidates to test, but no particular prerequisite set, veto set, or threshold is assumed validated.
+
+Candidate mechanisms include:
+
+- neutral observation floors;
+- explicit candidate prerequisite sets;
+- extreme-degradation veto diagnostics;
+- soft-min / low-percentile diagnostics;
+- independent invariant checklists.
+
+**Status:** Supported research need; implementation details unvalidated.
 
 ---
 
-## 4. Governance Assumptions
+# 2. Experimental Agent Governance v0.3 Assumptions
 
-### 4.1 EFGM Supports Decisions but Does Not Replace Judgment
+## AG-001 — High Task Flow Can Coexist With Weak Governance
 
-EFGM assumes that scores should support governance decisions, not replace expert judgment.
+An autonomous agent may remain effective at task execution while moving outside authorized objectives, boundaries, observability, memory controls, coordination controls, or recoverability expectations.
 
-The model can help structure the decision environment, but final decisions should still consider:
+**Status:** Supported by controlled synthetic construct tests; not externally validated.
 
-- domain expertise;
-- business risk;
-- operational context;
-- legal, security, privacy, and compliance requirements;
-- stakeholder judgment;
-- human accountability.
+## AG-002 — Governance Integrity Is Distinct From EFGM v2 Grounding
 
-### 4.2 The Score Is Not Absolute Truth
+```text
+G  = EFGM v2 Grounding
+GI = Agent Governance v0.3 Governance Integrity
+```
 
-EFGM assumes that the coherent flow score is an indicator, not a fact.
+Governance families are objective alignment, boundary integrity, observability, environmental-memory governance, coordination governance, and control recoverability.
 
-A score should always be accompanied by:
+**Status:** Candidate construct architecture.
 
-- evidence;
-- rationale;
-- assumptions;
-- confidence level;
-- known limitations;
-- recommended governance action.
+## AG-003 — Agency Amplification Is Not Automatically Unsafe
 
-### 4.3 High Entropy Should Trigger Intervention
+High privilege, connectivity, persistence, coordination, or action velocity can be legitimate and well governed.
 
-EFGM assumes that high entropy should result in governance action.
+**Status:** Required design principle for current Agent Governance research.
 
-Possible actions include:
+## AG-004 — Agency Exposure and Coherent Unsafe Execution Are Different but Structurally Related
 
-- verify assumptions;
-- reconcile contradictions;
-- repair documentation;
-- split complex work into smaller units;
-- improve observability;
-- add tests or validation;
-- pause release or deployment;
-- escalate to human review;
-- rebuild the assessment from verified evidence.
+```text
+AE  = A_a × (1 - GI)
+CUE = F_T × AE
+```
 
-### 4.4 Proceed / Pause / Stop Decisions Require Context
+`AE` represents insufficiently governed consequential agency; `CUE` represents effective task execution operating through that exposure. Neither is a calibrated incident probability.
 
-EFGM assumes that score bands can guide action but should not be applied mechanically.
+Because normalized `F_T` is in `[0,1]`:
 
-For example, a score of `0.55` may be acceptable for exploratory analysis but unacceptable for a production release.
+```text
+0 <= CUE <= AE <= 1
+```
 
-Governance thresholds should be calibrated by domain, risk level, and consequence of failure.
+Therefore a generic low-`AE` / high-`CUE` region is mathematically impossible. Semantic validation must use feasible controlled contrasts rather than treating AE and CUE as orthogonal axes.
 
----
+The current benchmark can verify the implementation relationship, but independent labels are still required to establish whether the constructs are semantically useful.
 
-## 5. Implementation Assumptions
+**Status:** Candidate hypothesis requiring comparison.
 
-### 5.1 EFGM Can Be Implemented as a Lightweight Tool
+## AG-005 — External Writable/Readable State Can Function as Memory
 
-EFGM assumes that the scoring model can be implemented as a lightweight tool, checklist, or scorecard before becoming a larger platform.
+Any surface an agent can write now and read later may function as environmental memory even if it is not labeled as a memory subsystem.
 
-Possible implementation forms include:
+**Status:** Candidate operational principle requiring external testing.
 
-- Markdown assessment templates;
-- JSON-based scoring input;
-- command-line scoring tool;
-- GitHub Copilot review overlay;
-- release readiness scorecard;
-- incident review worksheet;
-- AI output review checklist.
+## AG-006 — Unknown Governance Evidence Is Not Safety Evidence
 
-### 5.2 Inputs Must Be Traceable
+An unobserved boundary violation, unmeasured trace gap, or unknown persistence surface must not be treated as proof of integrity.
 
-EFGM assumes that useful scoring requires traceable inputs.
+**Status:** Required governance invariant.
 
-Each score should connect back to evidence such as:
+## AG-007 — Whole-Family N/A Is Currently Permitted Only for Coordination Governance
 
-- documents;
-- tickets;
-- logs;
-- tests;
-- source code;
-- deployment artifacts;
-- meeting decisions;
-- AI reasoning traces;
-- reviewer notes.
+A strictly single-agent scenario may genuinely have no multi-agent coordination surface. In that case, every coordination-governance observation may be explicitly `not_applicable`, and the coordination family is excluded from `GI` rather than assumed perfect.
 
-If the evidence cannot be traced, the confidence of the score should decrease.
+The result must expose applicable/excluded families and family count because `GI` values with different applicability profiles may require stratified comparison.
 
-### 5.3 Automated Scoring Requires Reliable Extraction
+**No other governance family currently has whole-family N/A semantics.** Any future expansion of N/A semantics requires a separate explicit model change and validation.
 
-EFGM assumes that automated or semi-automated scoring will require reliable extraction of signals from source material.
+**Status:** Candidate Agent Governance v0.3 semantics.
 
-Examples include:
+## AG-008 — Static Snapshots Are Insufficient for Autonomous Governance
 
-- identifying claims;
-- detecting contradictions;
-- comparing requirements to implementation;
-- checking test evidence;
-- detecting stale documentation;
-- mapping dependencies;
-- identifying repeated rework cycles.
+```text
+S_t → action/environment change → S_t+1 → intervention → S_t+2
+```
 
-Until extraction is reliable, human review should remain part of the scoring process.
+Temporal research must evaluate changes rather than final static state alone.
 
----
+**Status:** Research direction; predictive temporal model not established.
 
-## 6. Adoption Assumptions
+## AG-009 — Recoverability Should Become Increasingly Observable
 
-### 6.1 The Model Must Be Understandable Without Excessive Explanation
+Control recoverability should be supported by intervention evidence such as revocation effectiveness, containment effectiveness, residual credential/capability state, cleanup completeness, rollback effectiveness, and recovery latency.
 
-EFGM assumes that practical adoption depends on clear language.
+**Status:** Candidate measurement direction.
 
-Reviewers should be able to understand:
+## AG-010 — Observation Floors Are Diagnostics, Not Automatic Prerequisites
 
-- what entropy means in operational terms;
-- what coherent flow means;
-- how scores are calculated;
-- why the recommendation was produced;
-- what action should follow.
+`governance_observation_floor` is the minimum applicable governance observation. It is reported to expose sparse weak dimensions, but a low value does not by itself create a hard prerequisite failure.
 
-If the model requires excessive explanation, it may need to be simplified.
+Only metric paths explicitly listed as **candidate prerequisites** in the versioned Agent Governance configuration can generate a candidate-prerequisite breach.
 
-### 6.2 The Model Must Add Value Beyond Existing Checklists
+The current candidate prerequisite list and threshold are preregistered research hypotheses. `EFGM-EXP-0004` must test whether they reduce false reassurance without creating unacceptable false alarms or merely encoding authored labels.
 
-EFGM assumes that it should only be used where it adds value beyond existing governance processes.
+**Status:** Candidate non-compensatory semantics; unvalidated.
 
-It should not be applied to every task.
+## AG-011 — Recovery Progress Is Not Verified Recovery
 
-It is best suited to situations involving:
+Temporal comparisons require one explicit `sequence_id`; unrelated sequences must not be interpreted as one recovery trajectory.
 
-- uncertainty;
-- conflicting evidence;
-- complex dependencies;
-- AI-assisted reasoning;
-- release readiness;
-- incident response;
-- migration planning;
-- operational drift;
-- fragmented documentation.
+A valid same-sequence `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE` indicates **recovery progress** only.
 
-### 6.3 The Model Should Avoid False Precision
+A stronger experimental `verified_recovery_signal` additionally requires:
 
-EFGM assumes that numerical scoring can be useful but may also create false confidence.
+- the post-state itself is classified as governed;
+- no remaining candidate-prerequisite breach;
+- no elevated AE/CUE diagnostic;
+- complete residual-state evidence;
+- no material residual credentials, persistence, memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps marked present.
 
-To reduce this risk, each score should include:
+For verified-recovery assessment, `clear`, `present`, and `not_applicable` residual claims require rationale, scorer identity/type, positive confidence, and evidence references. `unknown` blocks verified recovery. N/A is therefore an evidence-backed scope claim rather than an evidence-free escape hatch.
 
-- evidence;
-- rationale;
-- confidence;
-- uncertainty notes;
-- recommended action.
+Transition outputs should retain candidate config identity/hash, before/after input hashes, and residual-state identity so recovery evidence is reproducible.
 
-The score should not stand alone.
+Even this signal is not a production containment attestation.
+
+**Status:** Candidate temporal semantics; requires falsification under `EFGM-EXP-0005`.
+
+## AG-012 — Candidate Classification Should Be Monotonic in Its Intended Directions
+
+With other state held constant, improving `GI` should not move a case from a governance-deficit label into a more severe elevated-risk label. The current classifier therefore uses exhaustive regions based on elevated AE/CUE, governed-versus-deficit GI, and high-versus-low task flow.
+
+**Status:** Required implementation invariant for the current candidate classifier; empirical usefulness of the labels remains unvalidated.
 
 ---
 
-## 7. Risk Assumptions
+# 3. Measurement Assumptions
 
-### 7.1 EFGM Could Be Misused as a Compliance Score
+## M-001 — Normalized Scores Can Be Applied Consistently Enough to Test
 
-EFGM assumes there is a risk that users may treat the score as a compliance result or approval mechanism.
+Base observations use a normalized `[0,1]` scale when applicable.
 
-This should be avoided.
+**Status:** Unvalidated.
 
-EFGM is a coherence-governance aid. It does not replace formal compliance, architecture, security, privacy, legal, or change-management approvals.
+## M-002 — Human Judgment Will Remain Necessary During Early Validation
 
-### 7.2 EFGM Could Overweight What Is Easy to Measure
+Some constructs require domain interpretation. Rationale and disagreement should be retained as validation data.
 
-EFGM assumes there is a risk that measurable signals may be overweighted while important qualitative factors are missed.
+**Status:** Expected.
 
-For example, test pass rates may be easy to measure, while stakeholder misunderstanding or hidden dependency risk may be harder to quantify.
+## M-003 — Reviewer Confidence Should Not Yet Be Silently Folded Into Scores
 
-The model should preserve qualitative reviewer notes.
+Confidence is recorded but not mathematically propagated in the frozen baseline or current Agent Governance candidate. Uncertainty intervals or Monte Carlo treatments remain future explicit experiments.
 
-### 7.3 EFGM Could Become Too Complex
+**Status:** Deferred.
 
-EFGM assumes that adding too many metrics, submetrics, and weights may reduce usability.
+## M-004 — Domain-Specific Weights May Help or Overfit
 
-The model should remain lightweight enough to support decision-making without becoming a burden.
+Domain-specific configurations must be versioned and validated against independent evidence.
 
-### 7.4 EFGM Could Be Applied Outside Its Useful Scope
-
-EFGM assumes it may not be useful for:
-
-- simple binary tasks;
-- low-risk work;
-- highly regulated decisions requiring formal certification;
-- situations without evidence;
-- contexts where scoring would add overhead without improving decision quality.
+**Status:** Open question.
 
 ---
 
-## 8. Assumption Review Table
+# 4. Governance and Scientific Assumptions
 
-| ID | Assumption | Status | Validation Method |
+## G-001 — EFGM Supports Judgment; It Does Not Replace Accountability
+
+Scores and diagnostics are decision-support signals. Accountable domain owners remain responsible for consequential decisions.
+
+## G-002 — EFGM Must Compete With Simpler Alternatives
+
+A more elaborate candidate should not be promoted if a simpler independent checklist provides equivalent or better useful performance.
+
+## G-003 — Holdouts Must Remain Outside the Tuning Loop
+
+Real holdout contents and labels must remain externally sealed until candidate and success criteria are frozen.
+
+## G-004 — Counterexamples Are Assets
+
+Material failures, false reassurance, regressions, and rejected candidates must be retained.
+
+## G-005 — Internal Synthetic Success Is Not External Validation
+
+Controlled synthetic cases can test responsiveness and invariants but cannot establish external predictive validity.
+
+## G-006 — EFGM May Fail to Add Enough Value
+
+Retiring or simplifying a construct is a valid successful research outcome.
+
+---
+
+# 5. Assumption Register
+
+| ID | Assumption | Status | Primary Validation |
 |---|---|---|---|
-| A-001 | Coherence can be assessed using observable signals | Unvalidated | Scenario testing and reviewer comparison |
-| A-002 | Entropy can be inferred from degradation indicators | Unvalidated | Apply metrics to known degraded workflows |
-| A-003 | Higher entropy reduces coherent flow | Unvalidated | Compare scores against expert judgment |
-| A-004 | Flow quality can be measured separately from entropy | Unvalidated | Metric calibration and reviewer feedback |
-| A-005 | Weighted averages are sufficient for early scoring | Provisional | Test against alternate scoring methods |
-| A-006 | Different domains require different weights | Likely | Compare AI, release, incident, and migration scenarios |
-| A-007 | EFGM adds value beyond checklists | Unvalidated | Controlled pilot comparison |
-| A-008 | Human scoring can be made consistent enough to be useful | Unvalidated | Inter-reviewer scoring comparison |
-| A-009 | Automated scoring requires reliable evidence extraction | Likely | Prototype testing |
-| A-010 | Scores should support, not replace, governance judgment | Required | Governance principles review |
+| A-001 | Decision integrity can be assessed from observable evidence | Unvalidated | Inter-rater + predictive tests |
+| A-002 | `Ei` and `Eo` are distinguishable | Unvalidated | Controlled mutations |
+| A-003 | `DQ` and `OQ` should remain separate | Research principle | Outcome-divergence studies |
+| A-004 | `Fq`, `G`, `U` are distinct | Unvalidated | Construct validity |
+| A-005 | Behavioral entropy adds value | Unvalidated | Ablation |
+| A-006 | Operational entropy belongs partly in `DQ` | Open | Execution-reliability comparison |
+| A-007 | Geometric aggregation adds value | Provisional | Simpler-baseline comparison |
+| A-008 | Additive entropy penalties are useful | Provisional | Alternative aggregation tests |
+| A-009 | Unknown must not default favorable | Required | Invariant tests |
+| A-010 | Provenance improves research quality | Required / benefit unvalidated | Inter-rater + predictive tests |
+| A-011 | Classification bands add value | Unvalidated | False reassurance/alarm tests |
+| A-012 | Non-compensatory diagnostics deserve testing | Supported research need | Sparse-failure benchmark |
+| AG-001 | High flow can coexist with weak governance | Synthetic support | External agent cases |
+| AG-002 | `GI` is distinct from v2 `G` | Candidate construct | Construct validity |
+| AG-003 | Agency itself is not automatically unsafe | Design principle | Comparative cases |
+| AG-004 | `AE` and `CUE` are distinct but bounded by `CUE <= AE` | Candidate | Independent semantic labels |
+| AG-007 | Whole-family N/A currently applies only to coordination | Candidate semantics | N/A + stratification tests |
+| AG-010 | Observation floor is distinct from candidate prerequisites | Candidate semantics | EXP-0004 |
+| AG-011 | Recovery progress is distinct from verified recovery | Candidate semantics | EXP-0005 |
+| AG-012 | Candidate classifier should be monotonic | Implementation invariant | Boundary/adversarial tests |
+| M-003 | Confidence propagation should remain explicit research | Deferred | Uncertainty experiments |
 
 ---
 
-## 9. Review Questions
+# 6. Review Rule
 
-Reviewers should challenge the assumptions using questions such as:
+The purpose of this register is not to protect EFGM's assumptions. It is to make them easy to falsify.
 
-1. Are the core assumptions understandable?
-2. Are any assumptions too broad or too strong?
-3. Which assumptions are most critical to validate first?
-4. Which assumptions could create false confidence?
-5. Are entropy and flow quality sufficiently distinct?
-6. Can the proposed metrics be scored consistently?
-7. Are the scoring bands appropriate for different use cases?
-8. What evidence would prove the model useful?
-9. What evidence would show that the model should be simplified or retired?
-10. Which assumptions should be moved into formal validation criteria?
-
----
-
-## 10. Summary
-
-EFGM depends on several important assumptions:
-
-- coherence can be assessed;
-- entropy can be observed through degradation signals;
-- entropy weakens coherent flow;
-- flow quality can be measured;
-- scores can support governance decisions;
-- human review remains necessary;
-- weights and thresholds require calibration;
-- the model must avoid false precision and overreach.
-
-These assumptions should remain visible throughout the repository.
-
-The goal is not to defend the assumptions. The goal is to test them.
+A question is not resolved because a preferred narrative sounds plausible. It is resolved only to the extent supported by reproducible evidence.

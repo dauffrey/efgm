@@ -1,0 +1,98 @@
+experiment_id: EFGM-EXP-0006
+title: "Agency Exposure versus Coherent Unsafe Execution semantic validation"
+date: 2026-08-10
+status: planned
+research_type: falsification
+
+hypothesis: "Agency Exposure (AE) and Coherent Unsafe Execution (CUE) are distinguishable constructs: AE captures insufficiently governed consequential capacity while CUE captures effective task execution operating through that exposure."
+null_hypothesis: "AE and CUE do not provide reliably distinguishable information beyond one another, task flow, governance integrity, or a simpler independent checklist."
+structural_invariant: "Because CUE = F_T * AE and normalized F_T is in [0,1], every valid scored case must satisfy 0 <= CUE <= AE <= 1. A generic low-AE/high-CUE quadrant is therefore impossible and must not be requested as a case-design target."
+predeclared_success_criteria:
+  - "Every generated/scored case satisfies CUE <= AE."
+  - "When governance and agency inputs are held fixed while task effectiveness changes, AE remains stable while CUE changes in the expected direction."
+  - "Independently authored labels distinguish high-AE/low-CUE exposure from high-AE/high-CUE execution without using EFGM terminology in the authoring instructions."
+  - "AE adds useful information about uncontrolled capacity beyond CUE/task-flow alone on validation cases."
+  - "CUE adds useful information about effective unsafe execution beyond AE alone on validation cases."
+  - "Any incremental value survives reasonable perturbation and comparison with an independent two-axis checklist."
+predeclared_failure_criteria:
+  - "Any scored case violates CUE <= AE."
+  - "Only the algebraic implementation contract separates AE and CUE; independent labels do not."
+  - "One construct is redundant once task flow and governance integrity are known."
+  - "A simpler independent exposure/execution checklist matches or exceeds both constructs at lower complexity."
+  - "Results depend materially on internally authored EFGM-aware labels."
+
+repository:
+  code_sha: "freeze-at-execution"
+  branch: "agent/harden-v2-v03-governance"
+  canonical_model: "EFGM v2"
+  package_version: "0.2.0"
+  experimental_extension: "Agent Governance v0.3"
+  baseline_config_id: efgm-v2.0-baseline
+  baseline_config_sha256: "record-at-execution"
+  candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
+  candidate_config_sha256: "record-at-execution"
+
+dataset:
+  version: "ae-cue-semantic-separation-v0.2"
+  development_cases: 0
+  validation_cases: 0
+  holdout_cases: 0
+  label_source: "independently authored exposure-versus-execution judgments"
+  labels_independent_of_efgm: true
+
+case_design:
+  required_feasible_regions:
+    - high_AE_high_CUE
+    - high_AE_low_CUE
+    - low_AE_low_CUE
+  controlled_contrasts:
+    - "Hold governance and agency fixed; vary task flow to isolate CUE while AE remains invariant."
+    - "Hold task flow fixed; vary governance/agency to move AE and therefore the upper bound on CUE."
+    - "Compare highly privileged/persistent but weak-execution cases against equally exposed strong-execution cases."
+    - "Compare strong execution under low exposure against strong execution under high exposure."
+    - "Include values near any proposed AE/CUE interpretation thresholds without inventing mathematically impossible regions."
+  authoring_guardrail: "External case authors should not be shown AE/CUE formulas or EFGM preferred labels before authoring and labeling cases; case designers who enforce mathematical feasibility may know only the constraint CUE <= AE."
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  dataset_sha256: null
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  access_log_location: ""
+  custodian: ""
+
+baselines:
+  efgm_derived:
+    - agency_exposure
+    - coherent_unsafe_execution
+    - task_flow_only
+    - governance_integrity_only
+  independent:
+    - two_axis_exposure_execution_checklist
+
+primary_metrics:
+  - exposure_label_accuracy
+  - unsafe_execution_label_accuracy
+  - incremental_value_AE
+  - incremental_value_CUE
+  - perturbation_robustness
+
+secondary_metrics:
+  - performance_by_feasible_region
+  - scorer_agreement
+  - false_reassurance_rate
+  - complexity_adjusted_value_vs_independent_baseline
+
+results_location: "experiments/results/EFGM-EXP-0006.md"
+counterexamples: []
+regressions: []
+
+conclusion:
+  decision: null
+  rationale: ""
+  limitations:
+    - "The current benchmark runner's construct-separation diagnostic verifies algebraic behavior only; this experiment is required for semantic validation."
+    - "CUE is mathematically bounded above by AE, so the constructs are related rather than orthogonal."
+    - "No claim of incident probability calibration is proposed."
