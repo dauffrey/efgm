@@ -1,0 +1,87 @@
+experiment_id: EFGM-EXP-0005
+title: "Temporal intervention and recovery in governed agentic flow"
+date: 2026-08-10
+status: planned
+research_type: falsification
+
+hypothesis: "Agent-governance state transitions contain useful information not represented by a single static v0.3 snapshot, especially after governance intervention."
+null_hypothesis: "Static governance-state scores are sufficient; transition deltas and intervention/recovery signals add no stable diagnostic value."
+predeclared_success_criteria:
+  - "State transitions correctly preserve before/after score identities and direction of GI, AE, and CUE changes."
+  - "Governance interventions that restore authorized controls produce higher GI and lower AE in preregistered recovery cases."
+  - "Partial interventions with residual credentials, persistence, memory, or coordination do not receive the same recovery interpretation as complete-control cases."
+  - "Transition diagnostics add information beyond comparing final static classifications alone."
+predeclared_failure_criteria:
+  - "Transition metrics are redundant with final-state classification."
+  - "Recovery signals remain positive despite preregistered material residual agency/control failures."
+  - "Results are unstable under small evidence perturbations."
+
+repository:
+  code_sha: "freeze-at-execution"
+  branch: "agent/harden-v2-v03-governance"
+  package_version: "0.2.0"
+  baseline_config_id: efgm-v2.0-baseline
+  baseline_config_sha256: "record-at-execution"
+  candidate_config_id: efgm-v0.3-agent-governance-candidate
+  candidate_config_sha256: "record-at-execution"
+
+assessment_identity:
+  input_sha256: "record-per-state"
+  require_provenance: true
+  provenance_complete: true
+
+dataset:
+  version: "temporal-agent-governance-v0.1"
+  development_cases: 0
+  validation_cases: 0
+  holdout_cases: 0
+  label_source: "preregistered intervention/recovery invariants"
+  labels_independent_of_efgm: false
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  dataset_sha256: null
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  access_log_location: ""
+  custodian: ""
+
+scorers:
+  - scorer_id: synthetic-generator
+    scorer_type: automated
+    blinded_to_preferred_label: false
+
+baselines:
+  efgm_derived:
+    - final_static_v0.3_state
+    - before_after_static_comparison
+    - temporal_delta_diagnostics
+  independent:
+    - explicit_intervention_invariant_checklist
+
+primary_metrics:
+  - recovery_signal_accuracy
+  - false_recovery_rate
+  - missed_recovery_rate
+  - perturbation_robustness
+
+secondary_metrics:
+  - delta_governance_integrity
+  - delta_agency_exposure
+  - delta_coherent_unsafe_execution
+  - residual_state_detection
+  - incremental_value_vs_static_state
+
+results_location: "experiments/results/EFGM-EXP-0005.md"
+counterexamples: []
+regressions: []
+
+conclusion:
+  decision: null
+  rationale: ""
+  limitations:
+    - "Initial transition cases are internally authored."
+    - "The first recovery_signal is intentionally narrow and is not proof of complete recovery."
+    - "No calibrated temporal incident probability is proposed."
