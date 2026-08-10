@@ -1,28 +1,34 @@
 experiment_id: EFGM-EXP-0004
-title: "Agent-governance critical-dimension diagnostics"
+title: "Agent Governance critical-dimension diagnostics"
 date: 2026-08-10
 status: planned
 research_type: falsification
 
-hypothesis: "A separate non-compensatory diagnostic layer will reduce false reassurance from sparse catastrophic governance failures without requiring replacement of the continuous v0.3 aggregate scores."
-null_hypothesis: "Prerequisite-floor and low-percentile diagnostics do not reduce false reassurance relative to aggregate-only scoring, or they create unacceptable false alarms on benign low-score controls."
+hypothesis: "A non-compensatory diagnostic layer can reduce false reassurance from sparse catastrophic governance failures without treating every low observation as a prerequisite or replacing the continuous Agent Governance v0.3 aggregate scores."
+null_hypothesis: "Observation-floor, low-percentile, and explicit candidate-prerequisite diagnostics do not reduce false reassurance relative to aggregate-only scoring, merely encode authored labels, or create unacceptable false alarms on benign low-score controls."
 predeclared_success_criteria:
-  - "Detect all preregistered catastrophic boundary/authorization/control collapses in the development suite."
+  - "The neutral governance observation floor exposes all preregistered sparse collapses without itself being interpreted as a prerequisite verdict."
+  - "Only metric paths explicitly listed in the candidate configuration can produce candidate-prerequisite breaches."
+  - "Detect all preregistered catastrophic boundary/authority/control failures covered by the candidate-prerequisite set in the development suite."
+  - "Do not classify preregistered benign low observations outside the candidate-prerequisite set as prerequisite breaches."
   - "Materially reduce false reassurance versus aggregate-only classification."
-  - "Do not materially increase false alarms on preregistered benign low-score controls."
+  - "Do not materially increase false alarms on preregistered benign controls."
   - "Provide incremental value beyond the independent invariant checklist on at least one validation dimension before any promotion proposal."
 predeclared_failure_criteria:
-  - "Diagnostic rules merely encode the authored labels without generalizing to validation cases."
+  - "The candidate prerequisite list merely encodes authored labels without generalizing to validation cases."
+  - "A low non-prerequisite observation is incorrectly treated as a prerequisite failure."
   - "Independent checklist matches or exceeds diagnostic usefulness at materially lower complexity."
-  - "Threshold choice is unstable under reasonable perturbation."
+  - "Candidate prerequisite membership or threshold choice is unstable under reasonable perturbation/ablation."
 
 repository:
   code_sha: "freeze-at-execution"
   branch: "agent/harden-v2-v03-governance"
+  canonical_model: "EFGM v2"
   package_version: "0.2.0"
+  experimental_extension: "Agent Governance v0.3"
   baseline_config_id: efgm-v2.0-baseline
   baseline_config_sha256: "record-at-execution"
-  candidate_config_id: efgm-v0.3-agent-governance-candidate
+  candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
   candidate_config_sha256: "record-at-execution"
 
 assessment_identity:
@@ -31,7 +37,7 @@ assessment_identity:
   provenance_complete: true
 
 dataset:
-  version: "sparse-governance-failures-v0.1"
+  version: "sparse-governance-failures-v0.2"
   development_cases: 0
   validation_cases: 0
   holdout_cases: 0
@@ -55,11 +61,18 @@ scorers:
 
 baselines:
   efgm_derived:
-    - v0.3_aggregate_only
-    - v0.3_prerequisite_floor
-    - v0.3_low_percentile
+    - agent_v0.3_aggregate_only
+    - governance_observation_floor
+    - governance_low_percentile
+    - configured_candidate_prerequisites
   independent:
     - preregistered_invariant_checklist
+
+candidate_prerequisite_ablation:
+  compare_full_set: true
+  compare_each_path_removed: true
+  compare_empty_set: true
+  compare_threshold_perturbation: true
 
 primary_metrics:
   - false_reassurance_rate
@@ -69,6 +82,7 @@ primary_metrics:
 
 secondary_metrics:
   - performance_by_governance_family
+  - candidate_prerequisite_path_ablation
   - threshold_sensitivity
   - incremental_value_vs_independent_baseline
 
@@ -82,4 +96,5 @@ conclusion:
   rationale: ""
   limitations:
     - "Initial cases are internally authored and EFGM-terminology aware."
+    - "The configured candidate prerequisite set is a research hypothesis, not an established control invariant."
     - "No external sealed holdout is included in this planned cycle."
