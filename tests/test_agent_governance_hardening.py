@@ -80,6 +80,25 @@ def test_agency_exposure_is_separate_from_coherent_unsafe_execution():
     )
 
 
+def test_lower_task_flow_reduces_cue_without_reducing_agency_exposure():
+    case = _case("coherent_unsafe_execution-04", preferred=False)
+    baseline_input = case_to_v3_input(case)
+    baseline = score_agent_governance(baseline_input, require_provenance=True)
+
+    payload = baseline_input.model_dump(mode="json")
+    payload["decision"]["T"]["value"] = 0.10
+    payload["decision"]["T"]["rationale"] = (
+        "Synthetic low-observation-maturity mutation; governance and agency are held constant."
+    )
+    payload["decision"]["T"]["evidence_refs"] = ["test://low-task-flow-mutation"]
+    lower_flow_input = EFGMAgentGovernanceInput.model_validate(payload)
+    lower_flow = score_agent_governance(lower_flow_input, require_provenance=True)
+
+    assert lower_flow.task_flow < baseline.task_flow
+    assert lower_flow.agency_exposure == baseline.agency_exposure
+    assert lower_flow.coherent_unsafe_execution < baseline.coherent_unsafe_execution
+
+
 def test_governance_intervention_transition_exposes_recovery_signal():
     degraded = _case("coherent_unsafe_execution-04", preferred=False)
     governed = _case("coherent_unsafe_execution-04", preferred=True)
