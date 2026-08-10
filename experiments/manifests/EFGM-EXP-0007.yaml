@@ -1,7 +1,7 @@
 experiment_id: EFGM-EXP-0007
 title: "Canonical EFGM v2 sparse-failure diagnostic comparison"
 date: 2026-08-10
-status: execution_ready
+status: completed_development_validation_cycle
 research_type: falsification
 
 hypothesis: "A classification-only non-compensatory diagnostic layer can reduce the canonical EFGM v2 false reassurance demonstrated in EXP-0003 without changing frozen DQ and without producing unacceptable false alarms on benign controls."
@@ -29,11 +29,13 @@ predeclared_failure_criteria:
 repository:
   parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
   execution_branch: agent/execute-falsification-program
-  code_sha: "freeze-at-execution"
+  code_sha: 2b00dd9a9dbe964dc293e953937ee661de49cb3c
+  github_actions_run: 31431745557
+  github_actions_run_number: 95
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   baseline_config_id: efgm-v2.0-baseline
-  baseline_config_sha256: "record-at-execution"
+  baseline_config_sha256: 0f55f6eabe97d0f365d1e45ba8f9d0fef67e9721a93e6eba8b0a364b612bafd0
 
 dataset:
   version: "v2-sparse-failure-controls-v0.2"
@@ -138,6 +140,34 @@ runner:
   perturbation: 0.10
   seed: 20260810
 
+executed_results:
+  frozen_dq_preserved: true
+  development:
+    aggregate_only_false_reassurance_rate: 1.0
+    candidate_detection_rate: 1.0
+    candidate_false_alarm_rate: 0.0
+    observation_floor_plus_extreme_max_detection_rate: 1.0
+    observation_floor_plus_extreme_max_false_alarm_rate: 0.1429
+    soft_percentile_detection_rate: 0.0
+    soft_percentile_false_alarm_rate: 0.0
+    independent_invariant_checklist_detection_rate: 1.0
+    independent_invariant_checklist_false_alarm_rate: 0.0
+  validation:
+    aggregate_only_false_reassurance_rate: 1.0
+    candidate_detection_rate: 0.6667
+    candidate_false_alarm_rate: 0.0
+    observation_floor_plus_extreme_max_detection_rate: 1.0
+    observation_floor_plus_extreme_max_false_alarm_rate: 0.125
+    soft_percentile_detection_rate: 0.0
+    soft_percentile_false_alarm_rate: 0.0
+    independent_invariant_checklist_detection_rate: 1.0
+    independent_invariant_checklist_false_alarm_rate: 0.0
+    incremental_balanced_accuracy_vs_checklist: -0.1666
+  perturbation:
+    mean_correct_classification_probability: 0.8315
+    minimum_correct_classification_probability: 0.0
+  promotion_gate_passed: false
+
 results_location: "experiments/results/EFGM-EXP-0007.md"
 counterexamples:
   - EFGM-CE-0001
@@ -146,11 +176,12 @@ counterexamples:
 regressions: []
 
 conclusion:
-  decision: null
-  rationale: ""
+  decision: do_not_promote_narrow_v2_candidate
+  rationale: "Frozen v2 aggregate classification falsely reassured on every catastrophic development and validation case in this cycle. The narrow prerequisite-plus-extreme-veto candidate detected all development catastrophes but only 66.67% in validation because four preregistered positive-control failures were outside its semantic path set. The broader aggregation-independent invariant checklist detected 100% of validation catastrophes with 0% false alarms, while the narrow candidate had -0.1666 incremental balanced accuracy. The floor-plus-max diagnostic detected all validation catastrophes but generated 12.50% false alarms, and the tested soft-percentile diagnostic detected none. The current narrow candidate therefore fails promotion."
   limitations:
-    - "The first cycle is internally authored and cannot establish generalization."
+    - "The cycle is internally authored and cannot establish generalization."
     - "The independent checklist is aggregation-independent but not externally labeled."
+    - "The aggregate-only 100% false-reassurance result applies to this deliberately sparse adversarial case family, not all EFGM v2 use."
     - "No candidate threshold is canonical before validation and sealed-holdout support."
-    - "The experiment intentionally preserves frozen EFGM v2 DQ for baseline comparability."
-    - "No sealed holdout is included or accessed."
+    - "No sealed holdout was included or accessed."
+    - "The result rejects promotion of the narrow candidate, not every possible non-compensatory v2 diagnostic layer."
