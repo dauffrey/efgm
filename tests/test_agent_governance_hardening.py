@@ -24,6 +24,9 @@ from efgm.temporal_v0_3 import (
 )
 
 
+SEQUENCE_ID = "test-agent-sequence"
+
+
 def _case(pair_id: str, preferred: bool):
     return next(
         case
@@ -51,12 +54,25 @@ def _clear_residual_state(**overrides) -> ResidualStateAssessment:
                 "rationale": f"Synthetic residual-state assessment for {name}: {status}.",
                 "evidence_refs": (
                     []
-                    if status in {"unknown", "not_applicable"}
+                    if status == "unknown"
                     else [f"test://residual/{name}/{status}"]
                 ),
+                "scorer_id": "test-reviewer",
+                "scorer_type": "human",
+                "confidence": 0.9,
             }
             for name, status in fields.items()
         }
+    )
+
+
+def _state(*, state_id: str, phase: str, case, **kwargs) -> EFGMAgentState:
+    return EFGMAgentState(
+        sequence_id=kwargs.pop("sequence_id", SEQUENCE_ID),
+        state_id=state_id,
+        phase=phase,
+        assessment=case_to_v3_input(case),
+        **kwargs,
     )
 
 
@@ -207,23 +223,39 @@ def test_agent_benchmark_records_config_identity_and_risk_directions():
     assert MODEL_DIRECTIONS["coherent_unsafe_execution"] == "lower"
     assert result["results"]["all"]["agency_exposure"]["direction"] == "lower"
     assert result["results"]["all"]["coherent_unsafe_execution"]["direction"] == "lower"
+    assert result["results"]["validation"]["agency_exposure"]["pairs"] == 0
+    assert result["results"]["validation"]["agency_exposure"]["strict_win_rate"] is None
+
+
+def test_transition_rejects_unrelated_sequences():
+    degraded = _case("coherent_unsafe_execution-04", preferred=False)
+    governed = _case("coherent_unsafe_execution-04", preferred=True)
+
+    before = _state(state_id="s1", phase="pre_intervention", case=degraded)
+    after = _state(
+        state_id="s2",
+        phase="post_intervention",
+        case=governed,
+        sequence_id="different-sequence",
+        intervention="Synthetic intervention.",
+        residual_state=_clear_residual_state(),
+    )
+
+    with pytest.raises(ValueError, match="same sequence_id"):
+        score_state_transition(before, after, require_provenance=True)
 
 
 def test_recovery_progress_requires_pre_to_post_intervention_phase():
     degraded = _case("coherent_unsafe_execution-04", preferred=False)
     governed = _case("coherent_unsafe_execution-04", preferred=True)
 
-    before = EFGMAgentState(
-        state_id="s1",
-        phase="pre_action",
-        assessment=case_to_v3_input(degraded),
-    )
-    after = EFGMAgentState(
+    before = _state(state_id="s1", phase="pre_action", case=degraded)
+    after = _state(
         state_id="s2",
         phase="post_intervention",
+        case=governed,
         intervention="Synthetic intervention.",
         residual_state=_clear_residual_state(),
-        assessment=case_to_v3_input(governed),
     )
 
     transition = score_state_transition(before, after, require_provenance=True)
@@ -237,16 +269,12 @@ def test_recovery_progress_is_not_verified_without_residual_state_evidence():
     degraded = _case("coherent_unsafe_execution-04", preferred=False)
     governed = _case("coherent_unsafe_execution-04", preferred=True)
 
-    before = EFGMAgentState(
-        state_id="s1-degraded",
-        phase="pre_intervention",
-        assessment=case_to_v3_input(degraded),
-    )
-    after = EFGMAgentState(
+    before = _state(state_id="s1-degraded", phase="pre_intervention", case=degraded)
+    after = _state(
         state_id="s2-governed",
         phase="post_intervention",
+        case=governed,
         intervention="Restore authorized governance state.",
-        assessment=case_to_v3_input(governed),
     )
 
     transition = score_state_transition(before, after, require_provenance=True)
@@ -256,21 +284,39 @@ def test_recovery_progress_is_not_verified_without_residual_state_evidence():
     assert not transition.verified_recovery_signal
 
 
+def test_not_applicable_residual_without_evidence_blocks_verified_recovery():
+    degraded = _case("coherent_unsafe_execution-04", preferred=False)
+    governed = _case("coherent_unsafe_execution-04", preferred=True)
+    residual = _clear_residual_state().model_dump(mode="json")
+    residual["irreversible_side_effects"]["evidence_refs"] = []
+
+    before = _state(state_id="s1", phase="pre_intervention", case=degraded)
+    after = _state(
+        state_id="s2",
+        phase="post_intervention",
+        case=governed,
+        intervention="Synthetic intervention.",
+        residual_state=ResidualStateAssessment.model_validate(residual),
+    )
+
+    transition = score_state_transition(before, after, require_provenance=True)
+
+    assert transition.recovery_progress_signal
+    assert any("irreversible_side_effects: missing evidence_refs" in item for item in transition.residual_state_issues)
+    assert not transition.verified_recovery_signal
+
+
 def test_present_residual_state_blocks_verified_recovery():
     degraded = _case("coherent_unsafe_execution-04", preferred=False)
     governed = _case("coherent_unsafe_execution-04", preferred=True)
 
-    before = EFGMAgentState(
-        state_id="s1-degraded",
-        phase="pre_intervention",
-        assessment=case_to_v3_input(degraded),
-    )
-    after = EFGMAgentState(
+    before = _state(state_id="s1-degraded", phase="pre_intervention", case=degraded)
+    after = _state(
         state_id="s2-governed",
         phase="post_intervention",
+        case=governed,
         intervention="Revoke primary credential.",
         residual_state=_clear_residual_state(credentials="present"),
-        assessment=case_to_v3_input(governed),
     )
 
     transition = score_state_transition(before, after, require_provenance=True)
@@ -289,12 +335,9 @@ def test_remaining_candidate_prerequisite_breach_blocks_verified_recovery():
     observation["rationale"] = "Residual trust-boundary failure after intervention."
     observation["evidence_refs"] = ["test://residual-trust-boundary"]
 
-    before = EFGMAgentState(
-        state_id="s1-degraded",
-        phase="pre_intervention",
-        assessment=case_to_v3_input(degraded),
-    )
+    before = _state(state_id="s1-degraded", phase="pre_intervention", case=degraded)
     after = EFGMAgentState(
+        sequence_id=SEQUENCE_ID,
         state_id="s2-partial",
         phase="post_intervention",
         intervention="Partial governance restoration.",
@@ -309,26 +352,56 @@ def test_remaining_candidate_prerequisite_breach_blocks_verified_recovery():
     assert not transition.verified_recovery_signal
 
 
+def test_governance_deficit_post_state_blocks_verified_recovery():
+    degraded = _case("coherent_unsafe_execution-04", preferred=False)
+    governed = _case("coherent_unsafe_execution-04", preferred=True)
+    config = deepcopy(load_agent_governance_config())
+    config["classification"]["governed_integrity_threshold"] = 0.99
+
+    before = _state(state_id="s1", phase="pre_intervention", case=degraded)
+    after = _state(
+        state_id="s2",
+        phase="post_intervention",
+        case=governed,
+        intervention="Synthetic intervention.",
+        residual_state=_clear_residual_state(),
+    )
+
+    transition = score_state_transition(
+        before,
+        after,
+        require_provenance=True,
+        config=config,
+    )
+
+    assert transition.recovery_progress_signal
+    assert not transition.post_state_governed
+    assert not transition.verified_recovery_signal
+
+
 def test_complete_residual_evidence_can_produce_verified_recovery_signal():
     degraded = _case("coherent_unsafe_execution-04", preferred=False)
     governed = _case("coherent_unsafe_execution-04", preferred=True)
 
-    before = EFGMAgentState(
-        state_id="s1-degraded",
-        phase="pre_intervention",
-        assessment=case_to_v3_input(degraded),
-    )
-    after = EFGMAgentState(
+    before = _state(state_id="s1-degraded", phase="pre_intervention", case=degraded)
+    after = _state(
         state_id="s2-governed",
         phase="post_intervention",
+        case=governed,
         intervention="Revoke out-of-scope capability and verify residual state.",
         residual_state=_clear_residual_state(),
-        assessment=case_to_v3_input(governed),
     )
 
     transition = score_state_transition(before, after, require_provenance=True)
 
+    assert transition.sequence_id == SEQUENCE_ID
+    assert len(transition.agent_config_sha256) == 64
+    assert len(transition.before_input_sha256) == 64
+    assert len(transition.after_input_sha256) == 64
+    assert transition.residual_state_sha256 is not None
+    assert len(transition.residual_state_sha256) == 64
     assert transition.recovery_progress_signal
+    assert transition.post_state_governed
     assert transition.residual_state_complete
     assert not transition.residual_state_present
     assert transition.verified_recovery_signal
