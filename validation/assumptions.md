@@ -165,7 +165,7 @@ High privilege, connectivity, persistence, coordination, or action velocity can 
 
 **Status:** Required design principle for current Agent Governance research.
 
-## AG-004 — Agency Exposure and Coherent Unsafe Execution Are Different
+## AG-004 — Agency Exposure and Coherent Unsafe Execution Are Different but Structurally Related
 
 ```text
 AE  = A_a × (1 - GI)
@@ -173,6 +173,14 @@ CUE = F_T × AE
 ```
 
 `AE` represents insufficiently governed consequential agency; `CUE` represents effective task execution operating through that exposure. Neither is a calibrated incident probability.
+
+Because normalized `F_T` is in `[0,1]`:
+
+```text
+0 <= CUE <= AE <= 1
+```
+
+Therefore a generic low-`AE` / high-`CUE` region is mathematically impossible. Semantic validation must use feasible controlled contrasts rather than treating AE and CUE as orthogonal axes.
 
 The current benchmark can verify the implementation relationship, but independent labels are still required to establish whether the constructs are semantically useful.
 
@@ -228,14 +236,21 @@ The current candidate prerequisite list and threshold are preregistered research
 
 ## AG-011 — Recovery Progress Is Not Verified Recovery
 
-A valid `pre_intervention → post_intervention` state with higher `GI` and lower `AE` indicates **recovery progress** only.
+Temporal comparisons require one explicit `sequence_id`; unrelated sequences must not be interpreted as one recovery trajectory.
+
+A valid same-sequence `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE` indicates **recovery progress** only.
 
 A stronger experimental `verified_recovery_signal` additionally requires:
 
+- the post-state itself is classified as governed;
 - no remaining candidate-prerequisite breach;
 - no elevated AE/CUE diagnostic;
 - complete residual-state evidence;
 - no material residual credentials, persistence, memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps marked present.
+
+For verified-recovery assessment, `clear`, `present`, and `not_applicable` residual claims require rationale, scorer identity/type, positive confidence, and evidence references. `unknown` blocks verified recovery. N/A is therefore an evidence-backed scope claim rather than an evidence-free escape hatch.
+
+Transition outputs should retain candidate config identity/hash, before/after input hashes, and residual-state identity so recovery evidence is reproducible.
 
 Even this signal is not a production containment attestation.
 
@@ -324,7 +339,7 @@ Retiring or simplifying a construct is a valid successful research outcome.
 | AG-001 | High flow can coexist with weak governance | Synthetic support | External agent cases |
 | AG-002 | `GI` is distinct from v2 `G` | Candidate construct | Construct validity |
 | AG-003 | Agency itself is not automatically unsafe | Design principle | Comparative cases |
-| AG-004 | `AE` and `CUE` should be separated | Candidate | Independent semantic labels |
+| AG-004 | `AE` and `CUE` are distinct but bounded by `CUE <= AE` | Candidate | Independent semantic labels |
 | AG-007 | Whole-family N/A currently applies only to coordination | Candidate semantics | N/A + stratification tests |
 | AG-010 | Observation floor is distinct from candidate prerequisites | Candidate semantics | EXP-0004 |
 | AG-011 | Recovery progress is distinct from verified recovery | Candidate semantics | EXP-0005 |
