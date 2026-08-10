@@ -74,12 +74,13 @@ The current experimental decomposition is:
 ```text
 AE  = A_a × (1 - GI)
 CUE = F_T × AE
+0 <= CUE <= AE <= 1
 ```
 
 - `AE` — **Agency Exposure**: consequential agency that is insufficiently governed.
 - `CUE` — **Coherent Unsafe Execution**: effective task flow operating through that exposure.
 
-The current benchmark treats both as lower-is-better comparators. A controlled task-flow mutation verifies that `AE` can remain stable while `CUE` changes, but that is only an implementation contract. Independent semantic validation is preregistered as `EFGM-EXP-0006`.
+Because `CUE <= AE`, the constructs are related rather than orthogonal; a generic low-AE/high-CUE state is mathematically impossible. The current benchmark treats both as lower-is-better comparators. A controlled task-flow mutation verifies that `AE` can remain stable while `CUE` changes, but that is only an implementation contract. Independent semantic validation using feasible contrasts is preregistered as `EFGM-EXP-0006`.
 
 ## Known Aggregation Limitation
 
@@ -96,6 +97,8 @@ A low observation does **not** automatically become a prerequisite failure. Cand
 
 A whole governance family can currently be `not_applicable` only for **coordination governance** in a strictly single-agent case. The family is excluded rather than assumed perfect, and the result exposes applicable/excluded family names and family count so cross-case comparisons can be stratified when needed.
 
+For temporal residual-state verification, `not_applicable` is itself an evidence-backed scope claim rather than an evidence-free omission.
+
 ## Temporal Governance and Recovery
 
 The autonomous-agent research loop tests whether governance can regain control after intervention:
@@ -104,12 +107,14 @@ The autonomous-agent research loop tests whether governance can regain control a
 Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
 ```
 
+Temporal states carry an explicit `sequence_id`; unrelated sequences are rejected rather than compared as one recovery trajectory. Transition results preserve candidate config identity/hash, before/after input hashes, and residual-state identity when supplied.
+
 The temporal scaffold distinguishes:
 
-- **recovery progress** — valid pre→post intervention transition, higher `GI`, lower `AE`;
-- **verified recovery signal** — recovery progress plus no remaining candidate-prerequisite breach, no elevated AE/CUE condition, complete residual-state evidence, and no material residual state present.
+- **recovery progress** — same-sequence valid pre→post intervention transition, declared intervention, higher `GI`, lower `AE`;
+- **verified recovery signal** — recovery progress plus a governed post-state, no remaining candidate-prerequisite breach, no elevated AE/CUE condition, complete residual-state evidence, and no material residual state present.
 
-Residual-state checks currently cover credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, and rollback gaps.
+Residual-state checks currently cover credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, and rollback gaps. For verified recovery, `clear`, `present`, and `not_applicable` residual claims require rationale, scorer identity/type, positive confidence, and evidence references; `unknown` blocks verified recovery.
 
 Even verified recovery is an experimental research signal, not a production containment attestation. `EFGM-EXP-0005` is designed to falsify these semantics.
 
@@ -123,8 +128,8 @@ It is not externally validated, independently replicated, a production autonomou
 
 1. Preserve the frozen EFGM v2 baseline.
 2. Run `EFGM-EXP-0004` on candidate prerequisites and benign controls.
-3. Run `EFGM-EXP-0005` on temporal intervention and residual state.
-4. Run `EFGM-EXP-0006` on independently authored AE/CUE semantic labels.
+3. Run `EFGM-EXP-0005` on temporal sequence identity, intervention, residual state, and recovery.
+4. Run `EFGM-EXP-0006` on independently authored, mathematically feasible AE/CUE semantic contrasts.
 5. Continue inter-rater, construct-validity, sensitivity, and sealed-holdout work.
 6. Keep confidence propagation as an explicit future experiment rather than silently altering scores.
 
