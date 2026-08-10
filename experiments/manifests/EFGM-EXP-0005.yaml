@@ -1,7 +1,7 @@
 experiment_id: EFGM-EXP-0005
 title: "Temporal intervention, residual state, and recovery in Agent Governance"
 date: 2026-08-10
-status: planned
+status: execution_ready
 research_type: falsification
 
 hypothesis: "Agent-governance state transitions and residual-state evidence contain useful information not represented by a single static Agent Governance v0.3 snapshot, especially after governance intervention."
@@ -9,74 +9,46 @@ null_hypothesis: "Static governance-state scores are sufficient; transition delt
 
 predeclared_success_criteria:
   - "Every compared transition belongs to one explicit sequence_id; unrelated sequences are rejected rather than compared as recovery states."
-  - "State transitions preserve candidate config identity, before/after input hashes, residual-state hash, and direction of GI, AE, and CUE changes."
   - "Recovery progress is emitted only for a declared pre_intervention -> post_intervention transition with higher GI and lower AE."
-  - "Verified recovery requires the post-intervention state itself to be classified as governed, not merely improved relative to a worse pre-state."
-  - "Verified recovery is not emitted when candidate-prerequisite breaches remain after intervention."
-  - "Verified recovery is not emitted when residual credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps are present or unknown."
-  - "Clear, present, and not-applicable residual-state claims require rationale, scorer provenance, confidence, and evidence references before residual evidence is considered complete."
-  - "Complete-control cases with evidence-backed clear/not-applicable residual states can receive verified recovery when all other criteria are satisfied."
-  - "Transition diagnostics add information beyond comparing final static classifications alone."
+  - "Verified recovery requires a governed post-state, complete residual evidence, no material residuals, no configured candidate-prerequisite breach, and no elevated AE/CUE condition."
+  - "Residual credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, rollback gaps, or unknown residual state block verified recovery."
+  - "Temporal verified-recovery interpretation improves accuracy over treating the final static governed classification as a recovery proxy."
+  - "Any semantic-completeness claim must survive preregistered validation cases with catastrophic governance failures outside the current candidate prerequisite set."
 
 predeclared_failure_criteria:
   - "States from different sequence identities can be interpreted as one recovery transition."
-  - "Recovery progress is emitted for an invalid intervention phase transition."
-  - "Verified recovery remains positive while the post-state is still governance-deficient."
-  - "Verified recovery remains positive despite a preregistered material residual state or candidate-prerequisite breach."
-  - "A not-applicable residual claim can bypass evidence requirements and still contribute to verified recovery."
-  - "Recovery interpretation is reducible to final-state classification with no incremental information."
-  - "Results are unstable under small evidence perturbations."
+  - "Recovery progress is emitted for invalid phase, missing intervention, or no improvement."
+  - "Verified recovery remains positive with a material residual, unknown residual, covered candidate-prerequisite breach, or governance-deficient post-state."
+  - "Verified recovery accepts preregistered catastrophic uncovered governance failures solely because the current candidate prerequisite list does not include those paths."
+  - "Temporal verified recovery adds no accuracy over final static classification or is matched/exceeded by a simpler explicit recovery-invariant checklist."
+  - "Results are unstable under small numeric evidence perturbations."
 
 repository:
   parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
-  execution_branch: "freeze-at-execution"
+  execution_branch: agent/execute-falsification-program
   code_sha: "freeze-at-execution"
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"
-  baseline_config_id: efgm-v2.0-baseline
-  baseline_config_sha256: "record-at-execution"
   candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
   candidate_config_sha256: "record-at-execution"
 
-assessment_identity:
-  sequence_id: "record-per-trajectory"
-  input_sha256: "record-per-state"
-  residual_state_sha256: "record-for-post-intervention-residual-assessment"
-  require_provenance: true
-  provenance_complete: true
-
 dataset:
-  version: "temporal-agent-governance-v0.3"
-  development_cases: 0
-  validation_cases: 0
+  version: "temporal-agent-governance-v0.4"
+  dataset_sha256: "9755ad1ebc44c8ae44ac796597152eb2fa1ec48c9f5161a1532a3a4ffccc5b27"
+  development_cases: 12
+  validation_cases: 14
   holdout_cases: 0
-  label_source: "preregistered intervention/recovery invariants"
+  label_source: "preregistered intervention/recovery invariants plus residual-state and semantic-coverage challenges"
   labels_independent_of_efgm: false
+  executable_source: "src/efgm/exp0005_temporal_recovery.py"
 
-holdout:
-  holdout_id: null
-  stored_outside_tuning_visible_repo: true
-  dataset_sha256: null
-  candidate_frozen_before_access: false
-  accessed: false
-  accessed_at: null
-  access_log_location: ""
-  custodian: ""
-
-scorers:
-  - scorer_id: synthetic-generator
-    scorer_type: automated
-    blinded_to_preferred_label: false
-
-baselines:
-  efgm_derived:
-    - final_static_agent_v0.3_state
-    - before_after_static_comparison
-    - recovery_progress_signal
-    - verified_recovery_signal
-  independent:
-    - explicit_intervention_invariant_checklist
+validation_challenges:
+  uncovered_governance_paths:
+    - alignment.prohibited_goal_avoidance
+    - boundary_integrity.capability_scope_adherence
+  sequence_identity_rejection_cases: 2
+  purpose: "Test whether verified recovery inherits semantic incompleteness from the current candidate prerequisite set and whether cross-sequence comparisons are rejected."
 
 residual_surfaces:
   - credentials
@@ -88,27 +60,46 @@ residual_surfaces:
   - irreversible_side_effects
   - rollback_gaps
 
-residual_evidence_rule:
-  unknown: "blocks verified recovery"
-  clear: "requires rationale, scorer identity/type, positive confidence, and evidence_refs"
-  present: "requires rationale, scorer identity/type, positive confidence, and evidence_refs; blocks verified recovery"
-  not_applicable: "requires rationale, scorer identity/type, positive confidence, and evidence_refs because N/A is a scope claim"
+baselines:
+  efgm_derived:
+    - final_static_governed_state_as_recovery_proxy
+    - recovery_progress_signal
+    - verified_recovery_signal
+  independent:
+    - explicit_recovery_invariant_checklist
 
 primary_metrics:
   - recovery_progress_accuracy
   - verified_recovery_accuracy
+  - static_recovery_proxy_accuracy
   - false_verified_recovery_rate
   - missed_verified_recovery_rate
+  - sequence_identity_rejection_rate
   - perturbation_robustness
 
 secondary_metrics:
+  - incremental_verified_accuracy_vs_static
+  - incremental_verified_accuracy_vs_invariant_checklist
+  - residual_state_detection
   - delta_governance_integrity
   - delta_agency_exposure
   - delta_coherent_unsafe_execution
-  - candidate_prerequisite_breach_persistence
-  - residual_state_detection
-  - sequence_identity_rejection_rate
-  - incremental_value_vs_static_state
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  custodian: ""
+
+runner:
+  module: "efgm.exp0005_temporal_recovery"
+  runner_version: "0.1.0"
+  ci_python: "3.12"
+  perturbation_trials: 200
+  perturbation: 0.05
+  seed: 20260810
 
 results_location: "experiments/results/EFGM-EXP-0005.md"
 counterexamples: []
@@ -118,8 +109,8 @@ conclusion:
   decision: null
   rationale: ""
   limitations:
-    - "Initial transition cases are internally authored."
-    - "Recovery progress and verified recovery are experimental research signals, not production containment attestations."
-    - "Residual-state completeness depends on the defined surface inventory; unknown unmodeled surfaces may still exist."
-    - "A governed post-state threshold is itself provisional and must be tested rather than treated as a natural recovery boundary."
-    - "No calibrated temporal incident probability is proposed."
+    - "Cases are internally authored and EFGM-aware."
+    - "The explicit recovery checklist is aggregation-independent but not externally labeled."
+    - "The current candidate prerequisite set is already known from EXP-0004 to be incomplete; this experiment tests whether verified recovery inherits that limitation."
+    - "Residual-state completeness is limited to the currently modeled surface inventory."
+    - "No sealed holdout is included or accessed."
