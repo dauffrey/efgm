@@ -1,7 +1,7 @@
 experiment_id: EFGM-EXP-0004
 title: "Agent Governance critical-dimension diagnostics"
 date: 2026-08-10
-status: execution_ready
+status: completed_development_validation_cycle
 research_type: falsification
 
 hypothesis: "A non-compensatory diagnostic layer can reduce false reassurance from sparse catastrophic governance failures without treating every low observation as a prerequisite or replacing the continuous Agent Governance v0.3 aggregate scores."
@@ -25,14 +25,16 @@ predeclared_failure_criteria:
 repository:
   parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
   execution_branch: agent/execute-falsification-program
-  code_sha: "freeze-at-execution"
+  code_sha: 8c2df53760dc8a39ac2d802127a477d107f14102
+  github_actions_run: 31430795539
+  github_actions_run_number: 93
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"
   baseline_config_id: efgm-v2.0-baseline
-  baseline_config_sha256: "record-at-execution"
+  baseline_config_sha256: 0f55f6eabe97d0f365d1e45ba8f9d0fef67e9721a93e6eba8b0a364b612bafd0
   candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
-  candidate_config_sha256: "record-at-execution"
+  candidate_config_sha256: af0b5540f28d4d65ae95929a855a168f9e7c286439d33d33e14ef167d808366c
 
 assessment_identity:
   input_sha256: "record-per-case"
@@ -112,15 +114,38 @@ runner:
   perturbation: 0.10
   seed: 20260810
 
+executed_results:
+  development:
+    aggregate_only_false_reassurance_rate: 1.0
+    candidate_prerequisite_detection_rate: 1.0
+    candidate_prerequisite_false_alarm_rate: 0.0
+    observation_floor_detection_rate: 1.0
+    observation_floor_false_alarm_rate: 0.5
+    low_percentile_detection_rate: 0.0
+    low_percentile_false_alarm_rate: 0.0
+  validation:
+    aggregate_only_false_reassurance_rate: 1.0
+    candidate_prerequisite_detection_rate: 0.6667
+    candidate_prerequisite_false_alarm_rate: 0.0
+    independent_checklist_detection_rate: 0.6667
+    independent_checklist_false_alarm_rate: 0.0
+    incremental_balanced_accuracy_vs_checklist: 0.0
+  perturbation:
+    mean_correct_classification_probability: 0.7765
+    minimum_correct_classification_probability: 0.0
+  promotion_gate_passed: false
+
 results_location: "experiments/results/EFGM-EXP-0004.md"
 counterexamples:
   - EFGM-CE-0001
 regressions: []
 
 conclusion:
-  decision: null
-  rationale: ""
+  decision: do_not_promote_current_candidate_prerequisite_set
+  rationale: "The configured prerequisite layer eliminated false reassurance on its covered development paths with no candidate-prerequisite false alarms, but validation exposed three preregistered catastrophic paths outside the configured set. Detection fell to 66.67%, the simpler aggregation-independent checklist achieved the same covered-path decisions, incremental balanced accuracy was 0.0000, and perturbation minimum-case correctness was 0.00%. Expanding the prerequisite set after observing these failures would be outcome-driven tuning; the current candidate is therefore retained as a failed/incomplete research candidate rather than promoted."
   limitations:
-    - "Initial cases are internally authored and EFGM-terminology aware."
+    - "Cases are internally authored and EFGM-terminology aware."
     - "The configured candidate prerequisite set is a research hypothesis, not an established control invariant."
-    - "No external sealed holdout is included in this cycle."
+    - "The independent checklist is independent of EFGM aggregation but is not an externally independently labeled comparator."
+    - "No external sealed holdout was included or accessed."
+    - "This result does not reject all non-compensatory governance approaches; it rejects promotion of the current configured prerequisite set from this cycle."
