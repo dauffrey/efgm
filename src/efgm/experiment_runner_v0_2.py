@@ -4,6 +4,7 @@ import copy
 import os
 import random
 from collections import defaultdict
+from math import isfinite
 from pathlib import Path
 from statistics import mean, median
 from typing import Any, Callable, Mapping
@@ -36,6 +37,16 @@ MODEL_NAMES = tuple(MODEL_DIRECTIONS)
 
 def _clamp(value: float) -> float:
     return max(0.0, min(1.0, round(float(value), 4)))
+
+
+def _validate_sensitivity_parameters(trials: int, perturbation: float) -> None:
+    if isinstance(trials, bool) or not isinstance(trials, int) or trials <= 0:
+        raise ValueError("sensitivity_trials must be a positive integer.")
+    if isinstance(perturbation, bool) or not isinstance(perturbation, (int, float)):
+        raise ValueError("perturbation must be a finite number in [0, 1].")
+    numeric = float(perturbation)
+    if not isfinite(numeric) or not 0.0 <= numeric <= 1.0:
+        raise ValueError("perturbation must be a finite number in [0, 1].")
 
 
 def _observation(case: dict[str, Any], path: str, value: float) -> dict[str, Any]:
@@ -305,6 +316,7 @@ def sensitivity_analysis(
     seed: int = DEFAULT_SENSITIVITY_SEED,
     agent_config: str | Path | Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    _validate_sensitivity_parameters(trials, perturbation)
     pairs = _pairs(cases)
     per_model: dict[str, list[float]] = {model: [] for model in MODEL_NAMES}
 
@@ -328,7 +340,7 @@ def sensitivity_analysis(
 
     return {
         "trials_per_pair": trials,
-        "perturbation": perturbation,
+        "perturbation": float(perturbation),
         "seed": seed,
         "models": {
             model: {
@@ -425,6 +437,7 @@ def run_experiment(
     agent_config: str | Path | Mapping[str, Any] | None = None,
     code_sha: str | None = None,
 ) -> dict[str, Any]:
+    _validate_sensitivity_parameters(sensitivity_trials, perturbation)
     materialized = cases if cases is not None else generate_cases()
     if not materialized:
         raise ValueError("At least one benchmark pair is required.")
