@@ -9,8 +9,8 @@ EFGM is **not** a proven scientific law, compliance standard, or production-read
 Use these identities consistently:
 
 ```text
-Canonical model:       EFGM v2 — Decision Integrity
-Python package:        0.2.0
+Canonical model:        EFGM v2 — Decision Integrity
+Python package:         0.2.0
 Experimental extension: Agent Governance v0.3
 ```
 
@@ -148,6 +148,14 @@ CUE = F_T × AE
 - `AE` — Agency Exposure: consequential agency that is insufficiently governed.
 - `CUE` — Coherent Unsafe Execution: effective task flow operating through that exposure.
 
+Because normalized `F_T` is in `[0,1]`, the candidate has the structural invariant:
+
+```text
+0 <= CUE <= AE <= 1
+```
+
+A generic low-`AE` / high-`CUE` region is therefore mathematically impossible and must not be used as an experiment-design target.
+
 The historical experimental field `uncontrolled_agency_risk` is retained as a compatibility alias for `CUE` while candidate formulations are compared.
 
 The agent benchmark treats `AE` and `CUE` as **lower-is-better** comparators and records the candidate config identity/hash and code SHA. A construct-separation diagnostic verifies the implementation contract that lowering task flow can reduce `CUE` without reducing `AE`; this is not external semantic validation.
@@ -186,12 +194,16 @@ A static snapshot is not sufficient for autonomous-agent governance. Experimenta
 src/efgm/temporal_v0_3.py
 ```
 
+Temporal states carry an explicit `sequence_id`. A transition across different sequence identities is rejected rather than interpreted as change or recovery. Transition results record candidate config identity/hash, before/after input hashes, and a residual-state hash when residual evidence is supplied.
+
 Temporal results distinguish:
 
-- `recovery_progress_signal` — a valid `pre_intervention → post_intervention` transition with higher `GI` and lower `AE` after a declared intervention;
-- `verified_recovery_signal` — recovery progress **plus** no remaining candidate-prerequisite breach, no elevated AE/CUE flag, and complete evidence-backed residual-state checks with no material residuals present.
+- `recovery_progress_signal` — a valid `pre_intervention → post_intervention` transition in the same sequence, with higher `GI` and lower `AE` after a declared intervention;
+- `verified_recovery_signal` — recovery progress **plus** a governed post-state, no remaining candidate-prerequisite breach, no elevated AE/CUE flag, complete evidence-backed residual-state checks, and no material residuals present.
 
-Residual-state checks currently cover credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, and rollback gaps. These are experimental research signals, not production containment attestations.
+Residual-state checks currently cover credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, and rollback gaps. For a verified-recovery candidate, `clear`, `present`, and `not_applicable` residual claims require rationale, scorer identity/type, positive confidence, and evidence references. `unknown` blocks verified recovery. `not_applicable` is treated as an evidence-backed scope claim rather than an evidence-free escape hatch.
+
+These are experimental research signals, not production containment attestations.
 
 See [`research/EFGM_V0_3_GOVERNED_AGENTIC_FLOW.md`](research/EFGM_V0_3_GOVERNED_AGENTIC_FLOW.md).
 
@@ -275,8 +287,8 @@ Required controls include:
 Planned falsification cycles include:
 
 - `EFGM-EXP-0004` — critical-dimension diagnostics and candidate prerequisite testing;
-- `EFGM-EXP-0005` — temporal intervention, residual state, and recovery;
-- `EFGM-EXP-0006` — independent semantic testing of Agency Exposure versus Coherent Unsafe Execution.
+- `EFGM-EXP-0005` — temporal sequence identity, intervention, residual state, and recovery;
+- `EFGM-EXP-0006` — independent semantic testing of Agency Exposure versus Coherent Unsafe Execution within the feasible constraint `CUE <= AE`.
 
 See [`research/README.md`](research/README.md) and [`validation/test-plan.md`](validation/test-plan.md).
 
