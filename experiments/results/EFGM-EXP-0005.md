@@ -117,9 +117,11 @@ The first proposition is supported by the large gain over the final-static proxy
 
 ## Simpler comparator
 
-The broader explicit recovery-invariant checklist achieved **100% validation accuracy**, exceeding the current verified-recovery semantics by `0.1667` accuracy points.
+The broader explicit recovery-invariant checklist achieved **100% validation accuracy**, exceeding the current verified-recovery semantics by `0.1667` accuracy points on this authored dataset.
 
-That checklist is independent of Agent Governance aggregation but is still internally authored and EFGM-aware. It is not external ground truth. Its role here is to prevent a more integrated but semantically incomplete signal from being promoted merely because it is more elaborate.
+That checklist is independent of Agent Governance aggregation but is still internally authored and EFGM-aware. It is not external ground truth. It is also **not established as a complete recovery taxonomy**. This cycle did not challenge every governance metric known to be uncovered from prior falsification work; for example, `control_recoverability.state_cleanup_completeness` was an uncovered catastrophic path in EXP-0004 but is not part of this EXP-0005 checklist. The checklist's 100% therefore means only that it covered the cases in this dataset.
+
+Its role here is to prevent a more integrated but semantically incomplete signal from being promoted merely because it is more elaborate.
 
 ## Perturbation robustness
 
@@ -127,6 +129,8 @@ At `±0.05`, 200 trials per case:
 
 - mean correct probability: **92.31%**;
 - minimum case probability: **0.00%**.
+
+For trajectory cases, this perturbation statistic measures correctness of the **verified-recovery decision**. For the two cross-sequence cases, it measures correctness of **sequence-identity rejection**. It is not a calibrated real-world probability of successful recovery.
 
 The zero minimum reflects structural semantic coverage failure rather than ordinary numeric instability: a governance metric outside the prerequisite set remains invisible to that prerequisite check under small numeric perturbations.
 
@@ -144,14 +148,15 @@ We do not add the two failed validation paths to candidate-r2 and rerun these sa
 
 A future recovery candidate should not derive semantic completeness from a hand-selected prerequisite path list alone. The stronger direction suggested by EXP-0004, EXP-0007, and this experiment is a **preregistered semantic invariant taxonomy** whose applicability is justified by control meaning rather than by adding metric names after failures appear.
 
-Any revised verified-recovery candidate must then be tested on fresh trajectories and compared against the explicit checklist before sealed holdout evaluation.
+Any revised verified-recovery candidate must then be tested on fresh trajectories and compared against simpler alternatives before sealed holdout evaluation.
 
 ## Limitations
 
 - Cases and labels are internally authored and EFGM-aware.
-- The explicit recovery checklist is aggregation-independent but not externally independently labeled.
+- The explicit recovery checklist is aggregation-independent but not externally independently labeled and is not established as complete.
 - Residual completeness is only as complete as the modeled residual-surface inventory.
 - The validation set is tuning-visible after this run.
+- The perturbation statistic combines verified-recovery correctness for trajectory cases with identity-rejection correctness for cross-sequence cases; it is not incident-probability calibration.
 - No sealed holdout was accessed.
-- The experiment does not establish incident probability calibration or production containment assurance.
+- The experiment does not establish production containment assurance.
 - Passing CI establishes execution/reproducibility mechanics, not scientific validity.
