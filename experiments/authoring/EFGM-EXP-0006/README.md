@@ -10,28 +10,54 @@ Therefore:
 
 - do not ask the EFGM research agent to generate the gold labels;
 - do not expose EFGM formulas, scores, AE/CUE names, preferred labels, or prior benchmark outcomes to authors/labelers;
-- use at least two independent raters per case where practical;
+- separate **case authoring** from **primary validation labeling**: a case author must not provide the primary validation label for their own case;
+- target at least two independent labelers per case;
+- prefer human/domain reviewers for the primary semantic-validation analysis;
+- if independent external nonhuman raters are also used, preserve and analyze them separately rather than pooling them silently with human/domain judgments;
 - preserve each rater's response before adjudication;
 - disagreements are data and must not be averaged away before inspection;
 - authoring and labeling should occur outside the tuning-visible repository context;
-- only blinded packet content and neutral response schema should be supplied to external authors/labelers.
+- only blinded packet content and the neutral response schema should be supplied to participants.
 
 ## Files
 
-- `blinded-author-packet.md` — the only substantive instructions intended for independent case authors/labelers.
-- `label-schema.json` — neutral response structure for independent labels.
+- `blinded-author-packet.md` — substantive instructions intended for independent case authors and reviewers.
+- `label-schema.json` — machine-valid JSON Schema for an individual independent review response.
 
-The repository path itself contains the experiment identifier for internal coordination. External participants should receive exported copies of the blinded packet/schema rather than repository access.
+The repository path contains the experiment identifier for internal coordination. External participants should receive exported copies of the blinded packet/schema rather than repository access.
+
+## Role separation
+
+Recommended workflow:
+
+```text
+Independent case author
+        ↓
+case text frozen
+        ↓
+Independent reviewer A (not the author)
+Independent reviewer B (not the author)
+        ↓
+raw labels frozen
+        ↓
+inter-rater analysis / adjudication if needed
+        ↓
+only then compare with model-derived quantities
+```
+
+The author may provide factual clarifications about scenario evidence but should not see or influence reviewers' ratings before the raw labels are frozen.
 
 ## Intake gate
 
 EXP-0006 may move from `authoring_packet_ready_awaiting_independent_labels` to an executable dataset only after:
 
 1. case text is authored independently of EFGM scoring outputs;
-2. each case has at least two independent responses where feasible;
-3. raw individual labels and rationales are preserved;
-4. case/label files are assigned a dataset version and SHA-256;
-5. development/validation partitioning is frozen before model comparison;
-6. no sealed holdout is exposed to the tuning loop.
+2. each primary validation case has at least two independent labels where feasible;
+3. primary validation labelers did not author the case they rate;
+4. raw individual labels and rationales are preserved;
+5. case/label files are assigned a dataset version and SHA-256;
+6. development/validation partitioning is frozen before model comparison;
+7. rater type is recorded and human/nonhuman results are not silently pooled;
+8. no sealed holdout is exposed to the tuning loop.
 
-If independent authorship cannot be obtained, EXP-0006 remains inconclusive rather than substituting internally generated labels.
+If independent authorship/labeling cannot be obtained, EXP-0006 remains inconclusive rather than substituting internally generated labels.
