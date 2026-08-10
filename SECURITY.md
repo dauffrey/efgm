@@ -75,11 +75,14 @@ G  = EFGM v2 Grounding
 GI = Agent Governance v0.3 Governance Integrity
 AE = Agency Exposure
 CUE = Coherent Unsafe Execution
+0 <= CUE <= AE <= 1
 ```
 
 High privilege, connectivity, persistence, coordination, or action velocity is not automatically a security failure. The experimental question is whether consequential agency remains adequately governed, observable, bounded, and recoverable.
 
 Unknown boundary state, persistence surfaces, credential propagation, or recoverability must not be interpreted as integrity.
+
+Because `CUE <= AE` structurally, exposure and execution must not be treated as independent orthogonal risk axes.
 
 ## Critical-Dimension Limitation
 
@@ -100,15 +103,19 @@ Whole-family `not_applicable` is currently supported only for **coordination gov
 
 N/A must not be used to avoid assessing a control that actually applies.
 
+For temporal verified-recovery assessment, `not_applicable` is an evidence-backed scope claim. It requires rationale, scorer identity/type, positive confidence, and evidence references; it cannot be used as an evidence-free way to clear a residual surface.
+
 ## Temporal Intervention and Recovery
 
 A post-intervention score is not proof that control has been restored.
+
+Temporal states carry an explicit `sequence_id`. States from different sequences are rejected as a single transition rather than interpreted as recovery evidence. Transition results retain candidate config identity/hash, before/after input hashes, and residual-state identity when residual evidence is supplied.
 
 The temporal research scaffold distinguishes:
 
 ### Recovery progress
 
-A valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
+A same-sequence valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
 
 This indicates directional improvement only.
 
@@ -116,6 +123,7 @@ This indicates directional improvement only.
 
 Recovery progress plus:
 
+- the post-intervention state itself is classified as governed;
 - no remaining candidate-prerequisite breach;
 - no elevated AE/CUE diagnostic;
 - complete residual-state evidence;
@@ -132,7 +140,9 @@ Residual-state surfaces currently include:
 - irreversible side effects;
 - rollback gaps.
 
-A residual status of `unknown` prevents verified recovery. Even `verified_recovery_signal` is **not a production containment attestation**; it is an experimental research signal to be falsified under `EFGM-EXP-0005`.
+For a verified-recovery candidate, `clear`, `present`, and `not_applicable` residual claims require rationale, scorer identity/type, positive confidence, and evidence references. A residual status of `unknown` prevents verified recovery.
+
+Even `verified_recovery_signal` is **not a production containment attestation**; it is an experimental research signal to be falsified under `EFGM-EXP-0005`.
 
 ## Prototype Code Security
 
