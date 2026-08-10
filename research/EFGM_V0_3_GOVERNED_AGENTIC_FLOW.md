@@ -195,11 +195,19 @@ Question:
 
 > How effectively is task execution operating through that exposure?
 
+Because normalized `F_T` is in `[0,1]`:
+
+```text
+0 <= CUE <= AE <= 1
+```
+
+`AE` and `CUE` are therefore related rather than orthogonal constructs. A generic low-`AE` / high-`CUE` quadrant is mathematically impossible and must not be used as a case-design target.
+
 `uncontrolled_agency_risk` remains a compatibility alias for `CUE` during this research cycle. Neither `AE` nor `CUE` is a calibrated incident probability.
 
-The benchmark now includes both as explicit **lower-is-better** comparators. It also includes a construct-separation implementation diagnostic that lowers task-flow maturity while holding governance and agency inputs fixed. That diagnostic should leave `AE` unchanged and reduce `CUE`.
+The benchmark includes both as explicit **lower-is-better** comparators. It also includes a construct-separation implementation diagnostic that lowers task-flow maturity while holding governance and agency inputs fixed. That diagnostic should leave `AE` unchanged and reduce `CUE`.
 
-This verifies the algebraic implementation contract only. It does **not** establish that external reviewers or outcomes support `AE` and `CUE` as distinct useful constructs. `EFGM-EXP-0006` is reserved for that semantic test using independently defined labels.
+This verifies the algebraic implementation contract only. It does **not** establish that external reviewers or outcomes support `AE` and `CUE` as distinct useful constructs. `EFGM-EXP-0006` is reserved for semantic testing using independently defined labels and mathematically feasible contrasts.
 
 # 7. Other continuous candidates
 
@@ -256,9 +264,9 @@ Current labels are:
 
 The configuration validator rejects internally dead/contradictory threshold relationships such as a CUE elevation threshold above the AE elevation threshold, because `CUE <= AE` by construction.
 
-# 10. Benchmark v0.2 — Agentic Governance
+# 10. Benchmark v0.2 — Agentic Governance dataset
 
-The benchmark contains 132 controlled synthetic cases:
+The benchmark dataset contains 132 controlled synthetic cases:
 
 ```text
 66 preferred/mutated pairs
@@ -267,11 +275,13 @@ The benchmark contains 132 controlled synthetic cases:
 44 validation cases
 ```
 
+Here `v0.2` is the **benchmark dataset/runner lineage**, not the EFGM model version or Python package version.
+
 Families include boundary crossing, privilege accumulation, capability acquisition, credential propagation, environmental memory, emergent coordination, observability gaps, control recoverability, goal persistence, tool/environment adaptation, and coherent unsafe execution.
 
 Inside each preferred/mutated pair, EFGM v2 task-flow observations are held constant. This asks whether governance dimensions add information beyond cognitive/task coherence.
 
-The runner now records:
+The runner records:
 
 - frozen EFGM v2 baseline SHA;
 - candidate config ID/hash;
@@ -296,12 +306,13 @@ S_t+2
 Did governance regain control?
 ```
 
-The temporal scaffold now distinguishes two research signals.
+Every temporal state carries an explicit `sequence_id`. States from different sequences are rejected rather than compared as one recovery trajectory. Transition results retain candidate config identity/hash, before/after input hashes, and a residual-state hash when residual evidence is provided.
 
 ## Recovery progress
 
 `recovery_progress_signal` requires:
 
+- the same explicit sequence identity;
 - a valid `pre_intervention → post_intervention` transition;
 - a declared intervention;
 - higher `GI`;
@@ -313,6 +324,7 @@ This means governance moved in the intended direction. It is **not** a recovery 
 
 `verified_recovery_signal` additionally requires:
 
+- the post-intervention state itself has a governed classification;
 - no remaining candidate-prerequisite breach;
 - no elevated AE/CUE diagnostic;
 - complete residual-state evidence;
@@ -329,11 +341,11 @@ Residual-state surfaces currently include:
 - irreversible side effects;
 - rollback gaps.
 
-A residual state marked `unknown` prevents verified recovery. Clear/present states require evidence references in the research scaffold.
+A residual state marked `unknown` prevents verified recovery. For a verified-recovery candidate, `clear`, `present`, and `not_applicable` claims require rationale, scorer identity/type, positive confidence, and evidence references. `not_applicable` is therefore an evidence-backed scope claim, not an evidence-free escape hatch.
 
 Even the verified signal is an experimental research result, **not** a production containment attestation.
 
-`EFGM-EXP-0005` must falsify this logic using partial interventions, cached credentials, surviving persistence/memory, delegated peer goals, rollback gaps, trace loss, and delayed containment.
+`EFGM-EXP-0005` must falsify this logic using unrelated-sequence attempts, governance-deficient post-states, partial interventions, cached credentials, surviving persistence/memory, delegated peer goals, rollback gaps, trace loss, N/A misuse, and delayed containment.
 
 # 12. Scientific constraints
 
@@ -353,6 +365,7 @@ Known limitations include:
 - no proof that multiplicative interactions are necessary;
 - no calibrated mapping from scores to incident probability;
 - limited temporal evidence;
+- residual-state coverage is only as complete as the currently modeled surface inventory;
 - reviewer confidence is recorded but not mathematically propagated.
 
 Confidence propagation remains an explicit future experiment candidate and must not be silently folded into current scores.
@@ -382,4 +395,4 @@ AE = insufficiently governed agency exposure
 CUE = coherent task execution through that exposure
 ```
 
-The next research priorities are candidate-prerequisite falsification, independent AE/CUE semantic testing, and temporal intervention/recovery testing.
+The next research priorities are candidate-prerequisite falsification, independent AE/CUE semantic testing within `CUE <= AE`, and temporal intervention/recovery testing.
