@@ -2,7 +2,13 @@
 
 ## Purpose
 
-This document records the working assumptions behind the **canonical EFGM v2 decision-integrity baseline** and identifies assumptions introduced by the **experimental v0.3 agent-governance candidate**.
+This document records working assumptions behind the **canonical EFGM v2 decision-integrity baseline** and the **experimental Agent Governance v0.3 extension**.
+
+```text
+Canonical model:        EFGM v2
+Python package:         0.2.0
+Experimental extension: Agent Governance v0.3
+```
 
 These are hypotheses to test, not facts to defend. If an assumption fails under controlled evidence, EFGM should be simplified, revised, or rejected accordingly.
 
@@ -16,22 +22,11 @@ belongs to the legacy coherent-flow model and is not the current canonical opera
 
 ---
 
-# 1. Canonical v2 Model Assumptions
+# 1. Canonical EFGM v2 Model Assumptions
 
 ## A-001 — Decision Integrity Can Be Assessed From Observable Evidence
 
-EFGM assumes that a decision process can be characterized well enough to support governance analysis using observable evidence about:
-
-- sequence continuity;
-- capability suitability;
-- flow quality;
-- grounding;
-- uncertainty calibration;
-- input and output degradation;
-- behavioral pressure;
-- operational disruption.
-
-This does not assume perfect measurement. It assumes the constructs may be measurable enough to add value beyond unstructured judgment.
+EFGM assumes that a decision process can be characterized well enough to support governance analysis using observable evidence about sequence continuity, capability suitability, flow quality, grounding, uncertainty calibration, input/output degradation, behavioral pressure, and operational disruption.
 
 **Status:** Unvalidated  
 **Primary test:** inter-rater agreement, construct validity, predictive comparison.
@@ -39,8 +34,6 @@ This does not assume perfect measurement. It assumes the constructs may be measu
 ## A-002 — Input and Output Entropy Are Distinguishable
 
 EFGM assumes the disorder presented to a decision process (`Ei`) can be distinguished from degradation introduced or retained by the process (`Eo`).
-
-This distinction is necessary for Coherence Recovery Capacity:
 
 ```text
 CRC = (Ei - Eo) / max(Ei, ε)
@@ -51,73 +44,58 @@ CRC = (Ei - Eo) / max(Ei, ε)
 
 ## A-003 — Decision Quality and Outcome Quality Are Different Constructs
 
-EFGM assumes a decision should be evaluated using information available at decision time rather than judged only by its eventual outcome.
-
 ```text
 DQ != OQ
 OD = OQ - DQ
 ```
 
-This protects against outcome bias and allows lucky bad decisions and unlucky good decisions to remain analytically distinct.
+A decision should be evaluated using information available at decision time rather than judged only by eventual outcome.
 
 **Status:** Required research principle; empirical usefulness still unvalidated.
 
 ## A-004 — Flow Quality, Grounding, and Calibration Are Distinguishable
 
-EFGM v2 assumes:
-
 - `Fq` measures coherent progression;
 - `G` measures evidentiary/rule grounding;
 - `U` measures confidence calibration.
-
-A fluent answer may have high semantic coherence and low grounding. A factually grounded answer may still be badly calibrated about uncertainty.
 
 **Status:** Unvalidated  
 **Primary test:** blinded scorer agreement and construct-selective mutations.
 
 ## A-005 — Behavioral Entropy Adds Information
 
-EFGM assumes decision distortion caused by chasing behavior, outcome bias, sunk-cost pressure, false-pattern detection, or overconfidence feedback may provide explanatory or predictive value beyond grounding and calibration alone.
+Decision distortion from chasing behavior, outcome bias, sunk-cost pressure, false-pattern detection, or overconfidence feedback may add value beyond grounding and calibration alone.
 
 **Status:** Unvalidated  
 **Primary test:** ablation and independent-label comparison.
 
 ## A-006 — Operational Entropy May Affect Decision Reliability
 
-The frozen v2 model currently penalizes `DQ` for operational entropy such as tool failures, retries, timeouts, latency pressure, and workflow interruptions.
+The frozen EFGM v2 model currently penalizes `DQ` for tool failures, retries, timeouts, latency pressure, and workflow interruptions. This placement remains an explicit open question.
 
-However, EFGM does **not** assume this placement is settled. Operational entropy may prove to belong partly or entirely in a downstream execution-reliability construct.
-
-**Status:** Explicit open question.
+**Status:** Open.
 
 ## A-007 — The Geometric Positive-Factor Composite Is Useful
-
-The frozen v2 baseline uses:
 
 ```text
 Q = (T × C × Fq × G × U)^(1/5)
 ```
 
-EFGM assumes only that this is a useful baseline candidate for comparison. It does not assume geometric aggregation is scientifically necessary or superior to simpler arithmetic or checklist models.
+This is a frozen baseline hypothesis, not a claim that geometric aggregation is scientifically necessary.
 
-**Status:** Provisional  
-**Primary test:** ablation, independent baselines, unseen cases.
+**Status:** Provisional.
 
 ## A-008 — Additive Entropy Penalties Are a Useful Baseline
-
-The frozen v2 baseline uses:
 
 ```text
 DQ = Q / (1 + Eo + Be + Oe)
 ```
 
-This is a reproducible hypothesis, not an established law. Interaction effects, gates, or alternative execution models may perform better.
+This is a reproducible hypothesis, not an established law.
 
 **Status:** Provisional.
 
 ## A-009 — Missing Evidence Must Not Become a Favorable Number
-
-Canonical observation states are:
 
 ```text
 observed
@@ -125,10 +103,6 @@ inferred
 unknown
 not_applicable
 ```
-
-EFGM assumes that silently mapping `unknown` to zero or another favorable value would create false reassurance.
-
-Therefore:
 
 ```text
 unknown != 0.00
@@ -140,59 +114,48 @@ not_applicable != unknown
 
 ## A-010 — Evidence Provenance Improves Research Quality
 
-EFGM assumes that recording rationale, evidence references, scorer identity/type, and confidence makes scoring more auditable and supports analysis of disagreement.
-
-Whether strict provenance improves predictive validity enough to justify its assessment burden remains empirical.
+Recording rationale, evidence references, scorer identity/type, and confidence improves auditability and supports analysis of disagreement. Whether the additional burden improves predictive validity remains empirical.
 
 **Status:** Required for research-grade runs; incremental benefit unvalidated.
 
 ## A-011 — Classification Bands Can Add Governance Value
 
-EFGM currently maps continuous values to provisional governance labels. It assumes these labels may help actionability but does not assume the current thresholds are calibrated across domains.
+Provisional labels may improve actionability, but current thresholds are not assumed calibrated across domains.
 
 **Status:** Unvalidated.
 
 ## A-012 — Some Dimensions May Be Non-Compensatory
 
-Current falsification work has demonstrated that family means can dilute sparse catastrophic failures.
-
-EFGM therefore now assumes only that **non-compensatory prerequisite or veto behavior is a legitimate candidate to test**. It does not assume a particular prerequisite set or threshold has already been validated.
+Retained counterexamples demonstrate that family means can dilute sparse catastrophic failures. Non-compensatory mechanisms are therefore legitimate candidates to test, but no particular prerequisite set, veto set, or threshold is assumed validated.
 
 Candidate mechanisms include:
 
-- prerequisite floors;
+- neutral observation floors;
+- explicit candidate prerequisite sets;
 - extreme-degradation veto diagnostics;
 - soft-min / low-percentile diagnostics;
 - independent invariant checklists.
 
-**Status:** Supported as a research need by retained counterexamples; implementation details unvalidated.
+**Status:** Supported research need; implementation details unvalidated.
 
 ---
 
-# 2. Experimental v0.3 Agent-Governance Assumptions
+# 2. Experimental Agent Governance v0.3 Assumptions
 
 ## AG-001 — High Task Flow Can Coexist With Weak Governance
 
-The v0.3 candidate assumes an autonomous agent can remain effective at task execution while moving outside authorized objectives, boundaries, observability, memory controls, coordination controls, or recoverability expectations.
-
-This is the central motivation for separating task flow from agent-governance integrity.
+An autonomous agent may remain effective at task execution while moving outside authorized objectives, boundaries, observability, memory controls, coordination controls, or recoverability expectations.
 
 **Status:** Supported by controlled synthetic construct tests; not externally validated.
 
-## AG-002 — Agent-Governance Integrity Is Distinct From v2 Grounding
+## AG-002 — Governance Integrity Is Distinct From EFGM v2 Grounding
 
-v2 `G` means **Grounding**.
+```text
+G  = EFGM v2 Grounding
+GI = Agent Governance v0.3 Governance Integrity
+```
 
-v0.3 uses `GI` for **Governance Integrity** to avoid symbol and construct collision.
-
-The governance families are:
-
-- objective alignment;
-- boundary integrity;
-- observability;
-- environmental-memory governance;
-- coordination governance;
-- control recoverability.
+Governance families are objective alignment, boundary integrity, observability, environmental-memory governance, coordination governance, and control recoverability.
 
 **Status:** Candidate construct architecture.
 
@@ -200,41 +163,24 @@ The governance families are:
 
 High privilege, connectivity, persistence, coordination, or action velocity can be legitimate and well governed.
 
-Risk should arise from the interaction between agency and governance weakness rather than from agency alone.
-
-**Status:** Required design principle for current v0.3 research.
+**Status:** Required design principle for current Agent Governance research.
 
 ## AG-004 — Agency Exposure and Coherent Unsafe Execution Are Different
-
-The earlier candidate:
-
-```text
-R_U = F_T × A_a × (1 - GI)
-```
-
-mixes uncontrolled agency with task effectiveness. That can make apparent risk fall when task flow falls, even though a poorly governed high-agency system may still present material exposure.
-
-The current experimental decomposition is:
 
 ```text
 AE  = A_a × (1 - GI)
 CUE = F_T × AE
 ```
 
-Where:
+`AE` represents insufficiently governed consequential agency; `CUE` represents effective task execution operating through that exposure. Neither is a calibrated incident probability.
 
-- `AE` = Agency Exposure;
-- `CUE` = Coherent Unsafe Execution.
+The current benchmark can verify the implementation relationship, but independent labels are still required to establish whether the constructs are semantically useful.
 
-Neither formula is canonical or a calibrated incident probability.
-
-**Status:** New candidate hypothesis requiring comparison.
+**Status:** Candidate hypothesis requiring comparison.
 
 ## AG-005 — External Writable/Readable State Can Function as Memory
 
 Any surface an agent can write now and read later may function as environmental memory even if it is not labeled as a memory subsystem.
-
-Examples may include files, tickets, databases, queues, caches, shared documents, tool state, or other persistent environment surfaces.
 
 **Status:** Candidate operational principle requiring external testing.
 
@@ -244,40 +190,62 @@ An unobserved boundary violation, unmeasured trace gap, or unknown persistence s
 
 **Status:** Required governance invariant.
 
-## AG-007 — N/A Governance Families Should Be Excluded, Not Assumed Perfect
+## AG-007 — Whole-Family N/A Is Currently Permitted Only for Coordination Governance
 
-Some agent scenarios may genuinely lack a governance family—for example, a strictly single-agent case may have no multi-agent coordination surface.
+A strictly single-agent scenario may genuinely have no multi-agent coordination surface. In that case, every coordination-governance observation may be explicitly `not_applicable`, and the coordination family is excluded from `GI` rather than assumed perfect.
 
-An explicitly all-`not_applicable` family should be excluded from the experimental `GI` aggregation rather than blocking scoring or being assigned a favorable numeric value.
+The result must expose applicable/excluded families and family count because `GI` values with different applicability profiles may require stratified comparison.
 
-This exclusion requires explicit rationale and scorer provenance in research-grade runs.
+**No other governance family currently has whole-family N/A semantics.** Any future expansion of N/A semantics requires a separate explicit model change and validation.
 
-**Status:** Candidate v0.3 semantics.
+**Status:** Candidate Agent Governance v0.3 semantics.
 
 ## AG-008 — Static Snapshots Are Insufficient for Autonomous Governance
-
-An agent may move through materially different governance states during execution.
-
-EFGM therefore assumes temporal research must evaluate state transitions, including governance changes and recovery after intervention.
 
 ```text
 S_t → action/environment change → S_t+1 → intervention → S_t+2
 ```
 
+Temporal research must evaluate changes rather than final static state alone.
+
 **Status:** Research direction; predictive temporal model not established.
 
 ## AG-009 — Recoverability Should Become Increasingly Observable
 
-Control recoverability should ultimately be supported by intervention evidence such as:
-
-- revocation effectiveness;
-- containment effectiveness;
-- residual credential/capability state;
-- cleanup completeness;
-- rollback effectiveness;
-- recovery latency.
+Control recoverability should be supported by intervention evidence such as revocation effectiveness, containment effectiveness, residual credential/capability state, cleanup completeness, rollback effectiveness, and recovery latency.
 
 **Status:** Candidate measurement direction.
+
+## AG-010 — Observation Floors Are Diagnostics, Not Automatic Prerequisites
+
+`governance_observation_floor` is the minimum applicable governance observation. It is reported to expose sparse weak dimensions, but a low value does not by itself create a hard prerequisite failure.
+
+Only metric paths explicitly listed as **candidate prerequisites** in the versioned Agent Governance configuration can generate a candidate-prerequisite breach.
+
+The current candidate prerequisite list and threshold are preregistered research hypotheses. `EFGM-EXP-0004` must test whether they reduce false reassurance without creating unacceptable false alarms or merely encoding authored labels.
+
+**Status:** Candidate non-compensatory semantics; unvalidated.
+
+## AG-011 — Recovery Progress Is Not Verified Recovery
+
+A valid `pre_intervention → post_intervention` state with higher `GI` and lower `AE` indicates **recovery progress** only.
+
+A stronger experimental `verified_recovery_signal` additionally requires:
+
+- no remaining candidate-prerequisite breach;
+- no elevated AE/CUE diagnostic;
+- complete residual-state evidence;
+- no material residual credentials, persistence, memory, coordination, privileges, scheduled actions, irreversible side effects, or rollback gaps marked present.
+
+Even this signal is not a production containment attestation.
+
+**Status:** Candidate temporal semantics; requires falsification under `EFGM-EXP-0005`.
+
+## AG-012 — Candidate Classification Should Be Monotonic in Its Intended Directions
+
+With other state held constant, improving `GI` should not move a case from a governance-deficit label into a more severe elevated-risk label. The current classifier therefore uses exhaustive regions based on elevated AE/CUE, governed-versus-deficit GI, and high-versus-low task flow.
+
+**Status:** Required implementation invariant for the current candidate classifier; empirical usefulness of the labels remains unvalidated.
 
 ---
 
@@ -285,27 +253,25 @@ Control recoverability should ultimately be supported by intervention evidence s
 
 ## M-001 — Normalized Scores Can Be Applied Consistently Enough to Test
 
-Base observations use a normalized `[0,1]` scale when applicable. EFGM assumes scoring anchors can become consistent enough for research comparison.
+Base observations use a normalized `[0,1]` scale when applicable.
 
 **Status:** Unvalidated.
 
 ## M-002 — Human Judgment Will Remain Necessary During Early Validation
 
-Some constructs require domain interpretation. EFGM assumes scoring can still be useful if rationale and evidence are preserved and disagreement is treated as validation data.
+Some constructs require domain interpretation. Rationale and disagreement should be retained as validation data.
 
 **Status:** Expected.
 
 ## M-003 — Reviewer Confidence Should Not Yet Be Silently Folded Into Scores
 
-Confidence is recorded but the frozen baseline does not mathematically propagate scorer uncertainty.
+Confidence is recorded but not mathematically propagated in the frozen baseline or current Agent Governance candidate. Uncertainty intervals or Monte Carlo treatments remain future explicit experiments.
 
-Possible uncertainty propagation, intervals, or Monte Carlo treatments are future candidates and must be tested explicitly rather than introduced invisibly.
-
-**Status:** Deferred research question.
+**Status:** Deferred.
 
 ## M-004 — Domain-Specific Weights May Help or Overfit
 
-EFGM does not assume domain-specific weighting is automatically better. Domain-specific configurations must be versioned and validated against independent evidence.
+Domain-specific configurations must be versioned and validated against independent evidence.
 
 **Status:** Open question.
 
@@ -315,27 +281,25 @@ EFGM does not assume domain-specific weighting is automatically better. Domain-s
 
 ## G-001 — EFGM Supports Judgment; It Does Not Replace Accountability
 
-EFGM scores and diagnostics are decision-support signals. Accountable domain owners remain responsible for consequential decisions.
+Scores and diagnostics are decision-support signals. Accountable domain owners remain responsible for consequential decisions.
 
 ## G-002 — EFGM Must Compete With Simpler Alternatives
 
-A more elaborate EFGM candidate should not be promoted if a simpler independent checklist provides equivalent or better useful performance.
+A more elaborate candidate should not be promoted if a simpler independent checklist provides equivalent or better useful performance.
 
 ## G-003 — Holdouts Must Remain Outside the Tuning Loop
 
-Real holdout contents and labels must remain externally sealed until the candidate and success criteria are frozen.
+Real holdout contents and labels must remain externally sealed until candidate and success criteria are frozen.
 
 ## G-004 — Counterexamples Are Assets
 
-Material failures, false reassurance, regressions, and rejected candidates must be retained rather than hidden.
+Material failures, false reassurance, regressions, and rejected candidates must be retained.
 
 ## G-005 — Internal Synthetic Success Is Not External Validation
 
 Controlled synthetic cases can test responsiveness and invariants but cannot establish external predictive validity.
 
 ## G-006 — EFGM May Fail to Add Enough Value
-
-The research program must preserve the possibility that some constructs are redundant, some formulas are unnecessary, or the overall scoring burden does not outperform simpler governance methods.
 
 Retiring or simplifying a construct is a valid successful research outcome.
 
@@ -360,17 +324,17 @@ Retiring or simplifying a construct is a valid successful research outcome.
 | AG-001 | High flow can coexist with weak governance | Synthetic support | External agent cases |
 | AG-002 | `GI` is distinct from v2 `G` | Candidate construct | Construct validity |
 | AG-003 | Agency itself is not automatically unsafe | Design principle | Comparative cases |
-| AG-004 | `AE` and `CUE` should be separated | Candidate | Benchmark comparison |
-| AG-007 | All-N/A governance families should be excluded | Candidate semantics | N/A tests |
-| AG-008 | Temporal state matters | Candidate direction | Transition experiments |
+| AG-004 | `AE` and `CUE` should be separated | Candidate | Independent semantic labels |
+| AG-007 | Whole-family N/A currently applies only to coordination | Candidate semantics | N/A + stratification tests |
+| AG-010 | Observation floor is distinct from candidate prerequisites | Candidate semantics | EXP-0004 |
+| AG-011 | Recovery progress is distinct from verified recovery | Candidate semantics | EXP-0005 |
+| AG-012 | Candidate classifier should be monotonic | Implementation invariant | Boundary/adversarial tests |
 | M-003 | Confidence propagation should remain explicit research | Deferred | Uncertainty experiments |
 
 ---
 
 # 6. Review Rule
 
-The purpose of this register is not to protect EFGM's assumptions.
-
-It is to make them easy to falsify.
+The purpose of this register is not to protect EFGM's assumptions. It is to make them easy to falsify.
 
 A question is not resolved because a preferred narrative sounds plausible. It is resolved only to the extent supported by reproducible evidence.
