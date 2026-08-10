@@ -2,9 +2,15 @@
 
 ## Purpose
 
-This glossary defines current EFGM terminology and explicitly separates the **canonical v2 decision-integrity model**, the **historical v1 coherent-flow model**, and the **experimental v0.3 autonomous-agent extension**.
+This glossary separates the **canonical EFGM v2 decision-integrity model**, the **historical v1 coherent-flow model**, the **Python package version**, and the **experimental Agent Governance v0.3 extension**.
 
-If this glossary conflicts with `docs/model-specification-v2.md`, the canonical v2 specification and executable implementation take precedence for v2 research.
+```text
+Canonical model:        EFGM v2
+Python package:         0.2.0
+Experimental extension: Agent Governance v0.3
+```
+
+If this glossary conflicts with `docs/model-specification-v2.md`, the canonical v2 specification and executable implementation take precedence for EFGM v2 research.
 
 ---
 
@@ -12,17 +18,13 @@ If this glossary conflicts with `docs/model-specification-v2.md`, the canonical 
 
 ## EFGM v1 — Historical Coherent-Flow Model
 
-The original operational line used:
-
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-It remains available for compatibility and conceptual history. It is **not** the canonical model for new decision-integrity research.
+Retained for compatibility and conceptual history. It is **not** the canonical model for new decision-integrity research.
 
 ## EFGM v2 — Canonical Decision-Integrity Baseline
-
-The current canonical research baseline.
 
 ```text
 Ei = weighted input entropy
@@ -35,15 +37,17 @@ OutcomeConfidence = DQ × (1 - H)
 OD = OQ - DQ
 ```
 
-## EFGM v0.3 — Experimental Governed Agentic Flow
+## Package `0.2.0`
 
-An experimental autonomous-agent extension that keeps v2 task/decision flow separate from agent-governance integrity and agency amplification.
+The current unreleased Python package identity. Package `0.2.0` is not a model name and should not be called “EFGM v0.2.”
 
-It is not part of the frozen v2 baseline.
+## Agent Governance v0.3 — Experimental Extension
+
+An autonomous-agent research extension that keeps EFGM v2 task/decision flow separate from governance integrity and agency amplification. It is not part of the frozen EFGM v2 baseline.
 
 ---
 
-# 2. Canonical v2 Terms
+# 2. Canonical EFGM v2 Terms
 
 ## `T` — Observation Maturity / Sequence Continuity
 
@@ -51,22 +55,17 @@ How mature, stable, and continuous the observation sequence is for the assessed 
 
 ## `C` — Capability Suitability
 
-Whether the available tools, rules, evidence access, expertise, and execution mechanisms are suitable for the assessed objective.
+Whether available tools, rules, evidence access, expertise, and execution mechanisms are suitable for the assessed objective.
 
 ## `Fq` — Flow Quality
 
-Coherent progression toward the intended objective. The baseline family includes:
-
-- task completion consistency;
-- reasoning continuity;
-- semantic coherence;
-- verification success rate.
+Coherent progression toward the intended objective. The baseline family includes task completion consistency, reasoning continuity, semantic coherence, and verification success rate.
 
 ## `G` — Grounding
 
-Whether an apparently coherent result is actually supported by valid rules/evidence and remains factually and domain consistent.
+Whether an apparently coherent result is supported by valid rules/evidence and remains factually and domain consistent.
 
-**`G` is reserved for Grounding in canonical v2.** Agentic Governance Integrity uses `GI`.
+**`G` is reserved for Grounding in EFGM v2.** Agent Governance uses `GI`.
 
 ## `U` — Uncertainty Calibration
 
@@ -74,35 +73,23 @@ Whether expressed confidence is proportionate to evidence.
 
 ## `Ei` — Input Entropy
 
-The weighted disorder present before the decision process acts. Baseline metrics:
-
-- input contradiction;
-- input ambiguity;
-- input goal conflict;
-- missing context;
-- hidden-information load.
+Weighted disorder presented before the decision process acts.
 
 ## `Eo` — Output Entropy
 
-The weighted degradation introduced or retained in the output. Baseline metrics:
-
-- output contradiction;
-- uncertainty mismatch;
-- goal drift;
-- reasoning instability;
-- context decay.
+Weighted degradation introduced or retained by the decision process.
 
 ## `Be` — Behavioral Entropy
 
-Decision distortion arising from feedback pressure rather than ordinary semantic inconsistency. Baseline metrics include chasing behavior, outcome bias, sunk-cost pressure, false-pattern detection, and overconfidence feedback.
+Decision distortion arising from feedback pressure such as chasing behavior, outcome bias, sunk-cost pressure, false-pattern detection, or overconfidence feedback.
 
 ## `Oe` — Operational Entropy
 
-Execution degradation that can reduce decision reliability, including timeouts, retry instability, tool failures, latency pressure, and workflow interruption.
+Execution degradation such as timeouts, retry instability, tool failures, latency pressure, and workflow interruption.
 
 ## `H` — Hidden-Information Load
 
-Relevant state that is materially inaccessible at decision time. Higher `H` reduces confidence in expected outcomes without automatically declaring the decision itself poor.
+Relevant state materially inaccessible at decision time. Higher `H` lowers expected-outcome confidence without automatically declaring the decision poor.
 
 ## `Q` — Positive-Factor Quality Composite
 
@@ -110,7 +97,7 @@ Relevant state that is materially inaccessible at decision time. Higher `H` redu
 Q = (T × C × Fq × G × U)^(1/5)
 ```
 
-A frozen research aggregation, not a scientifically validated constant or law.
+A frozen research aggregation, not a validated law.
 
 ## `DQ` — Decision Quality
 
@@ -118,7 +105,7 @@ A frozen research aggregation, not a scientifically validated constant or law.
 DQ = Q / (1 + Eo + Be + Oe)
 ```
 
-The integrity of the resulting decision under the evidence and conditions available at decision time.
+Integrity of the resulting decision under evidence and conditions available at decision time.
 
 ## `CRC` — Coherence Recovery Capacity
 
@@ -126,7 +113,7 @@ The integrity of the resulting decision under the evidence and conditions availa
 CRC = (Ei - Eo) / max(Ei, ε)
 ```
 
-Measures how much input disorder was reduced or amplified by the decision process. `CRC` is separate from `DQ`.
+How much input disorder was reduced or amplified by the decision process. `CRC` is separate from `DQ`.
 
 ## `OQ` — Outcome Quality
 
@@ -138,7 +125,7 @@ Observed quality of the eventual outcome after the fact.
 OD = OQ - DQ
 ```
 
-A descriptive gap between outcome quality and decision quality. It is not inherently good or bad.
+Descriptive gap between outcome and decision quality.
 
 ## Outcome Confidence
 
@@ -146,7 +133,7 @@ A descriptive gap between outcome quality and decision quality. It is not inhere
 OutcomeConfidence = DQ × (1 - H)
 ```
 
-A provisional measure that lowers expected-outcome confidence when hidden information is high.
+Provisional expected-outcome confidence after accounting for hidden information.
 
 ---
 
@@ -154,54 +141,43 @@ A provisional measure that lowers expected-outcome confidence when hidden inform
 
 ## `MetricObservation`
 
-The auditable unit used to support a normalized EFGM metric.
-
-Fields include:
-
-- `value`;
-- `status`;
-- `rationale`;
-- `evidence_refs`;
-- `scorer_id`;
-- `scorer_type`;
-- `confidence`;
-- optional timestamp.
+The auditable normalized observation unit. Fields include `value`, `status`, `rationale`, `evidence_refs`, `scorer_id`, `scorer_type`, `confidence`, and optional timestamp.
 
 ## `observed`
 
-A numeric value directly supported by evidence.
+Numeric value directly supported by evidence.
 
 ## `inferred`
 
-A numeric value estimated from indirect evidence or reviewer judgment.
+Numeric value estimated from indirect evidence or reviewer judgment.
 
 ## `unknown`
 
-Evidence is insufficient to characterize the metric. `unknown` carries no numeric value and blocks completed baseline scoring.
+Evidence is insufficient to characterize the metric. Carries no numeric value and blocks completed scoring.
 
 ## `not_applicable`
 
-The construct genuinely does not apply. It carries no numeric value and is excluded according to the relevant aggregation rules.
+The construct genuinely does not apply. Carries no numeric value and is excluded only where model semantics permit.
 
 ## Measured `0.00`
 
-An applicable observation assessed at the bottom of its normalized scale. It is **not** equivalent to `unknown` or `not_applicable`.
+An applicable observation assessed at the bottom of its normalized scale. It is not equivalent to `unknown` or `not_applicable`.
 
 ## Provenance Complete
 
-An assessment satisfies the research-grade evidence requirements for rationale, evidence references where required, scorer identity/type, positive confidence for applied values, and no unresolved unknowns.
+Research-grade evidence requirements are satisfied for applied values and no unresolved unknowns remain.
 
 ---
 
-# 4. Agent-Governance Terms (Experimental v0.3)
+# 4. Agent Governance v0.3 Terms
 
 ## `F_T` — Task / Decision Flow
 
-The v2 decision-quality value used as the task-flow component in the agent-governance candidate.
+EFGM v2 `DQ` used as the task-flow component in Agent Governance.
 
 ## `e_c` — Cognitive / Decision Entropy Summary
 
-An experimental summary derived from v2 output, behavioral, and operational entropy.
+Experimental summary derived from EFGM v2 output, behavioral, and operational entropy.
 
 ## `A` — Objective Alignment
 
@@ -219,13 +195,13 @@ Whether governance can reconstruct material agent behavior and state changes.
 
 Governance of external writable/readable state that can function as persistent agent memory.
 
-Working principle:
-
 > Any surface an agent can write now and read later can potentially function as memory.
 
 ## `S_g` — Coordination Governance
 
 Governance of peer discovery, delegation, messages, and shared goals in multi-agent or delegated workflows.
+
+A whole-family `not_applicable` state is currently permitted **only** for coordination governance in a strictly single-agent scenario.
 
 ## `R_c` — Control Recoverability
 
@@ -233,19 +209,27 @@ Whether governance can regain control after intervention through effective revoc
 
 ## `A_a` — Agency Amplification
 
-The consequential reach available to an agent through privilege, connectivity, persistence, coordination, and action velocity.
-
-High `A_a` is not automatically unsafe.
+Consequential reach available through privilege, connectivity, persistence, coordination, and action velocity. High `A_a` is not automatically unsafe.
 
 ## `GI` — Governance Integrity
-
-The experimental aggregate of applicable agent-governance families.
 
 ```text
 GI = geometric_mean(applicable governance-family scores)
 ```
 
-`GI` is intentionally distinct from v2 `G` (Grounding).
+Experimental aggregate of applicable governance families. `GI` is intentionally distinct from EFGM v2 `G`.
+
+## Applicable Governance Families
+
+The family names actually included in `GI` for a result.
+
+## Excluded Governance Families
+
+Whole families excluded under explicit N/A semantics. Current implementation permits only coordination governance to be excluded this way.
+
+## Governance Family Count
+
+Number of governance families included in `GI`. Different family counts may require stratified comparison rather than assuming direct equivalence.
 
 ## `AE` — Agency Exposure
 
@@ -253,7 +237,7 @@ GI = geometric_mean(applicable governance-family scores)
 AE = A_a × (1 - GI)
 ```
 
-Consequential agency that is insufficiently governed. Unlike the earlier uncontrolled-agency candidate, `AE` does not fall merely because task-flow quality is low.
+Consequential agency that is insufficiently governed. `AE` does not fall merely because task-flow quality is low.
 
 ## `CUE` — Coherent Unsafe Execution
 
@@ -263,17 +247,33 @@ CUE = F_T × AE
 
 Effective task flow operating through agency exposure.
 
-The earlier v0.3 field `uncontrolled_agency_risk` is retained only as a compatibility alias for `CUE` while experiments compare candidate formulations.
+`uncontrolled_agency_risk` is retained as a compatibility alias for `CUE` during the current research cycle.
 
-## Governance Prerequisite Floor
+## Governance Observation Floor
 
-An experimental non-compensatory diagnostic equal to the lowest applicable governance observation. It exists to expose sparse catastrophic failures that family means can dilute.
+```text
+GovernanceObservationFloor = min(applicable governance observations)
+```
 
-It is a diagnostic, not a promoted replacement for the continuous v0.3 scores.
+A neutral non-compensatory diagnostic. A low floor does **not** automatically mean a prerequisite has failed.
 
-## Soft-Min / Low-Percentile Diagnostic
+## Low-Percentile Governance Diagnostic
 
-An experimental statistic emphasizing the weakest governance observations without replacing the aggregate score with a hard minimum.
+Experimental statistic emphasizing weak observations without replacing `GI` with a hard minimum.
+
+## Candidate Prerequisite
+
+A governance metric path explicitly listed in the versioned Agent Governance candidate configuration for experimental non-compensatory testing.
+
+Candidate prerequisites are hypotheses, not established safety invariants.
+
+## Candidate Prerequisite Breach
+
+A configured candidate-prerequisite metric whose applicable value is below the versioned candidate threshold.
+
+## Monotonic Candidate Classification
+
+An implementation invariant: with other state held constant, improving `GI` should not produce a more severe label. Elevated AE/CUE is evaluated first; otherwise GI determines governed versus deficit, and task flow determines high-flow versus low-flow.
 
 ---
 
@@ -281,23 +281,49 @@ An experimental statistic emphasizing the weakest governance observations withou
 
 ## `S_t` — Agent Governance State at Time `t`
 
-A snapshot of task flow, cognitive entropy, governance dimensions, and agency amplification at a particular stage of agent operation.
+Snapshot of task flow, cognitive entropy, governance dimensions, and agency amplification at a stage of operation.
 
 ## State Transition
 
-A measured change from one governance state to another after agent action, environmental change, or governance intervention.
+Measured change between two agent-governance states after action, environmental change, or governance intervention.
 
 ## Governance Intervention
 
-An action intended to regain or strengthen control, such as scope change, revocation, containment, state cleanup, or rollback.
+Action intended to regain or strengthen control, such as scope change, revocation, containment, cleanup, or rollback.
 
-## Residual Agency
+## Residual State
 
-Capability, persistence, connectivity, credentials, coordination, or writable state that remains available after a governance intervention.
+State that can survive an apparent intervention. Current experimental surfaces include credentials, persistence, environmental memory, coordination, privileges, scheduled actions, irreversible side effects, and rollback gaps.
 
-## Recovery
+## Residual Status
 
-A transition in which governance integrity increases and/or agency exposure decreases after intervention, with evidence that material residual state has been addressed.
+One of:
+
+```text
+clear
+present
+unknown
+not_applicable
+```
+
+`unknown` prevents verified recovery. `clear` and `present` require evidence references in the temporal research scaffold.
+
+## Recovery Progress Signal
+
+A valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
+
+Indicates movement in the intended direction; it is not recovery attestation.
+
+## Verified Recovery Signal
+
+Recovery progress plus:
+
+- no candidate-prerequisite breach after intervention;
+- no elevated AE/CUE flag;
+- complete residual-state evidence;
+- no material residual state marked present.
+
+Still an experimental research signal, not a production containment attestation.
 
 ---
 
@@ -305,19 +331,19 @@ A transition in which governance integrity increases and/or agency exposure decr
 
 ## Frozen Baseline
 
-A model/configuration/code identity that is preserved unchanged for reproducible comparison.
+A model/configuration/code identity preserved unchanged for reproducible comparison.
 
 ## Candidate Model
 
-A proposed change under evaluation that is not yet canonical.
+A proposed change under evaluation that is not canonical.
 
 ## Development Set
 
-Cases visible to the tuning and hypothesis-generation loop.
+Cases visible to tuning and hypothesis generation.
 
 ## Validation Set
 
-Cases used for periodic candidate comparison but not treated as a genuinely sealed holdout.
+Cases used for periodic comparison but not treated as a sealed holdout.
 
 ## Sealed Holdout
 
@@ -325,17 +351,17 @@ Externally controlled cases/labels not visible to the tuning loop before candida
 
 ## Counterexample
 
-A retained case that exposes a material failure or limitation in a model or candidate.
+Retained case exposing a material failure or limitation.
 
 ## Independent Baseline
 
-A comparator whose criteria are not simply derived from EFGM's own composite scores.
+Comparator whose criteria are not simply derived from EFGM's own composite scores.
 
 ---
 
 # 7. Historical v1 Terms
 
-The following terms remain useful only when discussing the original conceptual model or explicit v1 compatibility scoring:
+Use only for historical conceptual discussion or explicit v1 compatibility scoring:
 
 - `E` — Energy / Capability / Capacity;
 - `Et` — Energy Transfer;
@@ -343,16 +369,14 @@ The following terms remain useful only when discussing the original conceptual m
 - `e` — single aggregate Entropy Load;
 - `A|M` — Alignment / Misalignment conceptual outcome.
 
-Do not use those v1 symbols as substitutes for the canonical v2 constructs in new decision-integrity research.
+Do not substitute these for canonical EFGM v2 constructs in new research.
 
 ---
 
 # 8. Governance Principle
 
-EFGM's core operating principle remains:
-
 ```text
 Detect entropy → Protect verified flow → Restore coherence → Reassess
 ```
 
-Scores are governance indicators, not proof of truth, safety, compliance, or production readiness.
+EFGM scores and Agent Governance diagnostics are research indicators, not proof of truth, safety, compliance, or production readiness.
