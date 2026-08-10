@@ -120,6 +120,7 @@ executed_results:
     incremental_verified_accuracy_vs_checklist: -0.1667
     sequence_identity_rejection_rate: 1.0
   perturbation:
+    interpretation_target: "verified-recovery correctness for trajectory cases plus identity-rejection correctness for cross-sequence cases"
     mean_correct_probability: 0.9231
     minimum_case_probability: 0.0
   promotion_gate_passed: false
@@ -132,11 +133,13 @@ regressions: []
 
 conclusion:
   decision: do_not_promote_current_verified_recovery_semantics
-  rationale: "Temporal and residual-state evidence materially improved recovery interpretation relative to the final static governed-state proxy, and sequence identity plus covered residual/prerequisite checks behaved as intended. However, validation verified-recovery accuracy fell to 83.33% with an 18.18% false-positive rate because two preregistered catastrophic governance failures outside the current candidate prerequisite set were falsely verified. A broader explicit recovery-invariant checklist achieved 100% validation accuracy. The current verified-recovery semantics therefore inherit known prerequisite-set incompleteness and are not eligible for promotion."
+  rationale: "Temporal and residual-state evidence materially improved recovery interpretation relative to the final static governed-state proxy, and sequence identity plus covered residual/prerequisite checks behaved as intended. However, validation verified-recovery accuracy fell to 83.33% with an 18.18% false-positive rate because two preregistered catastrophic governance failures outside the current candidate prerequisite set were falsely verified. A broader explicit recovery-invariant checklist achieved 100% validation accuracy on this authored case set. The current verified-recovery semantics therefore inherit known prerequisite-set incompleteness and are not eligible for promotion."
   limitations:
     - "Cases are internally authored and EFGM-aware."
     - "The explicit recovery checklist is aggregation-independent but not externally labeled."
+    - "The explicit recovery checklist is not a complete recovery taxonomy: this cycle did not challenge every known uncovered governance metric from prior work, including control_recoverability.state_cleanup_completeness, so its 100% validation accuracy is scoped only to this dataset."
     - "The current candidate prerequisite set is already known from EXP-0004 to be incomplete; this experiment demonstrates that verified recovery inherits that limitation."
     - "Residual-state completeness is limited to the currently modeled surface inventory."
+    - "The perturbation statistic measures verified-recovery correctness for trajectory cases and identity-rejection correctness for cross-sequence cases; it is not a single calibrated probability of real-world recovery."
     - "The two uncovered validation failures are tuning-visible after this run and must not be added to the current candidate and re-used as unseen confirmation."
     - "No sealed holdout was included or accessed."
