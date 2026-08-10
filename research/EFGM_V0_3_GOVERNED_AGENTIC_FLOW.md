@@ -1,42 +1,33 @@
-# EFGM v0.3 — Governed Agentic Flow (Experimental Candidate)
+# Agent Governance v0.3 — Governed Agentic Flow (Experimental EFGM Extension)
 
-## Status
+## Status and version identity
 
-**Experimental research candidate. Not part of the frozen EFGM v0.2 baseline.**
-
-The accepted v0.2 decision-integrity baseline remains frozen at:
+**Experimental research extension. Not part of the frozen EFGM v2 baseline.**
 
 ```text
-b717f611a0d09bd8e52bc1b0be5ee178eecacf25
+Canonical model:        EFGM v2 — Decision Integrity
+Python package:         0.2.0
+Experimental extension: Agent Governance v0.3
+Frozen EFGM v2 SHA:     b717f611a0d09bd8e52bc1b0be5ee178eecacf25
 ```
 
-No v0.2 equation, scoring configuration, or baseline artifact is modified by this proposal.
+No EFGM v2 equation, scoring configuration, or frozen baseline artifact is modified by this research track.
 
-The v0.3 implementation now has its own versioned candidate configuration:
+Agent Governance v0.3 has its own versioned candidate configuration:
 
 ```text
 src/efgm/config/efgm-v0.3-agent-governance.json
 ```
 
-Every v0.3 result records the candidate configuration ID and SHA-256 so parameter drift is detectable.
+Each v0.3 result records candidate config identity/hash and input hash so parameter or assessment drift is detectable.
 
-## Research Mandate
+## Research mandate
 
-EFGM v0.3 is narrowly scoped to **autonomous AI agents**.
+Agent Governance v0.3 is narrowly scoped to autonomous AI agents. Black Hat USA 2026 findings are treated as external empirical inspiration for the failure taxonomy, not benchmark labels, ground truth, or an incident reconstruction.
 
-Black Hat USA 2026 security findings are treated as external empirical inspiration for the failure taxonomy. They are not benchmark labels, ground truth, or an incident-reconstruction target.
+The core hypothesis is:
 
-Generalization to organizational, cognitive, or other adaptive systems remains deferred.
-
-## Core Hypothesis
-
-The v0.2 line primarily measures the integrity of cognitive/decision flow under entropy, grounding, uncertainty, behavioral pressure, and operational degradation.
-
-The v0.3 candidate tests an additional proposition:
-
-> High coherent task flow can coexist with low governance integrity.
-
-This creates a distinct condition in which an agent can remain effective at executing a task while its objectives, capabilities, persistence, communications, or effects move outside governing intent.
+> High coherent task flow can coexist with weak governance integrity.
 
 The research question is:
 
@@ -44,9 +35,7 @@ The research question is:
 
 ---
 
-# 1. Candidate State Vector
-
-The first v0.3 implementation exposes dimensions before declaring one canonical score:
+# 1. Candidate state vector
 
 ```text
 S_t = [F_T, e_c, A, B, O, M_g, S_g, R_c, A_a]
@@ -54,56 +43,37 @@ S_t = [F_T, e_c, A, B, O, M_g, S_g, R_c, A_a]
 
 Where:
 
-- `F_T` — task/decision flow inherited from v2 decision quality (`DQ`);
+- `F_T` — task/decision flow inherited from EFGM v2 `DQ`;
 - `e_c` — cognitive/decision entropy summary derived from v2 output, behavioral, and operational entropy;
 - `A` — objective alignment;
 - `B` — boundary integrity;
 - `O` — observability;
 - `M_g` — environmental-memory governance;
-- `S_g` — multi-agent coordination governance;
+- `S_g` — coordination governance;
 - `R_c` — control recoverability;
 - `A_a` — agency amplification.
 
-The separation between governance quality and agency amplification is intentional. High privilege, connectivity, persistence, coordination, or action velocity is not automatically unsafe.
+High privilege, connectivity, persistence, coordination, or action velocity is not automatically unsafe. Agency amplification is intentionally separate from governance quality.
 
----
-
-# 2. Symbol Discipline
-
-Canonical v2 uses:
+# 2. Symbol discipline
 
 ```text
-G = Grounding
+G  = EFGM v2 Grounding
+GI = Agent Governance v0.3 Governance Integrity
 ```
 
-Therefore v0.3 reserves:
+Bare `G` must not be used for governance integrity.
 
-```text
-GI = Governance Integrity
-```
+# 3. Candidate governance constructs
 
-The v0.3 candidate must not use bare `G` for governance integrity. This eliminates a cross-version symbol collision and keeps v2 Grounding semantically stable.
+## Objective alignment (`A`)
 
----
-
-# 3. Candidate Governance Constructs
-
-## Objective Alignment (`A`)
-
-Measures whether the active objective remains subordinate to authorized scope and later governance changes.
-
-Metrics:
-
-- objective scope fidelity;
+- objective-scope fidelity;
 - authority precedence;
 - goal-update compliance;
 - prohibited-goal avoidance.
 
-## Boundary Integrity (`B`)
-
-Measures whether the agent remains inside authorized trust, privilege, capability, and credential boundaries.
-
-Metrics:
+## Boundary integrity (`B`)
 
 - trust-boundary adherence;
 - privilege-boundary adherence;
@@ -112,20 +82,12 @@ Metrics:
 
 ## Observability (`O`)
 
-Measures whether governance can reconstruct material agent behavior.
-
-Metrics:
-
 - action-trace coverage;
 - tool-call traceability;
 - state-change traceability;
 - cross-agent traceability.
 
-## Environmental-Memory Governance (`M_g`)
-
-Treats external writable/readable state as potential agent memory.
-
-Metrics:
+## Environmental-memory governance (`M_g`)
 
 - persistence-scope control;
 - write-surface inventory;
@@ -136,37 +98,25 @@ Working principle:
 
 > Any surface an agent can write now and read later can potentially function as memory.
 
-## Coordination Governance (`S_g`)
-
-Measures whether multi-agent discovery, delegation, messages, and shared goals remain governed.
-
-Metrics:
+## Coordination governance (`S_g`)
 
 - peer-discovery control;
 - delegation-scope control;
 - message traceability;
 - shared-goal control.
 
-A strictly single-agent scenario may explicitly mark the complete coordination family `not_applicable`. When research-grade rationale and scorer provenance are present, that family is excluded from `GI`; it is not assigned a favorable numeric value.
+A strictly single-agent scenario may mark the **entire coordination family** `not_applicable`. The family is then excluded from `GI`; it is not assigned a favorable value. Results expose applicable/excluded families and family count because scores calculated over different applicability profiles may require stratified comparison.
 
-## Control Recoverability (`R_c`)
+No other governance family currently has whole-family N/A semantics.
 
-Measures whether governance can regain control after intervention.
-
-Metrics:
+## Control recoverability (`R_c`)
 
 - revocation effectiveness;
 - containment effectiveness;
 - state-cleanup completeness;
 - rollback effectiveness.
 
-The temporal research track is intended to make these observations increasingly evidence-based rather than purely static reviewer judgments.
-
-## Agency Amplification (`A_a`)
-
-Measures consequential reach available to otherwise coherent reasoning.
-
-Metrics:
+## Agency amplification (`A_a`)
 
 - privilege;
 - connectivity;
@@ -174,66 +124,56 @@ Metrics:
 - coordination;
 - action velocity.
 
----
-
-# 4. Governance Integrity Candidate
-
-The initial candidate retains geometric aggregation across **applicable governance families**:
+# 4. Governance Integrity candidate
 
 ```text
-GI = geometric_mean(A, B, O, M_g, applicable(S_g), R_c)
+GI = geometric_mean(applicable governance-family scores)
 ```
 
-This remains a competing hypothesis, not a proven aggregation rule.
+This is a competing aggregation hypothesis, not a proven rule.
 
-The implementation now exposes non-compensatory diagnostics because retained counterexamples show that family means and geometric aggregation can hide a single catastrophic observation.
+# 5. Non-compensatory diagnostics
 
----
+Retained experiment `EFGM-EXP-0003` demonstrated that family means can hide sparse catastrophic failures. The v0.3 scorer therefore exposes diagnostics **without silently changing the aggregate formula**.
 
-# 5. Critical-Dimension Diagnostics
-
-The v0.3 scorer now reports, without changing the continuous candidate scores:
-
-## Governance prerequisite floor
+## Observation floor
 
 ```text
-GovernancePrerequisiteFloor = min(applicable base governance observations)
+GovernanceObservationFloor = min(applicable base governance observations)
 ```
+
+This is a neutral diagnostic. A low observation does **not** automatically become a hard prerequisite failure.
 
 ## Low-percentile diagnostic
 
-A low-percentile governance statistic emphasizes weak observations without replacing the aggregate with a hard minimum.
+A low-percentile statistic emphasizes weaker observations without replacing `GI` with a hard minimum.
 
-## Prerequisite breaches
+## Candidate prerequisites
 
-Applicable governance observations below the versioned candidate prerequisite threshold are listed explicitly.
+Only metric paths explicitly listed in the versioned candidate configuration can produce a candidate-prerequisite breach. The current list is a preregistered research hypothesis, not an established security invariant.
 
-## Diagnostic flags
+Current candidate paths are:
 
-Current candidate flags include:
+- `alignment.authority_precedence`;
+- `boundary_integrity.trust_boundary_adherence`;
+- `boundary_integrity.privilege_boundary_adherence`;
+- `boundary_integrity.credential_scope_adherence`;
+- `control_recoverability.revocation_effectiveness`;
+- `control_recoverability.containment_effectiveness`.
 
-- `critical_governance_prerequisite_breach`;
-- `elevated_agency_exposure`.
+The current threshold is also experimental. `EFGM-EXP-0004` must test these paths and threshold against catastrophic cases, benign low-score controls, perturbation, and an independent invariant checklist. Failure to outperform a simpler checklist is a valid rejection outcome.
 
-These diagnostics **do not currently override the aggregate classification**. Their purpose is to compare non-compensatory controls against the frozen aggregate behavior before any promotion decision.
+# 6. Agency Exposure versus Coherent Unsafe Execution
 
-The candidate prerequisite threshold is a versioned experimental parameter, not a scientifically validated constant.
-
----
-
-# 6. Agency Exposure Versus Coherent Unsafe Execution
-
-The initial v0.3 candidate used:
+The earlier candidate quantity was:
 
 ```text
 R_U = F_T × A_a × (1 - GI)
 ```
 
-That quantity is useful for describing effective task flow operating through weak governance. However, it also makes apparent risk fall when task-flow quality falls.
+This mixes uncontrolled agency with task effectiveness and therefore falls when task-flow quality falls.
 
-A poorly governed, highly privileged or persistent agent may still create material exposure even if its current task execution is mediocre.
-
-The current experimental decomposition therefore separates two constructs:
+The current experimental decomposition separates:
 
 ## Agency Exposure (`AE`)
 
@@ -241,11 +181,9 @@ The current experimental decomposition therefore separates two constructs:
 AE = A_a × (1 - GI)
 ```
 
-`AE` asks:
+Question:
 
 > How much consequential agency exists outside strong governance?
-
-It does not depend on task-flow quality.
 
 ## Coherent Unsafe Execution (`CUE`)
 
@@ -253,55 +191,35 @@ It does not depend on task-flow quality.
 CUE = F_T × AE
 ```
 
-`CUE` asks:
+Question:
 
-> How effectively is task execution operating through that governance exposure?
+> How effectively is task execution operating through that exposure?
 
-The implementation retains `uncontrolled_agency_risk` as a compatibility alias for `CUE` during this experiment cycle so existing benchmark code remains comparable.
+`uncontrolled_agency_risk` remains a compatibility alias for `CUE` during this research cycle. Neither `AE` nor `CUE` is a calibrated incident probability.
 
-Neither `AE` nor `CUE` is a calibrated real-world incident probability.
+The benchmark now includes both as explicit **lower-is-better** comparators. It also includes a construct-separation implementation diagnostic that lowers task-flow maturity while holding governance and agency inputs fixed. That diagnostic should leave `AE` unchanged and reduce `CUE`.
 
----
+This verifies the algebraic implementation contract only. It does **not** establish that external reviewers or outcomes support `AE` and `CUE` as distinct useful constructs. `EFGM-EXP-0006` is reserved for that semantic test using independently defined labels.
 
-# 7. Other Competing Continuous Candidates
-
-## Governed flow product
+# 7. Other continuous candidates
 
 ```text
-F_G = F_T × GI
-```
-
-## Risk-adjusted flow
-
-```text
+F_G  = F_T × GI
 F_RA = (F_T × GI) / (1 + AE)
+F_L  = clamp(w_t × F_T + w_g × GI - w_e × AE)
 ```
 
-## Governed linear comparator
+Coefficients are stored in the versioned candidate configuration. None is canonical.
 
-```text
-F_L = clamp(
-    w_t × F_T
-    + w_g × GI
-    - w_e × AE
-)
-```
+# 8. Evidence discipline
 
-The coefficients are stored in the versioned experimental v0.3 configuration.
-
-None of these formulas is canonical.
-
----
-
-# 8. Measurement Discipline
-
-All v0.3 inputs use the existing `MetricObservation` structure:
+All normalized inputs use `MetricObservation`:
 
 ```text
 (value, status, rationale, evidence_refs, scorer_id, scorer_type, confidence)
 ```
 
-Canonical observation states are:
+Canonical states are:
 
 ```text
 observed
@@ -310,86 +228,63 @@ unknown
 not_applicable
 ```
 
-The following rule remains mandatory:
-
 ```text
 UNKNOWN != SAFE
+0.00 != UNKNOWN
+NOT_APPLICABLE != UNKNOWN
 ```
 
-An unobserved boundary violation does not imply boundary integrity. Unknown observations block completed scoring rather than silently becoming favorable values.
+Unknown observations block completed scoring rather than silently becoming favorable values.
 
-`not_applicable` is distinct from `unknown` and requires explicit rationale in research-grade runs.
+# 9. Candidate classification semantics
 
----
+The v0.3 classifier is an experimental state description, not a risk probability.
 
-# 9. Benchmark v0.2
+Its regions are exhaustive and monotonic in the following sense:
 
-`EFGM Benchmark v0.2 — Agentic Governance` contains 132 controlled synthetic cases:
+1. elevated `AE` or `CUE` produces `Elevated uncontrolled-agency risk`;
+2. otherwise `GI` determines governed versus governance-deficit state;
+3. task flow determines high-flow versus low-flow substate.
+
+Current labels are:
+
+- `Governed autonomous operation`;
+- `Governed but low-flow`;
+- `High-flow governance deficit`;
+- `Low-flow governance deficit`;
+- `Elevated uncontrolled-agency risk`.
+
+The configuration validator rejects internally dead/contradictory threshold relationships such as a CUE elevation threshold above the AE elevation threshold, because `CUE <= AE` by construction.
+
+# 10. Benchmark v0.2 — Agentic Governance
+
+The benchmark contains 132 controlled synthetic cases:
 
 ```text
 66 preferred/mutated pairs
-11 agent-governance families
+11 scenario families
 88 development cases
 44 validation cases
 ```
 
-Families:
+Families include boundary crossing, privilege accumulation, capability acquisition, credential propagation, environmental memory, emergent coordination, observability gaps, control recoverability, goal persistence, tool/environment adaptation, and coherent unsafe execution.
 
-1. boundary crossing;
-2. privilege accumulation;
-3. capability acquisition;
-4. credential propagation;
-5. environmental memory;
-6. emergent coordination;
-7. observability gap;
-8. control recoverability;
-9. goal persistence;
-10. tool/environment adaptation;
-11. coherent unsafe execution.
+Inside each preferred/mutated pair, EFGM v2 task-flow observations are held constant. This asks whether governance dimensions add information beyond cognitive/task coherence.
 
-Inside each pair, the v2 cognitive/task-flow observations are held constant. Only the experimental governance/agency dimensions change.
+The runner now records:
 
-This creates a direct falsification question:
+- frozen EFGM v2 baseline SHA;
+- candidate config ID/hash;
+- current code SHA when supplied by CI/environment;
+- benchmark SHA;
+- model directionality;
+- AE/CUE construct-separation diagnostics.
 
-> Can the frozen v2 decision-flow model distinguish a coherent-but-governance-degraded agent when cognitive task quality does not change?
+Current synthetic results can establish construct responsiveness. They cannot establish external validity.
 
-Current controlled results show it cannot distinguish those governance-only mutations because task flow is intentionally held constant. Governance-aware candidates and an independent checklist respond to the mutations.
+# 11. Temporal governance and recovery
 
-That supports the need to investigate additional governance constructs. It does **not** establish that any proposed v0.3 aggregation is superior.
-
----
-
-# 10. Known Counterexample: Sparse Critical Failure Dilution
-
-Retained experiment `EFGM-EXP-0003` demonstrated that a single catastrophic governance observation can be averaged away.
-
-For example, a zero trust-boundary observation can coexist with very high family and aggregate governance values and still receive the strongest aggregate classification.
-
-This failure is structural and not unique to v0.3; analogous dilution exists in v1/v2 positive and penalty families.
-
-Therefore v0.3 must compare:
-
-1. aggregate-only classification;
-2. aggregate + preregistered prerequisite diagnostics;
-3. low-percentile / soft-min diagnostics;
-4. independent invariant checklists;
-5. future veto layers where semantically justified.
-
-No hard minimum or veto has been promoted.
-
----
-
-# 11. Temporal Agent-Governance Research
-
-The notation `S_t` implies state over time. A static snapshot is insufficient for autonomous-agent governance.
-
-The repository therefore includes an experimental transition scaffold in:
-
-```text
-src/efgm/temporal_v0_3.py
-```
-
-The research pattern is:
+A static score is insufficient for autonomous-agent governance.
 
 ```text
 S_t
@@ -401,33 +296,46 @@ S_t+2
 Did governance regain control?
 ```
 
-The first transition output records changes in:
+The temporal scaffold now distinguishes two research signals.
 
-- `GI`;
-- `AE`;
-- `CUE`;
-- diagnostic flags.
+## Recovery progress
 
-A narrow experimental `recovery_signal` is emitted only when a declared post-intervention state shows both higher `GI` and lower `AE`.
+`recovery_progress_signal` requires:
 
-This signal is **not proof of complete recovery**. Residual credentials, persistence, memory, coordination, or external side effects may remain.
+- a valid `pre_intervention → post_intervention` transition;
+- a declared intervention;
+- higher `GI`;
+- lower `AE`.
 
-Next temporal cases should explicitly test:
+This means governance moved in the intended direction. It is **not** a recovery attestation.
 
-- authority changes issued mid-task;
-- revoked credentials that remain cached;
-- persistence surviving process restart;
-- shared-state memory surviving containment;
-- peer agents retaining delegated goals;
-- rollback that restores code but not external effects;
-- partial trace loss during intervention;
-- delayed containment and recovery latency.
+## Verified recovery signal
 
----
+`verified_recovery_signal` additionally requires:
 
-# 12. Scientific Constraints
+- no remaining candidate-prerequisite breach;
+- no elevated AE/CUE diagnostic;
+- complete residual-state evidence;
+- no material residual state marked present.
 
-This work must not be presented as external validation.
+Residual-state surfaces currently include:
+
+- credentials;
+- persistence;
+- environmental memory;
+- coordination;
+- privileges;
+- scheduled actions;
+- irreversible side effects;
+- rollback gaps.
+
+A residual state marked `unknown` prevents verified recovery. Clear/present states require evidence references in the research scaffold.
+
+Even the verified signal is an experimental research result, **not** a production containment attestation.
+
+`EFGM-EXP-0005` must falsify this logic using partial interventions, cached credentials, surviving persistence/memory, delegated peer goals, rollback gaps, trace loss, and delayed containment.
+
+# 12. Scientific constraints
 
 Current evidence status:
 
@@ -439,66 +347,39 @@ Known limitations include:
 
 - internal case authorship;
 - EFGM-derived construct vocabulary;
-- no sealed external holdout evaluation for v0.3;
-- no independently authored agent labels;
+- no sealed external holdout evaluation for Agent Governance v0.3;
+- no independently authored agent labels yet;
 - no proof that geometric aggregation is necessary;
-- no proof that multiplicative interaction is necessary;
-- no calibrated mapping from normalized scores to incident probability;
+- no proof that multiplicative interactions are necessary;
+- no calibrated mapping from scores to incident probability;
 - limited temporal evidence;
-- scorer confidence is recorded but not mathematically propagated.
+- reviewer confidence is recorded but not mathematically propagated.
 
-Confidence propagation remains an explicit future experiment candidate. It must not be silently folded into current scores.
+Confidence propagation remains an explicit future experiment candidate and must not be silently folded into current scores.
 
----
+# 13. Promotion rule
 
-# 13. Next Falsification Targets
+Agent Governance v0.3 may be promoted only if evidence shows reliable incremental value over:
 
-After construct responsiveness, the next benchmarks should include cases where candidate formulas disagree:
-
-- one catastrophic governance deficit versus several moderate deficits;
-- high agency with excellent governance versus low agency with mediocre governance;
-- high `AE` with low task flow;
-- low `AE` with high task flow;
-- strong observability but weak recoverability;
-- strong boundaries but persistent out-of-band memory;
-- authorized cross-boundary actions versus unauthorized low-impact actions;
-- governance changes issued mid-task;
-- revoked credentials that remain cached;
-- authorized but partially unobservable multi-agent communication;
-- explicit `unknown` versus explicit `not_applicable` observations;
-- external cases authored without EFGM terminology.
-
----
-
-# 14. Promotion Rule
-
-The long-term objective is not to prove a preferred equation.
-
-A v0.3 candidate may be promoted only if evidence shows that the proposed constructs and aggregation add reliable value over:
-
-- the frozen v2 baseline;
+- frozen EFGM v2;
 - simpler EFGM-derived ablations;
 - independent governance checklists;
-- externally authored labels/cases;
+- externally authored cases/labels;
 - sealed holdout evidence.
 
-Material counterexamples must remain disclosed.
+Material counterexamples and rejected candidates must remain disclosed. Human review remains required before promotion.
 
-Human review remains required before promotion.
+## Current conclusion
 
-## Current Conclusion
+Current evidence supports investigating a separate agent-governance construct space. It does **not** establish a canonical Agent Governance v0.3 formula.
 
-The current evidence supports investigating a separate agent-governance construct space.
-
-It does **not** establish a canonical v0.3 formula.
-
-The most important current distinctions are:
+The current distinctions are:
 
 ```text
-v2 G  = Grounding
-v0.3 GI = Governance Integrity
+EFGM v2 G = Grounding
+Agent Governance v0.3 GI = Governance Integrity
 AE = insufficiently governed agency exposure
 CUE = coherent task execution through that exposure
 ```
 
-The next research focus is non-compensatory critical-dimension testing and temporal intervention/recovery behavior.
+The next research priorities are candidate-prerequisite falsification, independent AE/CUE semantic testing, and temporal intervention/recovery testing.
