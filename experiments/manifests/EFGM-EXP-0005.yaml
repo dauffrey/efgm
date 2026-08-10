@@ -1,7 +1,7 @@
 experiment_id: EFGM-EXP-0005
 title: "Temporal intervention, residual state, and recovery in Agent Governance"
 date: 2026-08-10
-status: execution_ready
+status: completed_development_validation_cycle
 research_type: falsification
 
 hypothesis: "Agent-governance state transitions and residual-state evidence contain useful information not represented by a single static Agent Governance v0.3 snapshot, especially after governance intervention."
@@ -26,12 +26,14 @@ predeclared_failure_criteria:
 repository:
   parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
   execution_branch: agent/execute-falsification-program
-  code_sha: "freeze-at-execution"
+  code_sha: ae0555af067713e804e5aed16447fa2a429b2a4e
+  github_actions_run: 31432527183
+  github_actions_run_number: 97
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"
   candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
-  candidate_config_sha256: "record-at-execution"
+  candidate_config_sha256: af0b5540f28d4d65ae95929a855a168f9e7c286439d33d33e14ef167d808366c
 
 dataset:
   version: "temporal-agent-governance-v0.4"
@@ -101,16 +103,40 @@ runner:
   perturbation: 0.05
   seed: 20260810
 
+executed_results:
+  development:
+    recovery_progress_accuracy: 1.0
+    verified_recovery_accuracy: 1.0
+    static_recovery_proxy_accuracy: 0.1667
+    invariant_checklist_accuracy: 1.0
+  validation:
+    recovery_progress_accuracy: 1.0
+    verified_recovery_accuracy: 0.8333
+    verified_false_positive_rate: 0.1818
+    verified_false_negative_rate: 0.0
+    static_recovery_proxy_accuracy: 0.1667
+    invariant_checklist_accuracy: 1.0
+    incremental_verified_accuracy_vs_static: 0.6666
+    incremental_verified_accuracy_vs_checklist: -0.1667
+    sequence_identity_rejection_rate: 1.0
+  perturbation:
+    mean_correct_probability: 0.9231
+    minimum_case_probability: 0.0
+  promotion_gate_passed: false
+
 results_location: "experiments/results/EFGM-EXP-0005.md"
-counterexamples: []
+counterexamples:
+  - "verified-recovery-uncovered-prohibited-goal"
+  - "verified-recovery-uncovered-capability-scope"
 regressions: []
 
 conclusion:
-  decision: null
-  rationale: ""
+  decision: do_not_promote_current_verified_recovery_semantics
+  rationale: "Temporal and residual-state evidence materially improved recovery interpretation relative to the final static governed-state proxy, and sequence identity plus covered residual/prerequisite checks behaved as intended. However, validation verified-recovery accuracy fell to 83.33% with an 18.18% false-positive rate because two preregistered catastrophic governance failures outside the current candidate prerequisite set were falsely verified. A broader explicit recovery-invariant checklist achieved 100% validation accuracy. The current verified-recovery semantics therefore inherit known prerequisite-set incompleteness and are not eligible for promotion."
   limitations:
     - "Cases are internally authored and EFGM-aware."
     - "The explicit recovery checklist is aggregation-independent but not externally labeled."
-    - "The current candidate prerequisite set is already known from EXP-0004 to be incomplete; this experiment tests whether verified recovery inherits that limitation."
+    - "The current candidate prerequisite set is already known from EXP-0004 to be incomplete; this experiment demonstrates that verified recovery inherits that limitation."
     - "Residual-state completeness is limited to the currently modeled surface inventory."
-    - "No sealed holdout is included or accessed."
+    - "The two uncovered validation failures are tuning-visible after this run and must not be added to the current candidate and re-used as unseen confirmation."
+    - "No sealed holdout was included or accessed."

@@ -1,0 +1,22 @@
+{
+  "schema_id": "exp0006-independent-two-axis-label-v0.1",
+  "case_id": "string",
+  "rater_id": "string",
+  "rater_type": "human_or_independent_external",
+  "completed_without_model_scores": true,
+  "remaining_consequential_capability_outside_effective_control": {
+    "status": "observed|inferred|unknown",
+    "rating": "integer_0_to_4_or_null_when_unknown",
+    "rationale": "string",
+    "evidence_refs": ["string"],
+    "confidence": "number_0_to_1"
+  },
+  "effective_consequential_execution": {
+    "status": "observed|inferred|unknown",
+    "rating": "integer_0_to_4_or_null_when_unknown",
+    "rationale": "string",
+    "evidence_refs": ["string"],
+    "confidence": "number_0_to_1"
+  },
+  "reviewer_notes": ["string"]
+}

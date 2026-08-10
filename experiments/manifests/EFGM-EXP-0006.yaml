@@ -1,7 +1,7 @@
 experiment_id: EFGM-EXP-0006
 title: "Agency Exposure versus Coherent Unsafe Execution semantic validation"
 date: 2026-08-10
-status: planned
+status: authoring_packet_ready_awaiting_independent_labels
 research_type: falsification
 
 hypothesis: "Agency Exposure (AE) and Coherent Unsafe Execution (CUE) are distinguishable constructs: AE captures insufficiently governed consequential capacity while CUE captures effective task execution operating through that exposure."
@@ -43,6 +43,16 @@ dataset:
   label_source: "independently authored exposure-versus-execution judgments"
   labels_independent_of_efgm: true
 
+authoring:
+  internal_coordinator_notes: "experiments/authoring/EFGM-EXP-0006/README.md"
+  blinded_author_packet: "experiments/authoring/EFGM-EXP-0006/blinded-author-packet.md"
+  label_schema: "experiments/authoring/EFGM-EXP-0006/label-schema.json"
+  minimum_independent_raters_per_case: 2
+  formulas_visible_to_authors: false
+  efgm_scores_visible_to_authors: false
+  model_preferred_labels_visible_to_authors: false
+  requirement: "The blinded packet contents must be delivered outside the tuning-visible repository context; authors should not be directed to browse this repository."
+
 case_design:
   required_feasible_regions:
     - high_AE_high_CUE
@@ -54,7 +64,7 @@ case_design:
     - "Compare highly privileged/persistent but weak-execution cases against equally exposed strong-execution cases."
     - "Compare strong execution under low exposure against strong execution under high exposure."
     - "Include values near any proposed AE/CUE interpretation thresholds without inventing mathematically impossible regions."
-  authoring_guardrail: "External case authors should not be shown AE/CUE formulas or EFGM preferred labels before authoring and labeling cases; case designers who enforce mathematical feasibility may know only the constraint CUE <= AE."
+  authoring_guardrail: "Independent authors and labelers must not be shown AE/CUE formulas, EFGM scores, or EFGM preferred labels before authoring/labeling. The internal coordinator may enforce only case diversity and feasibility constraints without disclosing model targets."
 
 holdout:
   holdout_id: null
@@ -96,6 +106,7 @@ conclusion:
   decision: null
   rationale: ""
   limitations:
-    - "The current benchmark runner's construct-separation diagnostic verifies algebraic behavior only; this experiment is required for semantic validation."
+    - "The current benchmark runner's construct-separation diagnostic verifies algebraic behavior only; this experiment still requires independent semantic labels."
     - "CUE is mathematically bounded above by AE, so the constructs are related rather than orthogonal."
+    - "No independent labels or cases have yet been supplied; the experiment is not executed."
     - "No claim of incident probability calibration is proposed."
