@@ -1,6 +1,6 @@
 # Entropy-Flow Governance Model (EFGM)
 
-EFGM is an experimental governance and measurement framework for evaluating whether AI-assisted reasoning, software delivery, and operational workflows remain coherent, grounded, calibrated, and traceable while entropy accumulates.
+EFGM is an experimental governance and measurement framework for evaluating whether AI-assisted reasoning, software delivery, operational workflows, and autonomous-agent activity remain coherent, grounded, calibrated, traceable, and governed while entropy accumulates.
 
 EFGM is **not** a proven scientific law, compliance standard, or production-ready risk engine. It is an executable research prototype intended for controlled, falsification-oriented validation.
 
@@ -52,7 +52,7 @@ The baseline v2 classifier includes a critical grounding gate. A sufficiently we
 
 ## Evidence-backed observations
 
-V2 metric inputs use `MetricObservation` records:
+V2 and experimental v0.3 metric inputs use `MetricObservation` records:
 
 ```json
 {
@@ -66,12 +66,21 @@ V2 metric inputs use `MetricObservation` records:
 }
 ```
 
+Canonical observation states are:
+
+```text
+observed
+inferred
+unknown
+not_applicable
+```
+
 Missing data is explicit:
 
 ```text
 0.00           = measured value
 unknown        = insufficient evidence; scoring is blocked
-not_applicable = excluded from the relevant weighted composite
+not_applicable = excluded from the relevant composite where permitted
 ```
 
 An omitted metric becomes `unknown`, **not zero**. Legacy numeric v2 inputs remain accepted for compatibility and are automatically marked as inferred observations without supplied provenance.
@@ -104,6 +113,75 @@ Use an alternate candidate configuration with:
 ```bash
 efgm-score assessment.json --model v2 --config path/to/candidate.json --require-provenance --format json
 ```
+
+## Experimental v0.3 — Governed Agentic Flow
+
+EFGM v0.3 is an **experimental autonomous-agent research candidate**. It does not modify or replace the frozen v2 baseline.
+
+Its central hypothesis is:
+
+> High coherent task flow can coexist with weak governance integrity.
+
+The experimental state includes objective alignment, boundary integrity, observability, environmental-memory governance, coordination governance, control recoverability, and agency amplification.
+
+### Symbol discipline
+
+Canonical v2 reserves:
+
+```text
+G = Grounding
+```
+
+Experimental v0.3 uses:
+
+```text
+GI = Governance Integrity
+```
+
+### Agency exposure and coherent unsafe execution
+
+The experimental v0.3 candidate now separates:
+
+```text
+AE  = A_a × (1 - GI)
+CUE = F_T × AE
+```
+
+- `AE` — Agency Exposure: consequential agency that is insufficiently governed.
+- `CUE` — Coherent Unsafe Execution: effective task flow operating through that exposure.
+
+The historical v0.3 result field `uncontrolled_agency_risk` is retained as a compatibility alias for `CUE` while candidate formulations are compared.
+
+The v0.3 parameters are versioned independently in:
+
+```text
+src/efgm/config/efgm-v0.3-agent-governance.json
+```
+
+Every v0.3 result records the candidate config ID and SHA-256.
+
+### Non-compensatory diagnostics
+
+Retained counterexamples show that aggregate family means can hide a single catastrophic governance failure. The v0.3 scorer therefore exposes experimental diagnostics without changing the continuous aggregate scores:
+
+- governance prerequisite floor;
+- low-percentile governance diagnostic;
+- explicit prerequisite breaches;
+- diagnostic flags.
+
+These diagnostics are research candidates. They do not yet override the aggregate v0.3 classification.
+
+### Temporal governance research
+
+A static snapshot is not sufficient for autonomous-agent governance. Experimental transition support lives in:
+
+```text
+src/efgm/temporal_v0_3.py
+```
+
+It compares changes in `GI`, `AE`, and `CUE` before and after agent actions or governance interventions. The initial recovery signal is deliberately narrow and is not proof that all residual state has been removed.
+
+See [`research/EFGM_V0_3_GOVERNED_AGENTIC_FLOW.md`](research/EFGM_V0_3_GOVERNED_AGENTIC_FLOW.md).
 
 ## v1 — compatibility model
 
@@ -142,6 +220,12 @@ Write JSON or Markdown to a file:
 efgm-score assessment.json --model v2 --require-provenance --format json --output reports/assessment.json
 ```
 
+Run the experimental agent-governance benchmark:
+
+```bash
+efgm-agent-experiment --sensitivity-trials 100 --perturbation 0.10 --format markdown
+```
+
 ## Python API
 
 ```python
@@ -170,6 +254,11 @@ Required controls include:
 - no rewriting gold-standard labels merely because EFGM disagrees;
 - human review before promotion of a candidate model to the canonical baseline.
 
+Planned falsification cycles include:
+
+- `EFGM-EXP-0004` — critical governance prerequisite/low-percentile diagnostics;
+- `EFGM-EXP-0005` — temporal intervention and recovery.
+
 See [`research/README.md`](research/README.md) and [`validation/test-plan.md`](validation/test-plan.md).
 
 ## Governance loop
@@ -180,8 +269,8 @@ Detect entropy → Protect verified flow → Restore coherence → Reassess
 
 ## Information handling
 
-Use public, simulated, or sanitized examples. Do not add credentials, personal information, restricted architecture, confidential incident data, or unapproved client material.
+Use public, simulated, or sanitized examples. Do not add credentials, personal information, restricted architecture, confidential incident data, real sealed-holdout contents/labels, or unapproved client material.
 
 ## Status
 
-Current status: **experimental v0.2 research prototype**.
+Current status: **experimental v0.2 research baseline with an experimental v0.3 autonomous-agent research track**.
