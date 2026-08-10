@@ -247,6 +247,14 @@ CUE = F_T × AE
 
 Effective task flow operating through agency exposure.
 
+Because normalized `F_T` is in `[0,1]`:
+
+```text
+0 <= CUE <= AE <= 1
+```
+
+AE and CUE are related rather than orthogonal; a generic low-AE/high-CUE case is not a valid model state.
+
 `uncontrolled_agency_risk` is retained as a compatibility alias for `CUE` during the current research cycle.
 
 ## Governance Observation Floor
@@ -283,9 +291,13 @@ An implementation invariant: with other state held constant, improving `GI` shou
 
 Snapshot of task flow, cognitive entropy, governance dimensions, and agency amplification at a stage of operation.
 
+## `sequence_id`
+
+Explicit identity binding temporal states to one trajectory. States with different sequence identities are rejected as a single transition rather than compared as recovery states.
+
 ## State Transition
 
-Measured change between two agent-governance states after action, environmental change, or governance intervention.
+Measured change between two same-sequence agent-governance states after action, environmental change, or governance intervention. Transition results record candidate config identity/hash and before/after input hashes; post-intervention residual evidence is separately hashed when supplied.
 
 ## Governance Intervention
 
@@ -306,18 +318,23 @@ unknown
 not_applicable
 ```
 
-`unknown` prevents verified recovery. `clear` and `present` require evidence references in the temporal research scaffold.
+For a verified-recovery candidate, `clear`, `present`, and `not_applicable` require rationale, scorer identity/type, positive confidence, and evidence references. `unknown` blocks verified recovery. `not_applicable` is an evidence-backed claim that the residual surface does not apply; it is not an evidence-free omission.
 
 ## Recovery Progress Signal
 
-A valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
+A same-sequence valid `pre_intervention → post_intervention` transition with a declared intervention, higher `GI`, and lower `AE`.
 
 Indicates movement in the intended direction; it is not recovery attestation.
+
+## Governed Post-State
+
+A post-intervention Agent Governance classification of either `Governed autonomous operation` or `Governed but low-flow`. Verified recovery requires a governed post-state rather than merely an improvement from a worse state.
 
 ## Verified Recovery Signal
 
 Recovery progress plus:
 
+- a governed post-state;
 - no candidate-prerequisite breach after intervention;
 - no elevated AE/CUE flag;
 - complete residual-state evidence;
