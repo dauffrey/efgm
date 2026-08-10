@@ -10,6 +10,7 @@ AgentGovernanceClassification = Literal[
     "Governed autonomous operation",
     "Governed but low-flow",
     "High-flow governance deficit",
+    "Low-flow governance deficit",
     "Elevated uncontrolled-agency risk",
 ]
 
@@ -99,6 +100,7 @@ class EFGMAgentGovernanceResult(BaseModel):
     task_id: str
     agent_config_id: str
     agent_config_sha256: str
+    input_sha256: str
     task_flow: float
     cognitive_entropy: float
     alignment: float
@@ -108,10 +110,15 @@ class EFGMAgentGovernanceResult(BaseModel):
     coordination_governance: float | None
     control_recoverability: float
     agency_amplification: float
+    applicable_governance_families: list[str]
+    excluded_governance_families: list[str]
+    governance_family_count: int
     governance_integrity: float
-    governance_prerequisite_floor: float
+    governance_observation_floor: float
     governance_low_percentile: float
-    prerequisite_breaches: list[str]
+    candidate_prerequisite_threshold: float
+    candidate_prerequisite_paths: list[str]
+    candidate_prerequisite_breaches: list[str]
     diagnostic_flags: list[str]
     governed_flow_product: float
     agency_exposure: float
