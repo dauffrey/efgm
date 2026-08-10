@@ -3,8 +3,9 @@
 ## Status
 
 **Status:** Experimental governance and measurement research framework  
-**Canonical baseline:** EFGM v2 decision-integrity model (`0.2.0`, unreleased research baseline)  
-**Experimental extension:** EFGM v0.3 Governed Agentic Flow  
+**Canonical model:** EFGM v2 — Decision Integrity  
+**Python package:** `0.2.0` — unreleased research package  
+**Experimental extension:** Agent Governance v0.3  
 **Purpose:** Evaluate whether AI-assisted reasoning, software-delivery decisions, operational workflows, and autonomous-agent activity remain coherent, grounded, calibrated, traceable, bounded, and recoverable under degradation pressure.
 
 EFGM is not a proven scientific law, compliance standard, autonomous approval engine, or production-ready risk engine. It is an executable research prototype intended for controlled, falsification-oriented validation.
@@ -13,9 +14,9 @@ EFGM is not a proven scientific law, compliance standard, autonomous approval en
 
 # 1. Executive Summary
 
-The Entropy-Flow Governance Model (EFGM) is a governance and measurement framework for evaluating whether a decision process preserves useful coherent flow while facing uncertainty, contradiction, incomplete information, behavioral pressure, operational disruption, and—experimentally for autonomous agents—governance boundary pressure.
+The Entropy-Flow Governance Model (EFGM) is a governance and measurement framework for evaluating whether a decision process preserves useful coherent flow while facing uncertainty, contradiction, incomplete information, behavioral pressure, and operational disruption.
 
-The original EFGM concept used a simple coherent-flow relationship:
+The original EFGM concept used:
 
 ```text
 T × E → Et → F ± e → A|M
@@ -29,7 +30,7 @@ F = (T × E × Fq) / (1 + e)
 
 Those expressions remain part of EFGM's conceptual lineage, but they are **not the current canonical research model**.
 
-The canonical EFGM v2 baseline is a decision-integrity model that separates input disorder, output degradation, positive decision-quality factors, behavioral and operational entropy, decision quality, coherence recovery, hidden information, and eventual outcome quality.
+The canonical EFGM v2 baseline is a decision-integrity model:
 
 ```text
 Ei = weighted input entropy
@@ -42,11 +43,11 @@ OutcomeConfidence = DQ × (1 - H)
 OD = OQ - DQ
 ```
 
-The central v2 research question is:
+The central EFGM v2 research question is:
 
 > Given the evidence available at decision time, how coherent, grounded, calibrated, traceable, and operationally reliable was the decision process?
 
-EFGM v0.3 adds a separate experimental question for autonomous agents:
+Agent Governance v0.3 adds a separate experimental question for autonomous agents:
 
 > Can high coherent task flow coexist with weak governance integrity, and can that condition be measured without treating agency itself as inherently unsafe?
 
@@ -54,22 +55,22 @@ EFGM v0.3 adds a separate experimental question for autonomous agents:
 
 # 2. Why EFGM Exists
 
-Modern AI-assisted and operational workflows can remain active and apparently productive while degrading underneath. Common patterns include:
+Modern AI-assisted and operational workflows can remain active and apparently productive while degrading underneath. Examples include:
 
 - internally coherent but unsupported AI output;
 - conflicting requirements or evidence;
-- confidence that is disproportionate to evidence;
+- confidence disproportionate to evidence;
 - context decay across long tasks;
 - repeated retries or tool failures;
 - stale or fragmented operational knowledge;
 - pressure to preserve a prior decision despite contrary evidence;
 - autonomous execution that remains effective while moving outside governing intent.
 
-Traditional process governance often verifies whether required steps occurred. EFGM adds a complementary question:
+EFGM adds a complementary governance question:
 
 > Is the decision or system state coherent and governed enough to proceed responsibly?
 
-EFGM is intended to expose the evidence and degradation drivers behind that judgment rather than produce an opaque approval score.
+EFGM is intended to expose evidence and degradation drivers rather than produce an opaque approval score.
 
 ---
 
@@ -85,13 +86,11 @@ EFGM is intended to expose the evidence and degradation drivers behind that judg
 | `G` | Grounding |
 | `U` | Uncertainty calibration |
 
-The positive-factor composite is:
-
 ```text
 Q = (T × C × Fq × G × U)^(1/5)
 ```
 
-The geometric mean is a research hypothesis, not an established natural law. It is retained in the frozen v2 baseline for reproducible comparison against alternatives.
+The geometric mean is a research hypothesis retained in the frozen EFGM v2 baseline for reproducible comparison.
 
 ## 3.2 Input entropy
 
@@ -107,7 +106,7 @@ Input entropy describes disorder presented to the decision process:
 - missing context (`MC`);
 - hidden-information load (`H`).
 
-Input entropy does not directly penalize v2 decision quality. It provides the reference state used to measure recovery.
+Input entropy does not directly penalize `DQ`; it provides the reference state used to measure recovery.
 
 ## 3.3 Output entropy
 
@@ -151,11 +150,9 @@ CRC = (Ei - Eo) / max(Ei, ε)
 - Near-zero `CRC` indicates little net recovery.
 - Negative `CRC` indicates entropy amplification.
 
-The frozen v2 ratio is not bounded to `[-1, 1]`. Bounded alternatives are research candidates and must not be silently substituted.
+The frozen v2 ratio is not bounded to `[-1, 1]`. Bounded alternatives remain research candidates.
 
 ## 3.7 Outcome separation
-
-EFGM explicitly rejects the assumption that a good outcome proves a good decision.
 
 ```text
 Good decision != guaranteed good outcome
@@ -169,19 +166,19 @@ OD = OQ - DQ
 OutcomeConfidence = DQ × (1 - H)
 ```
 
-This separation reduces outcome leakage and allows EFGM to study luck, hidden information, and possible model misspecification.
+This separation reduces outcome leakage and allows study of luck, hidden information, and model misspecification.
 
 ---
 
 # 4. Evidence and Missing-Data Discipline
 
-Every research-grade applied metric is represented as a `MetricObservation`:
+Every research-grade applied normalized metric uses `MetricObservation`:
 
 ```text
 (value, status, rationale, evidence_refs, scorer_id, scorer_type, confidence)
 ```
 
-The canonical observation states are:
+Canonical states are:
 
 | State | Meaning |
 |---|---|
@@ -190,15 +187,11 @@ The canonical observation states are:
 | `unknown` | Evidence is insufficient to score the observation |
 | `not_applicable` | The construct genuinely does not apply |
 
-These states are not interchangeable.
-
 ```text
 0.00           = measured numeric value
 unknown        = no completed score may silently assume a value
-not_applicable = excluded according to the model's aggregation rules
+not_applicable = excluded only according to explicit model aggregation rules
 ```
-
-Research-grade runs require rationale, evidence references for applied numeric values, scorer identity/type, positive confidence, and no unresolved `unknown` values.
 
 The core rule is:
 
@@ -213,47 +206,52 @@ EFGM advances through falsification-oriented research rather than confirmation-o
 Required controls include:
 
 - versioned scoring configurations;
-- canonical input and configuration SHA-256 hashes;
+- input and configuration SHA-256 hashes;
 - code commit SHA in experiment records;
 - development and validation partitions;
 - externally sealed holdout contents and labels;
-- independent comparators as well as EFGM-derived ablations;
+- independent comparators and EFGM-derived ablations;
 - sensitivity and perturbation testing;
 - explicit counterexample retention;
 - rejected-candidate retention;
 - no rewriting gold labels because EFGM disagrees;
-- human approval before promotion of a candidate baseline.
+- human approval before promotion.
 
-A candidate is not accepted because it raises EFGM scores. It must demonstrate useful behavior against independently defined evidence and simpler alternatives.
+A candidate must demonstrate useful behavior against independently defined evidence and simpler alternatives.
 
 ---
 
 # 6. Known Structural Limitation: Compensatory Aggregation
 
-Current falsification work has demonstrated that aggregate means can hide sparse catastrophic failures. A single critical grounding, flow-quality, entropy, or agent-governance observation can be diluted by strong neighboring observations.
+Falsification work has shown that aggregate means can hide sparse catastrophic failures. A single critical observation can be diluted by strong neighbors.
 
-This is a material known limitation of the current frozen equations and experimental agent aggregation.
+This is a material known limitation of the current frozen equations and experimental Agent Governance aggregation.
 
-The current research direction is therefore to compare the existing continuous scores with non-compensatory diagnostic layers such as:
+The current research direction compares continuous scores with distinct non-compensatory diagnostics:
 
-- preregistered prerequisite floors;
-- extreme-degradation veto diagnostics;
-- soft-min or low-percentile diagnostics;
+- a **neutral observation floor**;
+- low-percentile or soft-min diagnostics;
+- explicit versioned **candidate prerequisite sets**;
+- possible future veto diagnostics;
 - independent invariant checklists.
 
-No such diagnostic is canonical until it survives development, validation, independent comparison, and sealed-holdout evaluation.
+The observation floor is **not itself a prerequisite verdict**. Only metric paths explicitly configured as candidate prerequisites can produce a candidate-prerequisite breach.
+
+The current candidate prerequisite list and threshold are research hypotheses. `EFGM-EXP-0004` is designed to test whether they reduce false reassurance without creating unacceptable false alarms or merely encoding authored labels.
+
+No candidate prerequisite or veto is canonical.
 
 ---
 
-# 7. Experimental EFGM v0.3: Governed Agentic Flow
+# 7. Experimental Extension: Agent Governance v0.3
 
-EFGM v0.3 is not part of the frozen v2 baseline. It is an experimental extension for autonomous agents.
+Agent Governance v0.3 is not part of the frozen EFGM v2 baseline.
 
 Its central proposition is:
 
 > High coherent task flow can coexist with low governance integrity.
 
-The candidate state vector is:
+The state vector is:
 
 ```text
 S_t = [F_T, e_c, A, B, O, M_g, S_g, R_c, A_a]
@@ -261,7 +259,7 @@ S_t = [F_T, e_c, A, B, O, M_g, S_g, R_c, A_a]
 
 Where:
 
-- `F_T` — task/decision flow inherited from v2 `DQ`;
+- `F_T` — task/decision flow inherited from EFGM v2 `DQ`;
 - `e_c` — cognitive/decision entropy summary;
 - `A` — objective alignment;
 - `B` — boundary integrity;
@@ -271,35 +269,69 @@ Where:
 - `R_c` — control recoverability;
 - `A_a` — agency amplification.
 
-Agentic governance integrity is denoted **`GI`**, not `G`, to avoid collision with v2 Grounding (`G`).
+## 7.1 Symbol discipline
+
+```text
+G  = EFGM v2 Grounding
+GI = Agent Governance v0.3 Governance Integrity
+```
 
 ```text
 GI = geometric_mean(applicable governance families)
 ```
 
-Agency amplification is not automatically unsafe. Risk depends on its interaction with governance weakness.
+A strictly single-agent scenario may mark the **entire coordination-governance family** `not_applicable`. That family is excluded from `GI` rather than assumed perfect. Results expose applicable/excluded family names and family count because cross-case comparison may require stratification.
 
-The experimental candidate now distinguishes:
+No other whole-family N/A semantics are currently implemented.
+
+## 7.2 Agency Exposure and Coherent Unsafe Execution
 
 ```text
 AE  = A_a × (1 - GI)
 CUE = F_T × AE
 ```
 
-Where:
-
-- `AE` = Agency Exposure: consequential capacity that is insufficiently governed;
+- `AE` = Agency Exposure: consequential agency insufficiently governed;
 - `CUE` = Coherent Unsafe Execution: effective task flow operating through that exposure.
 
-The historical v0.3 field `uncontrolled_agency_risk` is retained only as a compatibility alias for the `CUE` candidate during the current research cycle.
+`uncontrolled_agency_risk` is retained as a compatibility alias for `CUE` during the current research cycle.
+
+The agent benchmark now treats `AE` and `CUE` as explicit **lower-is-better** comparators. It records candidate config identity/hash and code SHA.
+
+A construct-separation diagnostic lowers task-flow maturity while holding governance and agency inputs fixed. The expected implementation behavior is:
+
+```text
+AE remains unchanged
+CUE decreases
+```
+
+That verifies the algebraic implementation contract only. `EFGM-EXP-0006` is reserved for semantic validation using independently authored exposure-versus-execution labels.
+
+## 7.3 Candidate classification
+
+The current classifier uses exhaustive candidate regions:
+
+1. elevated `AE` or `CUE` → `Elevated uncontrolled-agency risk`;
+2. otherwise `GI` determines governed versus governance-deficit state;
+3. task flow determines high-flow versus low-flow substate.
+
+This removes the prior gap where a modest improvement in `GI` could produce a worse classification.
+
+Current labels are:
+
+- `Governed autonomous operation`;
+- `Governed but low-flow`;
+- `High-flow governance deficit`;
+- `Low-flow governance deficit`;
+- `Elevated uncontrolled-agency risk`.
+
+These remain experimental descriptive labels, not calibrated incident probabilities.
 
 ---
 
-# 8. Temporal Governance Direction
+# 8. Temporal Governance and Recovery
 
-A static score is not sufficient to characterize autonomous-agent governance.
-
-The v0.3 research program therefore treats state transition as a first-class experimental target:
+A static score is insufficient to characterize autonomous-agent governance.
 
 ```text
 S_t
@@ -311,37 +343,60 @@ S_t+2
 Did governance regain control?
 ```
 
-Temporal experiments should evaluate conditions such as:
+The temporal scaffold distinguishes two signals.
 
-- authority changes issued mid-task;
-- privilege revocation;
-- credentials remaining cached after revocation;
-- persistent environmental memory;
-- peer discovery and delegation;
-- incomplete state cleanup;
-- rollback effectiveness;
-- residual agency after containment;
-- recovery latency.
+## 8.1 Recovery progress
 
-These experiments are intended to turn recoverability from a static reviewer impression into increasingly observable intervention evidence.
+`recovery_progress_signal` requires:
+
+- a valid `pre_intervention → post_intervention` transition;
+- a declared intervention;
+- higher `GI`;
+- lower `AE`.
+
+This indicates movement in the intended direction. It is not a recovery attestation.
+
+## 8.2 Verified recovery signal
+
+`verified_recovery_signal` additionally requires:
+
+- no candidate-prerequisite breach after intervention;
+- no elevated AE/CUE diagnostic;
+- complete residual-state evidence;
+- no material residual state marked present.
+
+Residual-state surfaces currently include:
+
+- credentials;
+- persistence;
+- environmental memory;
+- coordination;
+- privileges;
+- scheduled actions;
+- irreversible side effects;
+- rollback gaps.
+
+A residual surface marked `unknown` prevents verified recovery. Clear/present states require evidence references in the research scaffold.
+
+Even `verified_recovery_signal` is an experimental research signal, **not** a production containment attestation.
+
+`EFGM-EXP-0005` is designed to falsify this logic using partial interventions, cached credentials, persistence/memory surviving containment, delegated peer goals, rollback gaps, trace loss, and delayed containment.
 
 ---
 
 # 9. Governance Loop
 
-The EFGM governance loop remains:
-
 ```text
 Detect entropy → Protect verified flow → Restore coherence → Reassess
 ```
 
-For autonomous agents this expands operationally into:
+For autonomous agents:
 
 ```text
 Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
 ```
 
-The purpose is not merely to classify degradation. The purpose is to make degradation and recovery measurable enough to support intervention.
+The purpose is not merely to classify degradation. It is to make degradation and recovery measurable enough to support accountable intervention.
 
 ---
 
@@ -366,21 +421,23 @@ Stronger claims require independent replication across datasets, scorers, domain
 
 # 11. Current Research Priorities
 
-1. Preserve the frozen v2 baseline for reproducible comparison.
-2. Eliminate repository terminology and definition drift.
-3. Test non-compensatory prerequisite and veto diagnostics against benign controls.
-4. Compare `AE` and `CUE` against simpler independent agent-governance checklists.
-5. Operationalize temporal state-transition and intervention/recovery experiments.
-6. Measure inter-rater agreement for v2 and v0.3 observations.
+1. Preserve the frozen EFGM v2 baseline.
+2. Keep repository terminology/version identity coherent.
+3. Run `EFGM-EXP-0004` on neutral floors, candidate prerequisites, benign controls, and independent invariants.
+4. Run `EFGM-EXP-0005` on intervention, residual state, and verified recovery.
+5. Run `EFGM-EXP-0006` on independently authored AE-versus-CUE semantic labels.
+6. Measure inter-rater agreement for EFGM v2 and Agent Governance observations.
 7. Keep real holdout data externally sealed until candidates are frozen.
-8. Test confidence propagation only as an explicit future candidate rather than silently changing scores.
+8. Test confidence propagation only as an explicit future candidate.
 
 ---
 
 # 12. Current Status
 
-EFGM should currently be described as:
+```text
+Canonical model:        EFGM v2 — experimental research baseline
+Python package:         0.2.0 — unreleased research package
+Experimental extension: Agent Governance v0.3 — research candidate
+```
 
-> An experimental, evidence-traceable governance and measurement framework for studying decision integrity, entropy recovery, and governed autonomous flow.
-
-The canonical research baseline is EFGM v2. The autonomous-agent model is an experimental v0.3 candidate. Neither is a validated production risk engine.
+Neither EFGM v2 nor Agent Governance v0.3 is a validated production risk engine.
