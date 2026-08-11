@@ -94,6 +94,24 @@ def test_exp0004_exposes_sparse_false_reassurance_but_does_not_pass_promotion_ga
     assert result["promotion_gate_passed"] is False
 
 
+def test_exp0004_records_per_case_input_hashes():
+    result = run_exp0004(
+        perturbation_trials=20,
+        perturbation=0.10,
+        seed=20260810,
+        code_sha="test-code-sha",
+    )
+
+    for split_name, expected_specs in (
+        ("development", DEVELOPMENT_CASE_SPECS),
+        ("validation", VALIDATION_CASE_SPECS),
+    ):
+        hashes = result[split_name]["input_sha256"]
+        assert set(hashes) == {case["case_id"] for case in expected_specs}
+        assert all(len(digest) == 64 for digest in hashes.values())
+        assert all(set(digest) <= set("0123456789abcdef") for digest in hashes.values())
+
+
 def test_exp0004_threshold_sensitivity_and_ablation_are_visible():
     result = run_exp0004(
         perturbation_trials=20,
@@ -108,7 +126,19 @@ def test_exp0004_threshold_sensitivity_and_ablation_are_visible():
     assert sensitivity["0.30"]["detection_rate"] == 0.4
     assert sensitivity["0.50"]["false_alarm_rate"] == 0.5
 
-    for ablation in result["candidate_prerequisite_path_ablation"].values():
+    ablations = result["candidate_prerequisite_path_ablation"]
+    assert ablations["full_set"]["detection_rate"] == 0.8
+    assert ablations["full_set"]["detected"] == 12
+    assert ablations["empty_set"]["detection_rate"] == 0.0
+    assert ablations["empty_set"]["detected"] == 0
+
+    leave_one_out = {
+        key: value
+        for key, value in ablations.items()
+        if key not in {"full_set", "empty_set"}
+    }
+    assert len(leave_one_out) == 6
+    for ablation in leave_one_out.values():
         assert ablation["detection_rate"] == pytest.approx(10 / 15, abs=0.0001)
 
 
