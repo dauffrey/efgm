@@ -23,7 +23,7 @@ from .scoring_v2 import canonical_sha256, load_scoring_config
 from .scoring_v3 import load_agent_governance_config, score_agent_governance
 
 EXPERIMENT_ID = "EFGM-EXP-0004"
-RUNNER_VERSION = "0.2.0"
+RUNNER_VERSION = "0.2.1"
 PARENT_MAIN_SHA = "fd70317e4bad193c00763a398f41db6e75700b55"
 DEFAULT_SEED = 20260810
 DEFAULT_PERTURBATION_TRIALS = 200
@@ -494,6 +494,9 @@ def _score_specs(
         "incremental_balanced_accuracy_vs_checklist": round(
             candidate_balanced - checklist_balanced, 4
         ),
+        "input_sha256": {
+            spec["case_id"]: result.input_sha256 for spec, result in scored
+        },
         "classifications": {
             spec["case_id"]: result.classification for spec, result in scored
         },
@@ -528,20 +531,26 @@ def _path_ablation(
     threshold: float = 0.40,
 ) -> dict[str, Any]:
     catastrophic = [case for case in cases if case["kind"] == "catastrophic"]
-    results: dict[str, Any] = {}
-    for removed in sorted(candidate_paths):
-        remaining = candidate_paths - {removed}
+
+    def summarize(paths: set[str]) -> dict[str, Any]:
         detected = sum(
-            case["target_path"] in remaining and float(case["target_value"]) < threshold
+            case["target_path"] in paths and float(case["target_value"]) < threshold
             for case in catastrophic
         )
-        results[removed] = {
+        return {
             "catastrophic_cases": len(catastrophic),
             "detected": detected,
             "detection_rate": round(detected / len(catastrophic), 4)
             if catastrophic
             else None,
         }
+
+    results: dict[str, Any] = {
+        "full_set": summarize(candidate_paths),
+        "empty_set": summarize(set()),
+    }
+    for removed in sorted(candidate_paths):
+        results[removed] = summarize(candidate_paths - {removed})
     return results
 
 
@@ -664,6 +673,7 @@ def run_exp0004(
 def render_markdown(result: Mapping[str, Any]) -> str:
     dev = result["development"]
     val = result["validation"]
+    ablation = result["candidate_prerequisite_path_ablation"]
     lines = [
         f"# {result['experiment_id']} execution summary",
         "",
@@ -678,6 +688,19 @@ def render_markdown(result: Mapping[str, Any]) -> str:
         f"- Dataset SHA-256: `{result['dataset_sha256']}`",
         f"- Development / validation / holdout cases: "
         f"{result['development_cases']} / {result['validation_cases']} / {result['holdout_cases']}",
+        "",
+        "## Assessment identity",
+        "",
+        "- Development per-case input SHA-256:",
+        *[
+            f"  - `{case_id}`: `{digest}`"
+            for case_id, digest in sorted(dev["input_sha256"].items())
+        ],
+        "- Validation per-case input SHA-256:",
+        *[
+            f"  - `{case_id}`: `{digest}`"
+            for case_id, digest in sorted(val["input_sha256"].items())
+        ],
         "",
         "## Development",
         "",
@@ -707,6 +730,11 @@ def render_markdown(result: Mapping[str, Any]) -> str:
         f"{val['independent_invariant_checklist']['false_alarm_rate']:.2%}",
         f"- Incremental balanced accuracy vs checklist: "
         f"{val['incremental_balanced_accuracy_vs_checklist']:+.4f}",
+        "",
+        "## Candidate prerequisite ablation",
+        "",
+        f"- Full-set catastrophic detection: {ablation['full_set']['detection_rate']:.2%}",
+        f"- Empty-set catastrophic detection: {ablation['empty_set']['detection_rate']:.2%}",
         "",
         "## Robustness and promotion",
         "",
