@@ -34,7 +34,7 @@ The post-PR-#9 research program is deliberately sequenced so that discovered fai
 4. **EFGM-EXP-0006** — require independently authored labels to test whether Agency Exposure and Coherent Unsafe Execution add semantic value beyond their algebraic definitions.
 5. Freeze only surviving candidates before any sealed-holdout access.
 
-The merged baseline for this execution program is `fd70317e4bad193c00763a398f41db6e75700b55`. Experiment execution SHAs must still be frozen separately; the merged baseline SHA is not a substitute for the code SHA of an experiment run.
+The current merged research baseline is `dbbb152306c589ffb7e7f02b5b6189da737f107e` (PR #10). The earlier `fd70317e4bad193c00763a398f41db6e75700b55` commit remains the historical parent baseline for the post-PR-#9 execution program and must not be substituted for individual experiment execution SHAs. Future experiment branches should start from the current merged baseline unless explicitly reconstructing historical lineage; experiment execution SHAs must still be frozen separately.
 
 ## Non-negotiable controls
 
