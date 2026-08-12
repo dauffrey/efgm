@@ -1,12 +1,13 @@
 experiment_id: EFGM-EXP-0006
 title: "Agency Exposure versus Coherent Unsafe Execution semantic validation"
 date: 2026-08-10
-status: planned
+status: authoring_packet_ready_awaiting_independent_labels
 research_type: falsification
 
 hypothesis: "Agency Exposure (AE) and Coherent Unsafe Execution (CUE) are distinguishable constructs: AE captures insufficiently governed consequential capacity while CUE captures effective task execution operating through that exposure."
 null_hypothesis: "AE and CUE do not provide reliably distinguishable information beyond one another, task flow, governance integrity, or a simpler independent checklist."
 structural_invariant: "Because CUE = F_T * AE and normalized F_T is in [0,1], every valid scored case must satisfy 0 <= CUE <= AE <= 1. A generic low-AE/high-CUE quadrant is therefore impossible and must not be requested as a case-design target."
+
 predeclared_success_criteria:
   - "Every generated/scored case satisfies CUE <= AE."
   - "When governance and agency inputs are held fixed while task effectiveness changes, AE remains stable while CUE changes in the expected direction."
@@ -14,6 +15,7 @@ predeclared_success_criteria:
   - "AE adds useful information about uncontrolled capacity beyond CUE/task-flow alone on validation cases."
   - "CUE adds useful information about effective unsafe execution beyond AE alone on validation cases."
   - "Any incremental value survives reasonable perturbation and comparison with an independent two-axis checklist."
+
 predeclared_failure_criteria:
   - "Any scored case violates CUE <= AE."
   - "Only the algebraic implementation contract separates AE and CUE; independent labels do not."
@@ -22,8 +24,9 @@ predeclared_failure_criteria:
   - "Results depend materially on internally authored EFGM-aware labels."
 
 repository:
+  parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  execution_branch: "freeze-at-execution"
   code_sha: "freeze-at-execution"
-  branch: "agent/harden-v2-v03-governance"
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"
@@ -40,6 +43,19 @@ dataset:
   label_source: "independently authored exposure-versus-execution judgments"
   labels_independent_of_efgm: true
 
+authoring:
+  internal_coordinator_notes: "experiments/authoring/EFGM-EXP-0006/README.md"
+  blinded_author_packet: "experiments/authoring/EFGM-EXP-0006/blinded-author-packet.md"
+  label_schema: "experiments/authoring/EFGM-EXP-0006/label-schema.json"
+  minimum_independent_labelers_per_case: 2
+  primary_validation_labeler_must_not_be_case_author: true
+  preferred_primary_rater_type: human_domain_reviewer
+  nonhuman_external_raters_analyzed_separately: true
+  formulas_visible_to_authors: false
+  efgm_scores_visible_to_authors: false
+  model_preferred_labels_visible_to_authors: false
+  requirement: "The blinded packet contents must be delivered outside the tuning-visible repository context; authors and labelers should not be directed to browse this repository. Primary validation labels must come from reviewers who did not author the case."
+
 case_design:
   required_feasible_regions:
     - high_AE_high_CUE
@@ -51,7 +67,7 @@ case_design:
     - "Compare highly privileged/persistent but weak-execution cases against equally exposed strong-execution cases."
     - "Compare strong execution under low exposure against strong execution under high exposure."
     - "Include values near any proposed AE/CUE interpretation thresholds without inventing mathematically impossible regions."
-  authoring_guardrail: "External case authors should not be shown AE/CUE formulas or EFGM preferred labels before authoring and labeling cases; case designers who enforce mathematical feasibility may know only the constraint CUE <= AE."
+  authoring_guardrail: "Independent authors and labelers must not be shown AE/CUE formulas, EFGM scores, or EFGM preferred labels before authoring/labeling. Case authors may not supply the primary validation label for their own case. The internal coordinator may enforce case diversity and feasibility constraints without disclosing model targets."
 
 holdout:
   holdout_id: null
@@ -84,6 +100,7 @@ secondary_metrics:
   - scorer_agreement
   - false_reassurance_rate
   - complexity_adjusted_value_vs_independent_baseline
+  - performance_by_rater_type
 
 results_location: "experiments/results/EFGM-EXP-0006.md"
 counterexamples: []
@@ -93,6 +110,8 @@ conclusion:
   decision: null
   rationale: ""
   limitations:
-    - "The current benchmark runner's construct-separation diagnostic verifies algebraic behavior only; this experiment is required for semantic validation."
+    - "The current benchmark runner's construct-separation diagnostic verifies algebraic behavior only; this experiment still requires independent semantic labels."
     - "CUE is mathematically bounded above by AE, so the constructs are related rather than orthogonal."
+    - "No independent labels or cases have yet been supplied; the experiment is not executed."
+    - "Nonhuman external-rater results, if collected, must be reported separately from the preferred human/domain-reviewer analysis rather than pooled silently."
     - "No claim of incident probability calibration is proposed."

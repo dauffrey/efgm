@@ -34,12 +34,19 @@ jobs:
         run: efgm-score examples/decision_integrity_demo/input.json --model v2 --require-provenance --format markdown
       - name: Run EFGM Benchmark v0.1 experiment
         if: matrix.python-version == '3.12'
-        run: |
-          efgm-experiment --benchmark v0.1 --sensitivity-trials 100 --perturbation 0.10 --format markdown
+        run: efgm-experiment --benchmark v0.1 --sensitivity-trials 100 --perturbation 0.10 --format markdown
       - name: Run Agent Governance v0.3 benchmark experiment
         if: matrix.python-version == '3.12'
-        run: |
-          efgm-agent-experiment --sensitivity-trials 100 --perturbation 0.10 --format markdown
+        run: efgm-agent-experiment --sensitivity-trials 100 --perturbation 0.10 --format markdown
+      - name: Run EFGM-EXP-0004 sparse-governance falsification cycle
+        if: matrix.python-version == '3.12'
+        run: python -m efgm.exp0004_sparse_governance --perturbation-trials 200 --perturbation 0.10 --code-sha "${{ github.event.pull_request.head.sha || github.sha }}" --format markdown
+      - name: Run EFGM-EXP-0007 canonical-v2 sparse-failure cycle
+        if: matrix.python-version == '3.12'
+        run: python -m efgm.exp0007_v2_sparse_failure --perturbation-trials 200 --perturbation 0.10 --code-sha "${{ github.event.pull_request.head.sha || github.sha }}" --format markdown
+      - name: Run EFGM-EXP-0005 temporal recovery falsification cycle
+        if: matrix.python-version == '3.12'
+        run: python -m efgm.exp0005_temporal_recovery --perturbation-trials 200 --perturbation 0.05 --code-sha "${{ github.event.pull_request.head.sha || github.sha }}" --format markdown
       - name: Build distributable wheel
         run: python -m build --wheel
       - name: Verify packaged config and experiment CLIs from installed wheel
@@ -50,3 +57,6 @@ jobs:
           efgm-score "$GITHUB_WORKSPACE/examples/decision_integrity_demo/input.json" --model v2 --require-provenance --format json
           efgm-experiment --benchmark v0.1 --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-experiment-smoke.json
           efgm-agent-experiment --sensitivity-trials 2 --perturbation 0.05 --format json > /tmp/efgm-agent-experiment-smoke.json
+          python -m efgm.exp0004_sparse_governance --perturbation-trials 2 --perturbation 0.05 --format json > /tmp/efgm-exp0004-smoke.json
+          python -m efgm.exp0007_v2_sparse_failure --perturbation-trials 2 --perturbation 0.05 --format json > /tmp/efgm-exp0007-smoke.json
+          python -m efgm.exp0005_temporal_recovery --perturbation-trials 2 --perturbation 0.02 --format json > /tmp/efgm-exp0005-smoke.json

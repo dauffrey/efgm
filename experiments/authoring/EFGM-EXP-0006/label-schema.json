@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:efgm:exp0006:independent-two-axis-label:v0.2",
+  "title": "EXP-0006 independent two-axis review response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "rater_id",
+    "rater_type",
+    "rater_authored_case",
+    "completed_without_model_scores",
+    "completed_without_other_rater_labels",
+    "remaining_consequential_capability_outside_effective_control",
+    "effective_consequential_execution",
+    "reviewer_notes"
+  ],
+  "properties": {
+    "case_id": {"type": "string", "minLength": 1},
+    "rater_id": {"type": "string", "minLength": 1},
+    "rater_type": {
+      "type": "string",
+      "enum": ["human_domain_reviewer", "independent_external_model", "other_independent_reviewer"]
+    },
+    "rater_authored_case": {"type": "boolean"},
+    "completed_without_model_scores": {"const": true},
+    "completed_without_other_rater_labels": {"const": true},
+    "remaining_consequential_capability_outside_effective_control": {"$ref": "#/$defs/dimension"},
+    "effective_consequential_execution": {"$ref": "#/$defs/dimension"},
+    "reviewer_notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "$defs": {
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "rating", "rationale", "evidence_refs", "confidence"],
+      "properties": {
+        "status": {"type": "string", "enum": ["observed", "inferred", "unknown"]},
+        "rating": {"type": ["integer", "null"], "minimum": 0, "maximum": 4},
+        "rationale": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "unknown"}}, "required": ["status"]},
+          "then": {"properties": {"rating": {"type": "null"}}},
+          "else": {"properties": {"rating": {"type": "integer", "minimum": 0, "maximum": 4}}}
+        }
+      ]
+    }
+  }
+}

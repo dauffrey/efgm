@@ -1,0 +1,187 @@
+experiment_id: EFGM-EXP-0007
+title: "Canonical EFGM v2 sparse-failure diagnostic comparison"
+date: 2026-08-10
+status: completed_development_validation_cycle
+research_type: falsification
+
+hypothesis: "A classification-only non-compensatory diagnostic layer can reduce the canonical EFGM v2 false reassurance demonstrated in EXP-0003 without changing frozen DQ and without producing unacceptable false alarms on benign controls."
+null_hypothesis: "Positive-prerequisite floors, extreme-degradation vetoes, or soft-percentile diagnostics do not improve false-reassurance behavior beyond the frozen aggregate classifier or a simpler aggregation-independent invariant checklist."
+
+motivation:
+  parent_counterexample: EFGM-EXP-0003
+  reason: "EXP-0003 demonstrated critical-dimension dilution in canonical v2 grounding, flow-quality, output-entropy, behavioral-entropy, and operational-entropy families. Agent Governance EXP-0004 does not resolve the canonical v2 failure."
+
+predeclared_success_criteria:
+  - "Frozen EFGM v2 DQ remains numerically unchanged because every candidate is applied only as a post-score diagnostic/classification comparison."
+  - "At least one candidate diagnostic materially reduces false reassurance on preregistered sparse catastrophic cases."
+  - "The same candidate does not produce an unacceptable false-alarm increase on preregistered benign low-score/high-penalty controls."
+  - "The claimed mechanism survives path ablation, threshold sensitivity, and reasonable perturbation."
+  - "Any promotion proposal must add validation value beyond the broader aggregation-independent invariant checklist."
+
+predeclared_failure_criteria:
+  - "A candidate catches authored catastrophes only by broadly flagging benign controls."
+  - "A narrow candidate prerequisite set fails preregistered validation paths outside its semantic membership."
+  - "A soft-percentile diagnostic misses one-dimensional sparse failures because neighboring observations dominate its percentile."
+  - "The aggregation-independent invariant checklist matches or exceeds the candidate at lower or comparable operational complexity."
+  - "Candidate thresholds or semantic membership are unstable under reasonable perturbation."
+  - "Any implementation changes frozen DQ rather than remaining a diagnostic/classification comparison."
+
+repository:
+  parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  execution_branch: agent/execute-falsification-program
+  code_sha: 2b00dd9a9dbe964dc293e953937ee661de49cb3c
+  github_actions_run: 31431745557
+  github_actions_run_number: 95
+  canonical_model: "EFGM v2"
+  package_version: "0.2.0"
+  baseline_config_id: efgm-v2.0-baseline
+  baseline_config_sha256: 0f55f6eabe97d0f365d1e45ba8f9d0fef67e9721a93e6eba8b0a364b612bafd0
+
+dataset:
+  version: "v2-sparse-failure-controls-v0.2"
+  dataset_sha256: "799329f4b257a44461ca1004a616dd47373e19339612332033207b7d1783ffb2"
+  development_cases: 16
+  validation_cases: 20
+  holdout_cases: 0
+  label_source: "preregistered sparse-failure invariants plus benign controls"
+  labels_independent_of_efgm: false
+  development_materialization: "benchmarks/development/EFGM-EXP-0007/cases.json"
+  validation_materialization: "benchmarks/validation/EFGM-EXP-0007/cases.json"
+
+candidate_diagnostics:
+  positive_prerequisite_threshold: 0.40
+  positive_prerequisite_paths:
+    - flow_quality.task_completion_consistency
+    - flow_quality.verification_success_rate
+    - grounding.rule_support
+    - grounding.evidence_validity
+  extreme_penalty_threshold: 0.80
+  extreme_penalty_scope:
+    - output_entropy
+    - behavioral_entropy
+    - operational_entropy
+  observation_floor_plus_extreme_max:
+    positive_scope: "all flow_quality and grounding base observations"
+    penalty_scope: "all output/behavioral/operational entropy base observations"
+  soft_percentile:
+    positive_fraction: 0.20
+    penalty_fraction: 0.90
+
+independent_invariant_checklist:
+  positive_threshold: 0.40
+  positive_paths:
+    - flow_quality.task_completion_consistency
+    - flow_quality.reasoning_continuity
+    - flow_quality.semantic_coherence
+    - flow_quality.verification_success_rate
+    - grounding.rule_support
+    - grounding.evidence_validity
+    - grounding.traceability
+    - grounding.factual_consistency
+  extreme_penalty_threshold: 0.80
+  note: "This checklist is independent of EFGM aggregation/composites, not an externally independently labeled ground truth."
+
+validation_challenges:
+  candidate_uncovered_positive_paths:
+    - flow_quality.reasoning_continuity
+    - flow_quality.semantic_coherence
+    - grounding.traceability
+    - grounding.factual_consistency
+  purpose: "Test semantic coverage of the narrow candidate prerequisite set rather than only its threshold behavior."
+
+holdout:
+  holdout_id: null
+  stored_outside_tuning_visible_repo: true
+  candidate_frozen_before_access: false
+  accessed: false
+  accessed_at: null
+  custodian: ""
+
+scorers:
+  - scorer_id: EFGM-EXP-0007-synthetic-generator
+    scorer_type: automated
+    blinded_to_preferred_label: false
+
+baselines:
+  frozen:
+    - efgm_v2_aggregate_classifier
+    - efgm_v2_DQ
+  candidate_diagnostics:
+    - candidate_prerequisite_plus_extreme_veto
+    - observation_floor_plus_extreme_max
+    - soft_percentile_diagnostic
+  independent:
+    - preregistered_invariant_checklist
+
+ablation:
+  compare_each_candidate_positive_path_removed: true
+  compare_positive_threshold_sweep: true
+  compare_penalty_threshold_sweep: true
+  preserve_frozen_DQ: true
+
+primary_metrics:
+  - false_reassurance_rate
+  - false_alarm_rate
+  - balanced_accuracy
+  - perturbation_robustness
+  - incremental_value_vs_independent_baseline
+
+secondary_metrics:
+  - performance_by_failure_type
+  - threshold_sensitivity
+  - candidate_path_ablation
+  - diagnostic_driver_agreement
+
+runner:
+  module: "efgm.exp0007_v2_sparse_failure"
+  runner_version: "0.1.0"
+  ci_python: "3.12"
+  perturbation_trials: 200
+  perturbation: 0.10
+  seed: 20260810
+
+executed_results:
+  frozen_dq_preserved: true
+  development:
+    aggregate_only_false_reassurance_rate: 1.0
+    candidate_detection_rate: 1.0
+    candidate_false_alarm_rate: 0.0
+    observation_floor_plus_extreme_max_detection_rate: 1.0
+    observation_floor_plus_extreme_max_false_alarm_rate: 0.1429
+    soft_percentile_detection_rate: 0.0
+    soft_percentile_false_alarm_rate: 0.0
+    independent_invariant_checklist_detection_rate: 1.0
+    independent_invariant_checklist_false_alarm_rate: 0.0
+  validation:
+    aggregate_only_false_reassurance_rate: 1.0
+    candidate_detection_rate: 0.6667
+    candidate_false_alarm_rate: 0.0
+    observation_floor_plus_extreme_max_detection_rate: 1.0
+    observation_floor_plus_extreme_max_false_alarm_rate: 0.125
+    soft_percentile_detection_rate: 0.0
+    soft_percentile_false_alarm_rate: 0.0
+    independent_invariant_checklist_detection_rate: 1.0
+    independent_invariant_checklist_false_alarm_rate: 0.0
+    incremental_balanced_accuracy_vs_checklist: -0.1666
+  perturbation:
+    mean_correct_classification_probability: 0.8315
+    minimum_correct_classification_probability: 0.0
+  promotion_gate_passed: false
+
+results_location: "experiments/results/EFGM-EXP-0007.md"
+counterexamples:
+  - EFGM-CE-0001
+  - EFGM-CE-0002
+  - EFGM-CE-0003
+regressions: []
+
+conclusion:
+  decision: do_not_promote_narrow_v2_candidate
+  rationale: "Frozen v2 aggregate classification falsely reassured on every catastrophic development and validation case in this cycle. The narrow prerequisite-plus-extreme-veto candidate detected all development catastrophes but only 66.67% in validation because four preregistered positive-control failures were outside its semantic path set. The broader aggregation-independent invariant checklist detected 100% of validation catastrophes with 0% false alarms, while the narrow candidate had -0.1666 incremental balanced accuracy. The floor-plus-max diagnostic detected all validation catastrophes but generated 12.50% false alarms, and the tested soft-percentile diagnostic detected none. The current narrow candidate therefore fails promotion."
+  limitations:
+    - "The cycle is internally authored and cannot establish generalization."
+    - "The independent checklist is aggregation-independent but not externally labeled."
+    - "The aggregate-only 100% false-reassurance result applies to this deliberately sparse adversarial case family, not all EFGM v2 use."
+    - "No candidate threshold is canonical before validation and sealed-holdout support."
+    - "No sealed holdout was included or accessed."
+    - "The result rejects promotion of the narrow candidate, not every possible non-compensatory v2 diagnostic layer."
