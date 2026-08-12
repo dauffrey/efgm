@@ -1,7 +1,7 @@
 experiment_id: EFGM-EXP-0004
 title: "Agent Governance critical-dimension diagnostics"
 date: 2026-08-10
-status: completed_development_validation_cycle
+status: completed_development_validation_cycle_with_corrective_reproducibility_rerun
 research_type: falsification
 
 hypothesis: "A non-compensatory diagnostic layer can reduce false reassurance from sparse catastrophic governance failures without treating every low observation as a prerequisite or replacing the continuous Agent Governance v0.3 aggregate scores."
@@ -25,9 +25,6 @@ predeclared_failure_criteria:
 repository:
   parent_main_sha: fd70317e4bad193c00763a398f41db6e75700b55
   execution_branch: agent/execute-falsification-program
-  code_sha: 8c2df53760dc8a39ac2d802127a477d107f14102
-  github_actions_run: 31430795539
-  github_actions_run_number: 93
   canonical_model: "EFGM v2"
   package_version: "0.2.0"
   experimental_extension: "Agent Governance v0.3"
@@ -35,11 +32,43 @@ repository:
   baseline_config_sha256: 0f55f6eabe97d0f365d1e45ba8f9d0fef67e9721a93e6eba8b0a364b612bafd0
   candidate_config_id: efgm-v0.3-agent-governance-candidate-r2
   candidate_config_sha256: af0b5540f28d4d65ae95929a855a168f9e7c286439d33d33e14ef167d808366c
+  original_execution:
+    role: original_scientific_execution
+    code_sha: 8c2df53760dc8a39ac2d802127a477d107f14102
+    github_actions_run: 31430795539
+    github_actions_run_number: 93
+    runner_version: "0.2.0"
+    ci_python: "3.12.13"
+    record_complete: false
+    known_record_gaps:
+      - "Per-case input_sha256 values were not emitted into the execution output."
+      - "The preregistered empty-set ablation was not executed by runner 0.2.0."
+  corrective_execution:
+    role: corrective_reproducibility_execution
+    code_sha: 2b41336e4411a3389d1ef22ba9f90687025a2b7a
+    github_actions_run: 31497130999
+    github_actions_run_number: 105
+    runner_version: "0.2.1"
+    ci_python: "3.12.13"
+    record_complete: true
+    correction_scope:
+      - "Emit the scorer-produced input_sha256 for every development and validation case."
+      - "Execute the preregistered full-set, empty-set, and leave-one-path-out candidate-prerequisite ablations."
+    scientific_inputs_changed: false
+    candidate_config_changed: false
+    labels_changed: false
+    thresholds_changed: false
+    dataset_changed: false
+    holdout_accessed: false
+    headline_scientific_results_changed: false
 
 assessment_identity:
   input_sha256: "record-per-case"
+  per_case_hashes_location: "experiments/results/EFGM-EXP-0004.md#corrective-assessment-identity"
   require_provenance: true
-  provenance_complete: true
+  scorer_provenance_complete: true
+  original_execution_record_complete: false
+  corrective_execution_record_complete: true
 
 dataset:
   version: "sparse-governance-failures-v0.3"
@@ -93,6 +122,17 @@ candidate_prerequisite_ablation:
   compare_each_path_removed: true
   compare_empty_set: true
   compare_threshold_perturbation: true
+  corrective_execution_results:
+    catastrophic_cases: 15
+    full_set:
+      detected: 12
+      detection_rate: 0.8
+    empty_set:
+      detected: 0
+      detection_rate: 0.0
+    each_path_removed:
+      detected: 10
+      detection_rate: 0.6667
 
 primary_metrics:
   - false_reassurance_rate
@@ -108,13 +148,15 @@ secondary_metrics:
 
 runner:
   module: "efgm.exp0004_sparse_governance"
-  runner_version: "0.2.0"
-  ci_python: "3.12"
+  runner_version: "0.2.1"
+  original_runner_version: "0.2.0"
+  ci_python: "3.12.13"
   perturbation_trials: 200
   perturbation: 0.10
   seed: 20260810
 
 executed_results:
+  source_execution: corrective_reproducibility_execution
   development:
     aggregate_only_false_reassurance_rate: 1.0
     candidate_prerequisite_detection_rate: 1.0
@@ -133,19 +175,28 @@ executed_results:
   perturbation:
     mean_correct_classification_probability: 0.7765
     minimum_correct_classification_probability: 0.0
+  corrective_reproducibility:
+    per_case_input_hashes_recorded: 27
+    full_set_ablation_detection_rate: 0.8
+    empty_set_ablation_detection_rate: 0.0
+    leave_one_path_out_detection_rate: 0.6667
+    headline_scientific_results_changed: false
   promotion_gate_passed: false
 
 results_location: "experiments/results/EFGM-EXP-0004.md"
 counterexamples:
   - EFGM-CE-0001
-regressions: []
+regressions:
+  - "Original EXP-0004 runner 0.2.0 omitted per-case input hashes from output."
+  - "Original EXP-0004 runner 0.2.0 omitted the preregistered empty-set ablation."
 
 conclusion:
   decision: do_not_promote_current_candidate_prerequisite_set
-  rationale: "The configured prerequisite layer eliminated false reassurance on its covered development paths with no candidate-prerequisite false alarms, but validation exposed three preregistered catastrophic paths outside the configured set. Detection fell to 66.67%, the simpler aggregation-independent checklist achieved the same covered-path decisions, incremental balanced accuracy was 0.0000, and perturbation minimum-case correctness was 0.00%. Expanding the prerequisite set after observing these failures would be outcome-driven tuning; the current candidate is therefore retained as a failed/incomplete research candidate rather than promoted."
+  rationale: "The configured prerequisite layer eliminated false reassurance on its covered development paths with no candidate-prerequisite false alarms, but validation exposed three preregistered catastrophic paths outside the configured set. Detection fell to 66.67%, the simpler aggregation-independent checklist achieved the same covered-path decisions, incremental balanced accuracy was 0.0000, and perturbation minimum-case correctness was 0.00%. The corrective execution at 2b41336e4411a3389d1ef22ba9f90687025a2b7a completed the promised assessment identities and ablations without changing the dataset, configuration, labels, thresholds, holdout boundary, or headline scientific conclusion. Expanding the prerequisite set after observing validation failures would remain outcome-driven tuning; the current candidate is retained as a failed/incomplete research candidate rather than promoted."
   limitations:
     - "Cases are internally authored and EFGM-terminology aware."
     - "The configured candidate prerequisite set is a research hypothesis, not an established control invariant."
     - "The independent checklist is independent of EFGM aggregation but is not an externally independently labeled comparator."
     - "No external sealed holdout was included or accessed."
+    - "The original execution record was incomplete; reproducibility fields and the missing preregistered ablation are supplied by a later corrective execution rather than retroactively attributed to run #93."
     - "This result does not reject all non-compensatory governance approaches; it rejects promotion of the current configured prerequisite set from this cycle."
