@@ -34,7 +34,15 @@ The post-PR-#9 research program is deliberately sequenced so that discovered fai
 4. **EFGM-EXP-0006** — require independently authored labels to test whether Agency Exposure and Coherent Unsafe Execution add semantic value beyond their algebraic definitions.
 5. Freeze only surviving candidates before any sealed-holdout access.
 
-The current merged research baseline is `dbbb152306c589ffb7e7f02b5b6189da737f107e` (PR #10). The earlier `fd70317e4bad193c00763a398f41db6e75700b55` commit remains the historical parent baseline for the post-PR-#9 execution program and must not be substituted for individual experiment execution SHAs. Future experiment branches should start from the current merged baseline unless explicitly reconstructing historical lineage; experiment execution SHAs must still be frozen separately.
+## Current frozen research baseline
+
+The current merged research baseline is **`670878d7cd59508c444a321d57c879e913ce2617`** (PR #13, Stage 1 provenance and temporal-identity hardening). This exact SHA is the authoritative pre-EXP-0008 reference state. It was validated on `main` by **EFGM Check #117** with conclusion `success`.
+
+A human-readable convenience ref, `baseline/stage1-integrity-2026-08-16`, points to that commit and must not be moved. The full commit SHA remains authoritative even if the convenience ref is later unavailable.
+
+The machine-readable freeze record is `research/baseline-freezes/stage1-integrity-2026-08-16.yaml`. Initial EFGM-EXP-0008 work must start from this frozen SHA and must record its own execution SHA separately. The initial EXP-0008 observation cycle must not change EFGM v2 equations, Agent Governance v0.3 equations, AE/CUE definitions, scoring weights, thresholds, prerequisite membership, provenance semantics, or temporal identity semantics before the frozen baseline has been evaluated.
+
+The previous merged research baseline `dbbb152306c589ffb7e7f02b5b6189da737f107e` (PR #10) remains part of the historical lineage. The earlier `fd70317e4bad193c00763a398f41db6e75700b55` commit remains the historical parent baseline for the post-PR-#9 execution program and must not be substituted for individual experiment execution SHAs. Future experiment branches should start from the current frozen baseline unless explicitly reconstructing historical lineage; experiment execution SHAs must still be frozen separately.
 
 ## Non-negotiable controls
 
@@ -94,6 +102,7 @@ experiments/manifests/       preregistered experiment metadata
 experiments/results/         immutable result summaries
 experiments/counterexamples/ retained failures
 experiments/rejected-candidates/ failed model/config proposals
+research/baseline-freezes/   authoritative frozen research-baseline records
 docs/legacy/v1/              verbatim historical v1 documents
 ```
 

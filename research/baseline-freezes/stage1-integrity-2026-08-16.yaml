@@ -1,0 +1,103 @@
+baseline_id: efgm-research-baseline-stage1-integrity-2026-08-16
+status: frozen
+frozen_date: 2026-08-16
+purpose: >-
+  Freeze the post-Stage-1 research state before EFGM-EXP-0008 so that
+  governed-vs-ungoverned agent adaptation is evaluated against a fixed model
+  and implementation rather than a moving target.
+
+authoritative_identity:
+  repository: dauffrey/efgm
+  code_sha: 670878d7cd59508c444a321d57c879e913ce2617
+  source_pull_request: 13
+  source_merge_message: "Harden Stage 1 provenance and temporal identity"
+  convenience_ref: baseline/stage1-integrity-2026-08-16
+  sha_is_authoritative: true
+  convenience_ref_must_not_move: true
+
+verification:
+  workflow: EFGM Check
+  run_number: 117
+  run_id: 31929837480
+  event: push
+  head_branch: main
+  validated_head_sha: 670878d7cd59508c444a321d57c879e913ce2617
+  conclusion: success
+  completed_at_utc: 2026-08-16T05:50:56Z
+  python_matrix:
+    - "3.10"
+    - "3.11"
+    - "3.12"
+    - "3.13"
+  python_3_12_tests_passed: 113
+  full_research_sequence_on_python_3_12: true
+
+model_identity:
+  package_version: "0.2.0"
+  canonical_model: EFGM v2 Decision Integrity
+  canonical_config_id: efgm-v2.0-baseline
+  canonical_config_sha256: 0f55f6eabe97d0f365d1e45ba8f9d0fef67e9721a93e6eba8b0a364b612bafd0
+  agent_governance_status: experimental
+  agent_governance_version: "0.3"
+  agent_governance_config_id: efgm-v0.3-agent-governance-candidate-r2
+  agent_governance_config_sha256: af0b5540f28d4d65ae95929a855a168f9e7c286439d33d33e14ef167d808366c
+  exp0005_runner_version: "0.2.0"
+  exp0005_dataset_version: temporal-agent-governance-v0.4
+  exp0005_dataset_sha256: 9755ad1ebc44c8ae44ac796597152eb2fa1ec48c9f5161a1532a3a4ffccc5b27
+  exp0005_materialization_version: temporal-agent-state-v0.2
+  exp0005_materialized_state_sha256: d3fb7027e77f4897f4d5aa782a88fcfaf4db0384ec4af603019c38b490bf4643
+
+frozen_for_initial_exp0008:
+  - canonical EFGM v2 equations
+  - Agent Governance v0.3 equations
+  - AE and CUE definitions
+  - scoring weights
+  - scoring thresholds
+  - candidate prerequisite membership
+  - strict provenance semantics
+  - governed-subject temporal identity semantics
+  - temporal full-state hashing semantics
+  - EXP-0005 frozen case-spec identity and materialization identity
+
+preserved_negative_evidence:
+  exp0004:
+    promotion_gate_passed: false
+    validation_candidate_prerequisite_detection: 0.6667
+    incremental_balanced_accuracy_vs_checklist: 0.0
+  exp0007:
+    promotion_gate_passed: false
+    frozen_dq_preserved: true
+    validation_candidate_detection: 0.6667
+    validation_invariant_checklist_detection: 1.0
+    incremental_balanced_accuracy_vs_checklist: -0.1666
+  exp0005:
+    promotion_gate_passed: false
+    validation_verified_recovery_accuracy: 0.8333
+    validation_invariant_checklist_accuracy: 1.0
+    incremental_verified_accuracy_vs_checklist: -0.1667
+
+lineage:
+  historical_post_pr9_parent_sha: fd70317e4bad193c00763a398f41db6e75700b55
+  previous_merged_research_baseline_sha: dbbb152306c589ffb7e7f02b5b6189da737f107e
+  current_frozen_research_baseline_sha: 670878d7cd59508c444a321d57c879e913ce2617
+
+exp0008_controls:
+  initial_experiment_must_start_from_code_sha: 670878d7cd59508c444a321d57c879e913ce2617
+  execution_sha_must_be_recorded_separately: true
+  modify_efgm_before_initial_observation: false
+  add_path_dispersion_before_initial_observation: false
+  add_boundary_pressure_before_initial_observation: false
+  sealed_holdout_access_allowed: false
+  compare_against_simple_independent_baselines: true
+  preserve_counterexamples: true
+
+notes:
+  - >-
+    This freeze identifies the exact pre-EXP-0008 reference state. Future main
+    commits do not change the identity of this baseline.
+  - >-
+    The convenience branch is only a human-readable pointer. The full commit
+    SHA is the authoritative experimental baseline identity.
+  - >-
+    A successful software validation run does not promote failed scientific
+    candidates or establish external scientific validity.
