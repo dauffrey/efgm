@@ -212,8 +212,31 @@ def _build_states(spec: Mapping[str, Any], *, jitter: float = 0.0) -> tuple[EFGM
         after_sequence = f"{case_id}:after"
     else:
         before_sequence = after_sequence = f"sequence:{case_id}"
-    before = EFGMAgentState(sequence_id=before_sequence, state_id=f"{case_id}:before", phase=spec["before_phase"], assessment=_build_assessment(spec, "before", jitter=jitter))
-    after = EFGMAgentState(sequence_id=after_sequence, state_id=f"{case_id}:after", phase=spec["after_phase"], assessment=_build_assessment(spec, "after", jitter=jitter), intervention=spec.get("intervention"), residual_state=_residual(case_id, spec.get("residual_overrides", {})))
+    subject_id = f"subject:{case_id}"
+    identity_evidence = [f"experiment://{EXPERIMENT_ID}/{case_id}/identity"]
+    identity_kwargs = {
+        "governed_subject_id": subject_id,
+        "identity_evidence_refs": identity_evidence,
+        "identity_scorer_id": f"{EXPERIMENT_ID}-synthetic-generator",
+        "identity_scorer_type": "automated",
+        "identity_confidence": 0.90,
+    }
+    before = EFGMAgentState(
+        sequence_id=before_sequence,
+        state_id=f"{case_id}:before",
+        phase=spec["before_phase"],
+        assessment=_build_assessment(spec, "before", jitter=jitter),
+        **identity_kwargs,
+    )
+    after = EFGMAgentState(
+        sequence_id=after_sequence,
+        state_id=f"{case_id}:after",
+        phase=spec["after_phase"],
+        assessment=_build_assessment(spec, "after", jitter=jitter),
+        intervention=spec.get("intervention"),
+        residual_state=_residual(case_id, spec.get("residual_overrides", {})),
+        **identity_kwargs,
+    )
     return before, after
 
 
