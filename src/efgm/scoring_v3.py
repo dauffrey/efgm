@@ -267,6 +267,11 @@ def governance_provenance_issues(input_data: EFGMAgentGovernanceInput) -> list[s
                     issues.append(f"{path}: missing evidence_refs")
                 if observation.confidence <= 0:
                     issues.append(f"{path}: confidence must be > 0 for an applied value")
+            elif observation.status == "not_applicable":
+                if not observation.evidence_refs:
+                    issues.append(f"{path}: missing evidence_refs for not_applicable claim")
+                if observation.confidence <= 0:
+                    issues.append(f"{path}: confidence must be > 0 for a not_applicable claim")
     return issues
 
 
