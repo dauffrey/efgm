@@ -52,6 +52,11 @@ class EFGMAgentState(BaseModel):
     state_id: str
     phase: TemporalPhase
     assessment: EFGMAgentGovernanceInput
+    governed_subject_id: str | None = None
+    identity_evidence_refs: list[str] = Field(default_factory=list)
+    identity_scorer_id: str | None = None
+    identity_scorer_type: ScorerType | None = None
+    identity_confidence: float = Field(default=0.0, ge=0, le=1)
     intervention: str | None = None
     residual_state: ResidualStateAssessment | None = None
     notes: list[str] = Field(default_factory=list)
@@ -63,6 +68,9 @@ class EFGMStateTransitionResult(BaseModel):
     to_state_id: str
     from_task_id: str
     to_task_id: str
+    governed_subject_id: str | None
+    identity_continuity_valid: bool
+    identity_issues: list[str]
     from_phase: TemporalPhase
     to_phase: TemporalPhase
     intervention: str | None
@@ -140,6 +148,37 @@ def residual_state_issues(
     return issues, sorted(present)
 
 
+def temporal_identity_issues(
+    before: EFGMAgentState,
+    after: EFGMAgentState,
+) -> list[str]:
+    """Return evidence issues for same-subject continuity across a transition."""
+    if (
+        before.governed_subject_id
+        and after.governed_subject_id
+        and before.governed_subject_id != after.governed_subject_id
+    ):
+        raise ValueError(
+            "Temporal transition states must refer to the same governed_subject_id; "
+            f"got {before.governed_subject_id!r} and {after.governed_subject_id!r}."
+        )
+
+    issues: list[str] = []
+    for label, state in (("before", before), ("after", after)):
+        path = f"identity.{label}"
+        if not state.governed_subject_id:
+            issues.append(f"{path}: missing governed_subject_id")
+        if not state.identity_evidence_refs:
+            issues.append(f"{path}: missing identity_evidence_refs")
+        if not state.identity_scorer_id:
+            issues.append(f"{path}: missing identity_scorer_id")
+        if not state.identity_scorer_type:
+            issues.append(f"{path}: missing identity_scorer_type")
+        if state.identity_confidence <= 0:
+            issues.append(f"{path}: identity_confidence must be > 0")
+    return issues
+
+
 def score_state_transition(
     before: EFGMAgentState,
     after: EFGMAgentState,
@@ -154,7 +193,8 @@ def score_state_transition(
     progress must exist, the post-state must itself satisfy a governed classification,
     no candidate-prerequisite or elevated exposure/execution condition may remain,
     and residual-state evidence must be complete with no material residual present.
-    Neither signal is a production containment attestation.
+    Both recovery signals additionally require evidence-backed continuity of the same
+    governed subject. Neither signal is a production containment attestation.
     """
 
     if before.sequence_id != after.sequence_id:
@@ -162,6 +202,9 @@ def score_state_transition(
             "Temporal transition states must share the same sequence_id; "
             f"got {before.sequence_id!r} and {after.sequence_id!r}."
         )
+
+    identity_issues = temporal_identity_issues(before, after)
+    identity_continuity_valid = not identity_issues
 
     before_result = score_agent_governance(
         before.assessment,
@@ -197,7 +240,8 @@ def score_state_transition(
         before.phase == "pre_intervention" and after.phase == "post_intervention"
     )
     recovery_progress = bool(
-        valid_recovery_phase
+        identity_continuity_valid
+        and valid_recovery_phase
         and intervention
         and governance_improved
         and exposure_reduced
@@ -238,6 +282,13 @@ def score_state_transition(
         to_state_id=after.state_id,
         from_task_id=before.assessment.task_id,
         to_task_id=after.assessment.task_id,
+        governed_subject_id=(
+            before.governed_subject_id
+            if before.governed_subject_id == after.governed_subject_id
+            else None
+        ),
+        identity_continuity_valid=identity_continuity_valid,
+        identity_issues=identity_issues,
         from_phase=before.phase,
         to_phase=after.phase,
         intervention=intervention,
