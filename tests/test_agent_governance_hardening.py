@@ -25,6 +25,7 @@ from efgm.temporal_v0_3 import (
 
 
 SEQUENCE_ID = "test-agent-sequence"
+SUBJECT_ID = "test-governed-agent"
 
 
 def _case(pair_id: str, preferred: bool):
@@ -33,6 +34,16 @@ def _case(pair_id: str, preferred: bool):
         for case in generate_cases()
         if case["pair_id"] == pair_id and case["preferred"] is preferred
     )
+
+
+def _identity_kwargs() -> dict:
+    return {
+        "governed_subject_id": SUBJECT_ID,
+        "identity_evidence_refs": ["test://identity/test-governed-agent"],
+        "identity_scorer_id": "test-reviewer",
+        "identity_scorer_type": "human",
+        "identity_confidence": 0.95,
+    }
 
 
 def _clear_residual_state(**overrides) -> ResidualStateAssessment:
@@ -67,11 +78,20 @@ def _clear_residual_state(**overrides) -> ResidualStateAssessment:
 
 
 def _state(*, state_id: str, phase: str, case, **kwargs) -> EFGMAgentState:
+    identity = _identity_kwargs()
+    identity.update(
+        {
+            key: kwargs.pop(key)
+            for key in list(kwargs)
+            if key in identity
+        }
+    )
     return EFGMAgentState(
         sequence_id=kwargs.pop("sequence_id", SEQUENCE_ID),
         state_id=state_id,
         phase=phase,
         assessment=case_to_v3_input(case),
+        **identity,
         **kwargs,
     )
 
@@ -127,7 +147,7 @@ def test_all_na_coordination_family_is_excluded_and_coverage_is_visible():
             "value": None,
             "status": "not_applicable",
             "rationale": "Strictly single-agent scenario; no peer/delegation surface applies.",
-            "evidence_refs": [],
+            "evidence_refs": [f"test://scope/coordination/{name}"],
             "scorer_id": "test-reviewer",
             "scorer_type": "human",
             "confidence": 0.9,
@@ -343,6 +363,7 @@ def test_remaining_candidate_prerequisite_breach_blocks_verified_recovery():
         intervention="Partial governance restoration.",
         residual_state=_clear_residual_state(),
         assessment=EFGMAgentGovernanceInput.model_validate(payload),
+        **_identity_kwargs(),
     )
 
     transition = score_state_transition(before, after, require_provenance=True)
@@ -395,6 +416,8 @@ def test_complete_residual_evidence_can_produce_verified_recovery_signal():
     transition = score_state_transition(before, after, require_provenance=True)
 
     assert transition.sequence_id == SEQUENCE_ID
+    assert transition.identity_continuity_valid
+    assert transition.governed_subject_id == SUBJECT_ID
     assert len(transition.agent_config_sha256) == 64
     assert len(transition.before_input_sha256) == 64
     assert len(transition.after_input_sha256) == 64

@@ -29,10 +29,12 @@ from .temporal_v0_3 import (
 )
 
 EXPERIMENT_ID = "EFGM-EXP-0005"
-RUNNER_VERSION = "0.1.0"
+RUNNER_VERSION = "0.2.0"
 PARENT_MAIN_SHA = "fd70317e4bad193c00763a398f41db6e75700b55"
 DATASET_VERSION = "temporal-agent-governance-v0.4"
 EXPECTED_DATASET_SHA256 = "9755ad1ebc44c8ae44ac796597152eb2fa1ec48c9f5161a1532a3a4ffccc5b27"
+MATERIALIZATION_VERSION = "temporal-agent-state-v0.2"
+EXPECTED_MATERIALIZED_STATE_SHA256 = "d3fb7027e77f4897f4d5aa782a88fcfaf4db0384ec4af603019c38b490bf4643"
 DEFAULT_SEED = 20260810
 DEFAULT_PERTURBATION_TRIALS = 200
 DEFAULT_PERTURBATION = 0.05
@@ -212,9 +214,47 @@ def _build_states(spec: Mapping[str, Any], *, jitter: float = 0.0) -> tuple[EFGM
         after_sequence = f"{case_id}:after"
     else:
         before_sequence = after_sequence = f"sequence:{case_id}"
-    before = EFGMAgentState(sequence_id=before_sequence, state_id=f"{case_id}:before", phase=spec["before_phase"], assessment=_build_assessment(spec, "before", jitter=jitter))
-    after = EFGMAgentState(sequence_id=after_sequence, state_id=f"{case_id}:after", phase=spec["after_phase"], assessment=_build_assessment(spec, "after", jitter=jitter), intervention=spec.get("intervention"), residual_state=_residual(case_id, spec.get("residual_overrides", {})))
+    subject_id = f"subject:{case_id}"
+    identity_evidence = [f"experiment://{EXPERIMENT_ID}/{case_id}/identity"]
+    identity_kwargs = {
+        "governed_subject_id": subject_id,
+        "identity_evidence_refs": identity_evidence,
+        "identity_scorer_id": f"{EXPERIMENT_ID}-synthetic-generator",
+        "identity_scorer_type": "automated",
+        "identity_confidence": 0.90,
+    }
+    before = EFGMAgentState(
+        sequence_id=before_sequence,
+        state_id=f"{case_id}:before",
+        phase=spec["before_phase"],
+        assessment=_build_assessment(spec, "before", jitter=jitter),
+        **identity_kwargs,
+    )
+    after = EFGMAgentState(
+        sequence_id=after_sequence,
+        state_id=f"{case_id}:after",
+        phase=spec["after_phase"],
+        assessment=_build_assessment(spec, "after", jitter=jitter),
+        intervention=spec.get("intervention"),
+        residual_state=_residual(case_id, spec.get("residual_overrides", {})),
+        **identity_kwargs,
+    )
     return before, after
+
+
+def materialized_state_sha256() -> str:
+    """Hash deterministic, unperturbed temporal states separately from frozen case specs."""
+    materialized: list[dict[str, Any]] = []
+    for spec in case_specs():
+        before, after = _build_states(spec)
+        materialized.append(
+            {
+                "case_id": spec["case_id"],
+                "before": before.model_dump(mode="json", exclude_none=False),
+                "after": after.model_dump(mode="json", exclude_none=False),
+            }
+        )
+    return canonical_sha256(materialized)
 
 
 def _independent_recovery_checklist(spec: Mapping[str, Any], transition, after: EFGMAgentGovernanceInput) -> bool:
@@ -316,8 +356,15 @@ def _perturbation(cases: list[dict[str, Any]], config: Mapping[str, Any], *, tri
 
 def run_exp0005(*, perturbation_trials: int = DEFAULT_PERTURBATION_TRIALS, perturbation: float = DEFAULT_PERTURBATION, seed: int = DEFAULT_SEED, code_sha: str | None = None) -> dict[str, Any]:
     _validate_perturbation(perturbation_trials, perturbation)
-    if dataset_sha256() != EXPECTED_DATASET_SHA256:
-        raise ValueError(f"EXP-0005 dataset hash changed: expected={EXPECTED_DATASET_SHA256}, actual={dataset_sha256()}")
+    actual_dataset_hash = dataset_sha256()
+    if actual_dataset_hash != EXPECTED_DATASET_SHA256:
+        raise ValueError(f"EXP-0005 dataset hash changed: expected={EXPECTED_DATASET_SHA256}, actual={actual_dataset_hash}")
+    actual_materialized_hash = materialized_state_sha256()
+    if actual_materialized_hash != EXPECTED_MATERIALIZED_STATE_SHA256:
+        raise ValueError(
+            "EXP-0005 materialized-state hash changed: "
+            f"expected={EXPECTED_MATERIALIZED_STATE_SHA256}, actual={actual_materialized_hash}"
+        )
     config = load_agent_governance_config()
     development = _run_split(deepcopy(DEVELOPMENT_CASE_SPECS), config)
     validation = _run_split(deepcopy(VALIDATION_CASE_SPECS), config)
@@ -332,13 +379,14 @@ def run_exp0005(*, perturbation_trials: int = DEFAULT_PERTURBATION_TRIALS, pertu
         "experiment_id": EXPERIMENT_ID, "runner_version": RUNNER_VERSION, "status": "executed_development_validation_cycle",
         "parent_main_sha": PARENT_MAIN_SHA, "code_sha": execution_sha,
         "candidate_config_id": config["config_id"], "candidate_config_sha256": canonical_sha256(config),
-        "dataset_version": DATASET_VERSION, "dataset_sha256": dataset_sha256(),
+        "dataset_version": DATASET_VERSION, "dataset_sha256": actual_dataset_hash,
+        "materialization_version": MATERIALIZATION_VERSION, "materialized_state_sha256": actual_materialized_hash,
         "development_cases": len(DEVELOPMENT_CASE_SPECS), "validation_cases": len(VALIDATION_CASE_SPECS),
         "holdout_cases": 0, "holdout_accessed": False,
         "development": development, "validation": validation,
         "perturbation_robustness": _perturbation(DEVELOPMENT_CASE_SPECS + VALIDATION_CASE_SPECS, config, trials=perturbation_trials, perturbation=perturbation, seed=seed),
         "promotion_gate_passed": promotion_gate,
-        "interpretation": "Temporal and residual evidence are compared against a final-static recovery proxy and a broader explicit recovery-invariant checklist. Validation includes uncovered governance failures to test whether verified recovery inherits the current prerequisite list's known semantic incompleteness.",
+        "interpretation": "Temporal and residual evidence are compared against a final-static recovery proxy and a broader explicit recovery-invariant checklist. The case-spec dataset remains frozen; runner v0.2 separately binds the fully materialized temporal states, including governed-subject identity evidence, for reproducibility. Validation includes uncovered governance failures to test whether verified recovery inherits the current prerequisite list's known semantic incompleteness.",
     }
 
 
@@ -346,9 +394,11 @@ def render_markdown(result: Mapping[str, Any]) -> str:
     dev, val = result["development"], result["validation"]
     lines = [
         f"# {result['experiment_id']} execution summary", "",
-        f"- Status: `{result['status']}`", f"- Parent merged main: `{result['parent_main_sha']}`", f"- Execution SHA: `{result['code_sha']}`",
+        f"- Status: `{result['status']}`", f"- Runner version: `{result['runner_version']}`", f"- Parent merged main: `{result['parent_main_sha']}`", f"- Execution SHA: `{result['code_sha']}`",
         f"- Candidate config: `{result['candidate_config_id']}`", f"- Candidate config SHA-256: `{result['candidate_config_sha256']}`",
-        f"- Dataset SHA-256: `{result['dataset_sha256']}`", f"- Development / validation / holdout: {result['development_cases']} / {result['validation_cases']} / {result['holdout_cases']}", "",
+        f"- Dataset version: `{result['dataset_version']}`", f"- Dataset SHA-256: `{result['dataset_sha256']}`",
+        f"- Materialization version: `{result['materialization_version']}`", f"- Materialized-state SHA-256: `{result['materialized_state_sha256']}`",
+        f"- Development / validation / holdout: {result['development_cases']} / {result['validation_cases']} / {result['holdout_cases']}", "",
         "## Development", "",
         f"- Recovery-progress accuracy: {dev['recovery_progress']['accuracy']:.2%}",
         f"- Verified-recovery accuracy: {dev['verified_recovery']['accuracy']:.2%}",

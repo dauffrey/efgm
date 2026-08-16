@@ -37,6 +37,25 @@ class MetricObservation(BaseModel):
     confidence: float = Field(ge=0, le=1, default=0.50)
     recorded_at: datetime | None = None
 
+    @field_validator("evidence_refs")
+    @classmethod
+    def validate_evidence_refs(cls, value: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for reference in value:
+            if not reference.strip():
+                raise ValueError("evidence_refs must not contain blank or whitespace-only references")
+            cleaned.append(reference.strip())
+        return cleaned
+
+    @field_validator("scorer_id")
+    @classmethod
+    def validate_scorer_id(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not value.strip():
+            raise ValueError("scorer_id must not be blank or whitespace-only")
+        return value.strip()
+
     @model_validator(mode="after")
     def validate_status_value_pair(self):
         if self.status in {"observed", "inferred"} and self.value is None:
@@ -134,6 +153,13 @@ class EFGMDecisionInput(BaseModel):
     operational_entropy: OperationalEntropyMetrics = Field(default_factory=OperationalEntropyMetrics)
     outcome_quality: MetricObservation | None = None
     notes: list[str] = Field(default_factory=list)
+
+    @field_validator("task_id")
+    @classmethod
+    def validate_task_id(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("task_id must not be blank or whitespace-only")
+        return value.strip()
 
     @field_validator("T", "C", "uncertainty_calibration", "outcome_quality", mode="before")
     @classmethod

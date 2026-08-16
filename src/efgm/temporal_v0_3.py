@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .schemas_v2 import ScorerType
 from .schemas_v3 import EFGMAgentGovernanceInput, EFGMAgentGovernanceResult
@@ -21,6 +21,23 @@ TemporalPhase = Literal[
 ResidualStatus = Literal["clear", "present", "unknown", "not_applicable"]
 
 
+def _clean_nonblank_refs(value: list[str], field_name: str) -> list[str]:
+    cleaned: list[str] = []
+    for reference in value:
+        if not reference.strip():
+            raise ValueError(f"{field_name} must not contain blank or whitespace-only references")
+        cleaned.append(reference.strip())
+    return cleaned
+
+
+def _clean_optional_identifier(value: str | None, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not value.strip():
+        raise ValueError(f"{field_name} must not be blank or whitespace-only")
+    return value.strip()
+
+
 class ResidualObservation(BaseModel):
     """Evidence-backed status for one post-intervention residual-control surface."""
 
@@ -30,6 +47,16 @@ class ResidualObservation(BaseModel):
     scorer_id: str | None = None
     scorer_type: ScorerType | None = None
     confidence: float = Field(default=0.50, ge=0, le=1)
+
+    @field_validator("evidence_refs")
+    @classmethod
+    def validate_evidence_refs(cls, value: list[str]) -> list[str]:
+        return _clean_nonblank_refs(value, "evidence_refs")
+
+    @field_validator("scorer_id")
+    @classmethod
+    def validate_scorer_id(cls, value: str | None) -> str | None:
+        return _clean_optional_identifier(value, "scorer_id")
 
 
 class ResidualStateAssessment(BaseModel):
@@ -52,9 +79,31 @@ class EFGMAgentState(BaseModel):
     state_id: str
     phase: TemporalPhase
     assessment: EFGMAgentGovernanceInput
+    governed_subject_id: str | None = None
+    identity_evidence_refs: list[str] = Field(default_factory=list)
+    identity_scorer_id: str | None = None
+    identity_scorer_type: ScorerType | None = None
+    identity_confidence: float = Field(default=0.0, ge=0, le=1)
     intervention: str | None = None
     residual_state: ResidualStateAssessment | None = None
     notes: list[str] = Field(default_factory=list)
+
+    @field_validator("sequence_id", "state_id")
+    @classmethod
+    def validate_required_identifier(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("temporal identifiers must not be blank or whitespace-only")
+        return value.strip()
+
+    @field_validator("governed_subject_id", "identity_scorer_id")
+    @classmethod
+    def validate_optional_identity_identifier(cls, value: str | None, info) -> str | None:
+        return _clean_optional_identifier(value, info.field_name)
+
+    @field_validator("identity_evidence_refs")
+    @classmethod
+    def validate_identity_evidence_refs(cls, value: list[str]) -> list[str]:
+        return _clean_nonblank_refs(value, "identity_evidence_refs")
 
 
 class EFGMStateTransitionResult(BaseModel):
@@ -63,6 +112,9 @@ class EFGMStateTransitionResult(BaseModel):
     to_state_id: str
     from_task_id: str
     to_task_id: str
+    governed_subject_id: str | None
+    identity_continuity_valid: bool
+    identity_issues: list[str]
     from_phase: TemporalPhase
     to_phase: TemporalPhase
     intervention: str | None
@@ -70,6 +122,8 @@ class EFGMStateTransitionResult(BaseModel):
     agent_config_sha256: str
     before_input_sha256: str
     after_input_sha256: str
+    before_state_sha256: str
+    after_state_sha256: str
     residual_state_sha256: str | None
     governance_integrity_before: float
     governance_integrity_after: float
@@ -140,6 +194,37 @@ def residual_state_issues(
     return issues, sorted(present)
 
 
+def temporal_identity_issues(
+    before: EFGMAgentState,
+    after: EFGMAgentState,
+) -> list[str]:
+    """Return evidence issues for same-subject continuity across a transition."""
+    if (
+        before.governed_subject_id
+        and after.governed_subject_id
+        and before.governed_subject_id != after.governed_subject_id
+    ):
+        raise ValueError(
+            "Temporal transition states must refer to the same governed_subject_id; "
+            f"got {before.governed_subject_id!r} and {after.governed_subject_id!r}."
+        )
+
+    issues: list[str] = []
+    for label, state in (("before", before), ("after", after)):
+        path = f"identity.{label}"
+        if not state.governed_subject_id:
+            issues.append(f"{path}: missing governed_subject_id")
+        if not state.identity_evidence_refs:
+            issues.append(f"{path}: missing identity_evidence_refs")
+        if not state.identity_scorer_id:
+            issues.append(f"{path}: missing identity_scorer_id")
+        if not state.identity_scorer_type:
+            issues.append(f"{path}: missing identity_scorer_type")
+        if state.identity_confidence <= 0:
+            issues.append(f"{path}: identity_confidence must be > 0")
+    return issues
+
+
 def score_state_transition(
     before: EFGMAgentState,
     after: EFGMAgentState,
@@ -154,7 +239,8 @@ def score_state_transition(
     progress must exist, the post-state must itself satisfy a governed classification,
     no candidate-prerequisite or elevated exposure/execution condition may remain,
     and residual-state evidence must be complete with no material residual present.
-    Neither signal is a production containment attestation.
+    Both recovery signals additionally require evidence-backed continuity of the same
+    governed subject. Neither signal is a production containment attestation.
     """
 
     if before.sequence_id != after.sequence_id:
@@ -162,6 +248,9 @@ def score_state_transition(
             "Temporal transition states must share the same sequence_id; "
             f"got {before.sequence_id!r} and {after.sequence_id!r}."
         )
+
+    identity_issues = temporal_identity_issues(before, after)
+    identity_continuity_valid = not identity_issues
 
     before_result = score_agent_governance(
         before.assessment,
@@ -197,7 +286,8 @@ def score_state_transition(
         before.phase == "pre_intervention" and after.phase == "post_intervention"
     )
     recovery_progress = bool(
-        valid_recovery_phase
+        identity_continuity_valid
+        and valid_recovery_phase
         and intervention
         and governance_improved
         and exposure_reduced
@@ -226,6 +316,8 @@ def score_state_transition(
         and not elevated_after
     )
 
+    before_state_hash = canonical_sha256(before.model_dump(mode="json", exclude_none=False))
+    after_state_hash = canonical_sha256(after.model_dump(mode="json", exclude_none=False))
     residual_hash = (
         canonical_sha256(after.residual_state.model_dump(mode="json"))
         if after.residual_state is not None
@@ -238,6 +330,13 @@ def score_state_transition(
         to_state_id=after.state_id,
         from_task_id=before.assessment.task_id,
         to_task_id=after.assessment.task_id,
+        governed_subject_id=(
+            before.governed_subject_id
+            if before.governed_subject_id == after.governed_subject_id
+            else None
+        ),
+        identity_continuity_valid=identity_continuity_valid,
+        identity_issues=identity_issues,
         from_phase=before.phase,
         to_phase=after.phase,
         intervention=intervention,
@@ -245,6 +344,8 @@ def score_state_transition(
         agent_config_sha256=after_result.agent_config_sha256,
         before_input_sha256=before_result.input_sha256,
         after_input_sha256=after_result.input_sha256,
+        before_state_sha256=before_state_hash,
+        after_state_sha256=after_state_hash,
         residual_state_sha256=residual_hash,
         governance_integrity_before=before_result.governance_integrity,
         governance_integrity_after=after_result.governance_integrity,
