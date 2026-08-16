@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import pytest
+from pydantic import ValidationError
 
 from efgm.exp0004_sparse_governance import DEVELOPMENT_CASE_SPECS, _build_input
 from efgm.schemas_v2 import MetricObservation
@@ -28,6 +29,44 @@ def _supported_not_applicable(path: str) -> MetricObservation:
         scorer_type="human",
         confidence=0.95,
     )
+
+
+@pytest.mark.parametrize(
+    ("field_name", "bad_value"),
+    [
+        ("evidence_refs", ["   "]),
+        ("scorer_id", "\t"),
+    ],
+)
+def test_blank_provenance_identifiers_are_rejected_at_schema_boundary(field_name, bad_value):
+    payload = {
+        "status": "not_applicable",
+        "rationale": "Scope was independently reviewed.",
+        "evidence_refs": ["experiment://EFGM-CE-0005/scope/control"],
+        "scorer_id": "EFGM-CE-0005-reviewer",
+        "scorer_type": "human",
+        "confidence": 0.95,
+    }
+    payload[field_name] = bad_value
+
+    with pytest.raises(ValidationError, match="blank|whitespace"):
+        MetricObservation.model_validate(payload)
+
+
+def test_whitespace_only_rationale_is_rejected_by_strict_provenance():
+    spec = deepcopy(DEVELOPMENT_CASE_SPECS[0])
+    assessment = _build_input(spec)
+    assessment.decision.output_entropy.output_contradiction = MetricObservation(
+        status="not_applicable",
+        rationale="   ",
+        evidence_refs=["experiment://EFGM-CE-0005/scope/rationale-control"],
+        scorer_id="EFGM-CE-0005-reviewer",
+        scorer_type="human",
+        confidence=0.95,
+    )
+
+    with pytest.raises(ProvenanceError, match="missing rationale"):
+        score_decision_efgm(assessment.decision, require_provenance=True)
 
 
 def test_strict_v2_provenance_rejects_unsupported_na_that_would_remove_a_severe_penalty():

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .schemas_v2 import EFGMDecisionInput, MetricObservation
 
@@ -94,6 +94,22 @@ class EFGMAgentGovernanceInput(BaseModel):
     control_recoverability: ControlRecoverabilityMetrics
     agency_amplification: AgencyAmplificationMetrics
     notes: list[str] = Field(default_factory=list)
+
+    @field_validator("task_id")
+    @classmethod
+    def validate_task_id(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("task_id must not be blank or whitespace-only")
+        return value.strip()
+
+    @model_validator(mode="after")
+    def validate_nested_task_identity(self):
+        if self.task_id != self.decision.task_id:
+            raise ValueError(
+                "Agent-governance task_id must match nested decision.task_id; "
+                f"got {self.task_id!r} and {self.decision.task_id!r}."
+            )
+        return self
 
 
 class EFGMAgentGovernanceResult(BaseModel):

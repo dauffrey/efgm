@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .schemas_v2 import ScorerType
 from .schemas_v3 import EFGMAgentGovernanceInput, EFGMAgentGovernanceResult
@@ -21,6 +21,23 @@ TemporalPhase = Literal[
 ResidualStatus = Literal["clear", "present", "unknown", "not_applicable"]
 
 
+def _clean_nonblank_refs(value: list[str], field_name: str) -> list[str]:
+    cleaned: list[str] = []
+    for reference in value:
+        if not reference.strip():
+            raise ValueError(f"{field_name} must not contain blank or whitespace-only references")
+        cleaned.append(reference.strip())
+    return cleaned
+
+
+def _clean_optional_identifier(value: str | None, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not value.strip():
+        raise ValueError(f"{field_name} must not be blank or whitespace-only")
+    return value.strip()
+
+
 class ResidualObservation(BaseModel):
     """Evidence-backed status for one post-intervention residual-control surface."""
 
@@ -30,6 +47,16 @@ class ResidualObservation(BaseModel):
     scorer_id: str | None = None
     scorer_type: ScorerType | None = None
     confidence: float = Field(default=0.50, ge=0, le=1)
+
+    @field_validator("evidence_refs")
+    @classmethod
+    def validate_evidence_refs(cls, value: list[str]) -> list[str]:
+        return _clean_nonblank_refs(value, "evidence_refs")
+
+    @field_validator("scorer_id")
+    @classmethod
+    def validate_scorer_id(cls, value: str | None) -> str | None:
+        return _clean_optional_identifier(value, "scorer_id")
 
 
 class ResidualStateAssessment(BaseModel):
@@ -61,6 +88,23 @@ class EFGMAgentState(BaseModel):
     residual_state: ResidualStateAssessment | None = None
     notes: list[str] = Field(default_factory=list)
 
+    @field_validator("sequence_id", "state_id")
+    @classmethod
+    def validate_required_identifier(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("temporal identifiers must not be blank or whitespace-only")
+        return value.strip()
+
+    @field_validator("governed_subject_id", "identity_scorer_id")
+    @classmethod
+    def validate_optional_identity_identifier(cls, value: str | None, info) -> str | None:
+        return _clean_optional_identifier(value, info.field_name)
+
+    @field_validator("identity_evidence_refs")
+    @classmethod
+    def validate_identity_evidence_refs(cls, value: list[str]) -> list[str]:
+        return _clean_nonblank_refs(value, "identity_evidence_refs")
+
 
 class EFGMStateTransitionResult(BaseModel):
     sequence_id: str
@@ -78,6 +122,8 @@ class EFGMStateTransitionResult(BaseModel):
     agent_config_sha256: str
     before_input_sha256: str
     after_input_sha256: str
+    before_state_sha256: str
+    after_state_sha256: str
     residual_state_sha256: str | None
     governance_integrity_before: float
     governance_integrity_after: float
@@ -270,6 +316,8 @@ def score_state_transition(
         and not elevated_after
     )
 
+    before_state_hash = canonical_sha256(before.model_dump(mode="json", exclude_none=False))
+    after_state_hash = canonical_sha256(after.model_dump(mode="json", exclude_none=False))
     residual_hash = (
         canonical_sha256(after.residual_state.model_dump(mode="json"))
         if after.residual_state is not None
@@ -296,6 +344,8 @@ def score_state_transition(
         agent_config_sha256=after_result.agent_config_sha256,
         before_input_sha256=before_result.input_sha256,
         after_input_sha256=after_result.input_sha256,
+        before_state_sha256=before_state_hash,
+        after_state_sha256=after_state_hash,
         residual_state_sha256=residual_hash,
         governance_integrity_before=before_result.governance_integrity,
         governance_integrity_after=after_result.governance_integrity,
