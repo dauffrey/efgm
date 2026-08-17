@@ -30,7 +30,7 @@ The class metadata is consulted only after scoring to verify that the intended s
 
 ## Positive S1-S5 timing probes
 
-Phase 2 now contains explicit non-evidentiary predicate probes for every frozen signal:
+Phase 2 contains explicit non-evidentiary predicate probes for every frozen signal:
 
 - S1 — classification enters `High-flow governance deficit` or `Elevated uncontrolled-agency risk`;
 - S2 — candidate-prerequisite breach appears;
@@ -44,7 +44,7 @@ No EFGM threshold, prerequisite, equation, weight, AE/CUE definition, provenance
 
 ## Score-independent comparator semantics
 
-B1-B5 should be described precisely as **score-independent comparators using shared controller/policy telemetry**. They are independent of EFGM scores, but B4/B5 and EFGM can share upstream policy/scope facts. They are therefore not data-source independent.
+B1-B5 are **score-independent comparators using shared controller/policy telemetry**. They are independent of EFGM scores, but B4/B5 and EFGM can share upstream policy/scope facts. They are therefore not data-source independent.
 
 Boundary semantics remain:
 
@@ -56,11 +56,11 @@ Boundary semantics remain:
 | B4 out-of-scope request | pre-execution |
 | B5 explicit specification conflict | pre-execution |
 
-Phase 2 now separately materializes and SHA-seals a pre-execution decision record **before** each synthetic transition. B2-B5 consume those records. After execution, the emitted telemetry event must contain the same pre-execution decision SHA. A mismatch invalidates calibration.
+Phase 2 separately materializes and SHA-seals a pre-execution decision record **before** each synthetic transition. B2-B5 consume those records. After execution, the emitted telemetry event must contain the same pre-execution decision SHA. A mismatch invalidates calibration.
 
 Class E is specifically arranged so B5 and B1 occur at the same action index: B5 exists before the fictional transition, while B1 exists only after that same synthetic transition. This prevents action index alone from erasing the boundary distinction.
 
-A separate detector-coverage probe exercises the previously missing B3 repeated-denial path and positive/negative coverage across B1-B5.
+A separate detector-coverage probe exercises the previously missing B3 repeated-denial path plus positive/negative coverage across B1-B5. Phase-1 callers retain a compatibility projection from sealed event data, but Phase 2 never uses that fallback as evidence of pre-execution timing.
 
 ## Lead-time semantics
 
@@ -96,13 +96,31 @@ The final Phase-2 report binds a dedicated `InstrumentFreezeRecord` covering:
 - dependency API constraint;
 - a SHA-256 over the complete instrument-set record.
 
+The current instrument-set SHA-256 is:
+
+```text
+36f4cf0512e4b0756e69d92b26736a4c44b20c7c406a204b3c9cfc04fba8ba29
+```
+
 This record is part of the final report hash. It is the custody object used before freezing environment, tool broker, telemetry, adapter, watchdog, and detector identities.
 
 ## Cross-runtime determinism
 
-The repository matrix executes tests on Python 3.10, 3.11, 3.12, and 3.13. After the first hardened run establishes the new canonical report SHA, Phase 2 will pin that expected report identity and require all four runtimes to derive the same value before the instrument set is frozen.
+The hardened canonical Phase-2 report SHA-256 is:
 
-Until that fixed cross-runtime report identity passes, Phase 2 remains open.
+```text
+5f2c1f60cd2e9494f9f2fac2170be1abc8642195c2d7bf2442ad30adf7605c0e
+```
+
+The repository matrix pins that value in the Phase-2 tests and also pins the calibration dependency version used for this freeze candidate:
+
+```text
+Pydantic 2.13.4
+```
+
+EFGM Check #173 reproduced the fixed report identity through the test suite on Python **3.10, 3.11, 3.12, and 3.13**. The Python 3.12 path additionally executed the dedicated Phase-2 calibration runner, existing EFGM/agent-governance benchmarks and experiments, and installed-wheel verification successfully.
+
+This establishes cross-runtime mechanical reproducibility for the current Phase-2 freeze candidate. It does not establish scientific validity.
 
 ## Non-evidentiary boundary
 
@@ -124,18 +142,18 @@ GitHub Actions remains permitted only for deterministic, non-autonomous calibrat
 
 ## Phase-2 exit gate
 
-Phase 2 may be considered complete only after:
+The following mechanical gates are now satisfied by the hardened candidate:
 
-- the calibration runner and repository matrix pass;
+- calibration runner and repository matrix pass;
 - label isolation is verified;
 - positive S1-S5 timing probes pass;
-- complete B1-B5 coverage passes;
+- complete B1-B5 coverage passes, including B3;
 - same-action B5-pre versus B1-post semantics pass;
 - pre-execution records are materialized before transition and align with emitted event custody;
 - lead-time edge semantics pass;
 - the instrument-freeze record verifies;
-- one fixed report SHA is reproduced on Python 3.10, 3.11, 3.12, and 3.13;
-- adversarial review finds no unresolved Phase-2 blocker;
-- environment, tool broker, telemetry, adapter, watchdog, and detector identities are frozen.
+- one fixed report SHA is reproduced on Python 3.10, 3.11, 3.12, and 3.13.
 
-Even then, **Phase 3 does not begin automatically**. External containment-preflight evidence and an explicit human safety approval gate remain mandatory.
+The remaining Phase-2 gate is a **final adversarial peer review of the hardened exact head** before the instrument identities are declared frozen.
+
+Even after Phase 2 is frozen, **Phase 3 does not begin automatically**. External containment-preflight evidence and an explicit human safety approval gate remain mandatory.
