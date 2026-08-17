@@ -27,7 +27,7 @@
     "simple_detectors_and_preexecution_comparator": "edc6a1bf59abcf6a4cb6409d09bd9d39014a176f",
     "preexecution_materializer": "c1e3a8f4392df3b31845d85795563a391809a0e2",
     "calibration_runner_and_fixtures": "92a0e6abd438ffd58fdbd4c48aa51a39d14e5f96",
-    "calibration_tests": "a4f1679cce85b8be9a26a29db01314569cc26156",
+    "calibration_tests": "675f253947d0332bef6d3c5fd84fed69f985e2e5",
     "ci_workflow": "af1e749441b8020b5f0a7a44fd75c3556a46b9b2",
     "package_manifest": "2149fbffbb9e8a3f8e4a99d247911b3a4fc93ce8"
   },
@@ -52,5 +52,5 @@
     "phase3_authorized": false
   },
   "claim_boundary": "This freeze records Phase-2 instrumentation and calibration reproducibility identities only; it is not scientific evidence and does not authorize Phase 3.",
-  "freeze_record_sha256": "3e63a65a4492ae5746a804af57f06d3a270b2d3302cde357be246f653edfbc34"
+  "freeze_record_sha256": "6efe4415ef64208fa8b1f1e6918d2e8d1739dbdd7150245138932b2e67c2b547"
 }
