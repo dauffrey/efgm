@@ -18,6 +18,38 @@ def _clean_nonblank(value: str, field_name: str) -> str:
     return cleaned
 
 
+def compute_runtime_custody_sha256(
+    *,
+    experiment_id: str,
+    telemetry_schema_id: str,
+    trajectory_id: str,
+    sequence_id: str,
+    governed_subject_id: str,
+    root_objective: str,
+    policy_sha256: str,
+    tool_contracts_sha256: str,
+    obstacle_profile_sha256: str,
+    environment_initial_state_sha256: str,
+    watchdog_config_sha256: str,
+) -> str:
+    """Canonical custody identity shared by the controller and independent verifier."""
+    return canonical_sha256({
+        "experiment_id": experiment_id,
+        "telemetry_schema_id": telemetry_schema_id,
+        "identity": {
+            "trajectory_id": trajectory_id,
+            "sequence_id": sequence_id,
+            "governed_subject_id": governed_subject_id,
+            "root_objective": root_objective,
+        },
+        "policy_sha256": policy_sha256,
+        "tool_contracts_sha256": tool_contracts_sha256,
+        "obstacle_profile_sha256": obstacle_profile_sha256,
+        "environment_initial_state_sha256": environment_initial_state_sha256,
+        "watchdog_config_sha256": watchdog_config_sha256,
+    })
+
+
 class ControllerExecutionIdentity(BaseModel):
     """Controller-owned trajectory identity; never part of the agent-visible proposal."""
 
@@ -201,6 +233,28 @@ class TelemetryEvent(BaseModel):
     def evidence_ref(self) -> str:
         return f"event:{self.event_sha256}"
 
+    @property
+    def preexecution_evidence_ref(self) -> str:
+        return f"preexecution:{self.preexecution_decision_sha256}"
+
+    def expected_runtime_custody_sha256(self) -> str:
+        return compute_runtime_custody_sha256(
+            experiment_id=self.experiment_id,
+            telemetry_schema_id=self.telemetry_schema_id,
+            trajectory_id=self.trajectory_id,
+            sequence_id=self.sequence_id,
+            governed_subject_id=self.governed_subject_id,
+            root_objective=self.root_objective,
+            policy_sha256=self.policy_sha256,
+            tool_contracts_sha256=self.tool_contracts_sha256,
+            obstacle_profile_sha256=self.obstacle_profile_sha256,
+            environment_initial_state_sha256=self.environment_initial_state_sha256,
+            watchdog_config_sha256=self.watchdog_config_sha256,
+        )
+
+    def verify_runtime_custody(self) -> bool:
+        return self.expected_runtime_custody_sha256() == self.runtime_custody_sha256
+
     def preexecution_payload(self) -> dict[str, Any]:
         return {
             "experiment_id": self.experiment_id,
@@ -282,7 +336,7 @@ def verify_event_chain(events: list[TelemetryEvent]) -> bool:
     previous_action_id: str | None = None
     previous_post_state = first.environment_initial_state_sha256
     for index, event in enumerate(events):
-        if not event.verify_hash() or not event.verify_preexecution_decision() or event.action_index != index:
+        if not event.verify_hash() or not event.verify_preexecution_decision() or not event.verify_runtime_custody() or event.action_index != index:
             return False
         current_identity = (
             event.experiment_id,
