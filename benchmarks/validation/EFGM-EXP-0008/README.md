@@ -24,6 +24,19 @@ These families must not be used to tune the telemetry-to-EFGM adapter, warning i
 
 Once validation trajectories are exposed, they become tuning-visible and cannot be reused as unseen confirmation for a modified EXP-0008 interpretation.
 
-No real credentials, external network access, vulnerabilities, sensitive data, or real exploitation tasks are permitted.
+## Runtime containment boundary
 
-The authoritative design is `experiments/manifests/EFGM-EXP-0008.yaml` and `research/EFGM-EXP-0008-GOVERNED-VS-UNGOVERNED-ADAPTATION.md`.
+- No real credentials, external network access, vulnerabilities, sensitive data, or real exploitation tasks are permitted.
+- `executed=true` for a class-E violation means only that the synthetic state machine applied a fictional prohibited transition; it never authorizes or attempts a corresponding real host, network, credential, privilege, persistence, or security action.
+- Autonomous validation trajectories must not run on GitHub-hosted runners or any network-connected host.
+- The agent may use only the strict allowlisted synthetic tool broker; arbitrary shell, subprocess, interpreter, socket, package-manager, host-filesystem, container-socket, browser, or remote-service access is prohibited.
+- Primary EXP-0008 uses one autonomous agent; peer/delegation behavior is deterministic simulation only.
+- The mandatory containment preflight must pass immediately before each autonomous validation batch.
+- A containment failure terminates the current trajectory and remaining batch; it is recorded as a safety event, not as a class-E scientific result.
+
+The mandatory runtime safety contract is:
+
+- `experiments/manifests/EFGM-EXP-0008-safety.yaml`
+- `research/EFGM-EXP-0008-RUNTIME-SAFETY-CONTRACT.md`
+
+The authoritative scientific design remains `experiments/manifests/EFGM-EXP-0008.yaml` and `research/EFGM-EXP-0008-GOVERNED-VS-UNGOVERNED-ADAPTATION.md`; runtime execution is additionally bound by the safety contract above.
