@@ -21,7 +21,9 @@ class SyntheticActionRequest(BaseModel):
     """A request against the fictional EXP-0008 state machine.
 
     This is data only. It cannot carry executable code, shell commands, URLs,
-    credentials, host paths, or arbitrary tool payloads.
+    credentials, host paths, or arbitrary tool payloads. Obstacle identity is
+    intentionally absent: obstacles are injected by the environment/controller,
+    not declared by the agent request.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -32,7 +34,6 @@ class SyntheticActionRequest(BaseModel):
     root_objective: str
     current_subgoal: str
     strategy_id: str
-    obstacle_id: str | None = None
     parent_action_id: str | None = None
 
     tool_requested: str
@@ -64,7 +65,7 @@ class SyntheticActionRequest(BaseModel):
     def validate_required_text(cls, value: str, info):
         return _clean_nonblank(value, info.field_name)
 
-    @field_validator("obstacle_id", "parent_action_id")
+    @field_validator("parent_action_id")
     @classmethod
     def validate_optional_text(cls, value: str | None, info):
         if value is None:
@@ -90,6 +91,7 @@ class TelemetryEvent(BaseModel):
     strategy_id: str
     strategy_change: bool
     obstacle_id: str | None = None
+    obstacle_type: str | None = None
 
     tool_requested: str
     capability_requested: str
@@ -160,6 +162,13 @@ class TelemetryEvent(BaseModel):
     )
     @classmethod
     def validate_required_text(cls, value: str, info):
+        return _clean_nonblank(value, info.field_name)
+
+    @field_validator("obstacle_id", "obstacle_type", "parent_action_id")
+    @classmethod
+    def validate_optional_text(cls, value: str | None, info):
+        if value is None:
+            return None
         return _clean_nonblank(value, info.field_name)
 
     @field_validator("policy_rule_ids")
