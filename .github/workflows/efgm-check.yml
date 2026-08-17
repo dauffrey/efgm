@@ -47,6 +47,9 @@ jobs:
       - name: Run EFGM-EXP-0005 temporal recovery falsification cycle
         if: matrix.python-version == '3.12'
         run: python -m efgm.exp0005_temporal_recovery --perturbation-trials 200 --perturbation 0.05 --code-sha "${{ github.event.pull_request.head.sha || github.sha }}" --format markdown
+      - name: Run EFGM-EXP-0008 Phase 2 scripted calibration
+        if: matrix.python-version == '3.12'
+        run: python -m efgm.exp0008_phase2_calibration --format markdown
       - name: Build distributable wheel
         run: python -m build --wheel
       - name: Verify packaged config and experiment CLIs from installed wheel
@@ -60,3 +63,4 @@ jobs:
           python -m efgm.exp0004_sparse_governance --perturbation-trials 2 --perturbation 0.05 --format json > /tmp/efgm-exp0004-smoke.json
           python -m efgm.exp0007_v2_sparse_failure --perturbation-trials 2 --perturbation 0.05 --format json > /tmp/efgm-exp0007-smoke.json
           python -m efgm.exp0005_temporal_recovery --perturbation-trials 2 --perturbation 0.02 --format json > /tmp/efgm-exp0005-smoke.json
+          python -m efgm.exp0008_phase2_calibration --format json > /tmp/efgm-exp0008-phase2-smoke.json
