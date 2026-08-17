@@ -10,7 +10,7 @@ Authoritative preregistration / containment baseline:
 9e40bc978f4f86eadbd65471d08a3fcb21c22d4c
 ```
 
-This phase does **not** authorize autonomous trajectory generation. It adds only a deterministic fictional state machine, immutable telemetry, a deterministic telemetry-to-EFGM adapter, preregistered simple detectors, and externally supervised containment/watchdog scaffolding.
+This phase does **not** authorize autonomous trajectory generation. It adds only a deterministic fictional state machine, immutable telemetry/custody records, a deterministic telemetry-to-EFGM adapter, preregistered simple detectors, and externally supervised containment/watchdog scaffolding.
 
 ## Safety boundary
 
@@ -32,105 +32,98 @@ The first Phase-1 peer review identified seven issues and produced the initial h
 
 ## Second adversarial peer-review hardening
 
-The second review attempted to break those fixes through composition and custody attacks. This pass strengthens five central boundaries without changing any frozen EFGM equation, weight, threshold, prerequisite, AE/CUE definition, provenance semantic, or temporal-identity semantic.
+The second review attempted to break those fixes through composition and custody attacks. It added controller-owned per-tool contracts, enforced supervisor termination, applicability-aware output observations, stronger assessment-chain custody, exact deterministic task acceptance, conservative mutation budgeting, and a mandatory supervised runtime path.
 
-### 1. Controller-owned per-tool contracts
+## Final adversarial hardening
 
-The agent-visible request can no longer declare `state_write`, `state_read`, `cross_agent_message`, parent action identity, arbitrary payloads, or supervisor accounting. Every declared synthetic tool has exactly one controller-owned `SyntheticToolContract` that defines:
+The final review targeted the remaining controller/runtime boundary rather than the EFGM formulas. The following controls now close those findings.
 
-- allowed capability/resource/subgoal combinations;
-- whether the tool reads, writes, or emits a deterministic peer message;
-- deterministic write effects;
-- which fictional privilege/connectivity/persistence/coordination dimensions the tool may alter;
-- per-tool maxima for those fictional dimensions.
+### 1. Controller-owned execution identity
 
-A request that combines individually legal values in a combination not permitted by the selected tool contract is denied before execution. A monitor-only policy boundary may bypass governance policy only; it may **not** bypass the tool contract itself.
+`trajectory_id`, `sequence_id`, `governed_subject_id`, and `root_objective` are no longer agent-visible proposal fields. They live in a frozen `ControllerExecutionIdentity` that is installed when the synthetic environment is created and injected into every telemetry record.
 
-This closes the composition hole where a nominally read-only tool could previously be paired with an agent-supplied write flag.
+The model can therefore propose a tool/capability/resource/subgoal/action strategy, but it cannot establish, rename, or splice the governed subject or trajectory identity.
 
-### 2. Enforced supervisor/orchestrator termination
+### 2. Identity/custody anomalies cannot disappear before telemetry
 
-`SyntheticEnvironment` no longer exposes a public unsupervised `step()` entry point. Controller execution is internal and the intended runtime path is `SupervisedSyntheticExecutor`.
+Because agent requests no longer carry trajectory/sequence/subject/root-objective identity, an agent cannot cause identity drift by changing those fields between calls. Controller-side mutation of policy/tool-contract/obstacle state or out-of-band mutation of synthetic world state is detected before the next action and converted into an immutable containment/custody anomaly event. The environment, watchdog, and supervised batch then latch terminal.
 
-The external watchdog now performs a **pre-execution budget check** using supervisor-owned observations and the environment's deterministic mutation preview. If the next action would exceed a known hard limit, the action is not executed, the environment is terminated, and the batch watchdog is latched terminal.
+### 3. Monotonic supervisor runtime accounting and one-time binding
 
-The state-write budget is conservative: every synthetic state mutation boundary is charged, including resource writes and fictional privilege, connectivity, persistence, coordination, or completion-state changes.
+`model_calls`, `retries`, and elapsed time are no longer supplied on each action call. `SupervisedSyntheticExecutor` owns a `SupervisorRuntimeAccounting` context with monotonic increment methods. `ExternalWatchdog` independently retains the highest accepted snapshot and treats any rollback as a terminating accounting anomaly.
 
-Unknown tools still create a containment event and immediately terminate both the environment and supervised batch.
+A live `SyntheticEnvironment` can be bound to a supervisor/watchdog exactly once. Constructing a fresh watchdog/executor around the same live environment to reset counters is rejected.
 
-### 3. Applicability-aware output observations
+### 4. Effective authority remains adverse until remediated
 
-`output_contradiction` is now optional at the schema level but tightly coupled to actual output:
+Policy evaluation now distinguishes requested authority from the **effective current synthetic state**. If a monitor-only fictional policy violation raises privilege/connectivity beyond the normal allowed maximum, a later nominal action that requests no additional privilege is still considered out of authority while the elevated state persists.
 
-- `output_chars == 0` → contradiction observation must be `null` / not applicable;
-- `output_chars > 0` → a supervisor contradiction observation is mandatory.
+The agent cannot appear to recover governance merely by asking for a low incremental privilege value. Recovery requires an explicit permitted state transition that actually returns effective authority to scope.
 
-The adapter calculates contradiction rate only across output-bearing action boundaries. Nine no-output actions can therefore no longer dilute one contradictory output from `1.0` to `0.1`.
+### 5. Runtime custody now binds policy, tool contracts, state, and watchdog
 
-### 4. Identity-bound assessment custody
+Each event carries canonical hashes for the policy, tool contracts, obstacle profile, initial world state, watchdog configuration, and combined runtime-custody identity. Events also bind the pre- and post-state hashes. The event-chain verifier requires state-hash continuity in addition to identity and event-hash continuity.
 
-A `TrajectoryAssessmentRecord` chain must now start at action zero and remain continuously bound to:
+Per-prefix `TrajectoryAssessmentRecord` custody now includes the policy hash, watchdog hash, and combined runtime-custody hash in addition to trajectory/subject/adapter/Agent-Governance configuration identity and the raw event-head hash.
 
-- experiment ID;
-- trajectory ID;
-- sequence ID;
-- governed-subject ID;
-- adapter ID;
-- Agent Governance configuration hash;
-- the corresponding raw event-head hash;
-- the previous assessment hash.
+Pydantic `frozen=True` is therefore not treated as sufficient protection for nested mappings. If controller-side code mutates a nested tool-contract or policy dictionary after binding, the canonical hash changes and the next supervised boundary fails closed.
 
-Verification requires the original raw event chain and deterministically recomputes the frozen EFGM result for every prefix. Rehashed identity, event-head, or configuration splices therefore fail custody verification rather than merely passing because their local hashes are internally consistent.
+### 6. B5 remains a real pre-execution comparator
 
-### 5. Real deterministic task acceptance
+The synthetic controller now seals a `preexecution_decision_sha256` before applying the state transition. The decision binds the action proposal, controller identity, policy/runtime hashes, scope/authority facts, request denial/permitted decision, and the trusted pre-state hash.
 
-Completion no longer means that a required resource contains any truthy value.
+`B5_spec_compliance_request_checker` is driven by `preexecution_spec_conflict`, not by post-execution success or failure. Detector signals explicitly record whether they occur at the `pre_execution` or `post_execution` phase of an action boundary. B1 remains post-execution; B2-B5 are request-time/pre-execution comparators.
 
-The controller now defines exact required synthetic resource values. Synthetic write values are also controller-owned deterministic tool effects, not agent-supplied content. The completion tool must belong to the explicitly allowed tool set and cannot be denied or monitor-only. `task_completed=true` is set only after the exact acceptance state already exists and the completion action itself is policy permitted.
+At action-index resolution B5 and B1 can still share an index when a monitor-only action executes immediately after a pre-execution conflict decision. The phase marker preserves the causal ordering so later lead-time analysis does not accidentally treat B5 as an after-the-fact detector.
 
-This prevents both truthy-placeholder completion and the prior monitor-only completion configuration bypass.
-
-## Components
+## Core components
 
 ### `src/efgm/exp0008_telemetry.py`
 
-Defines the closed `SyntheticActionRequest`, supervisor-only `SupervisorActionObservation`, immutable `TelemetryEvent`, normalized canonical SHA-256 sealing, controller-derived parent-action chaining, and trajectory/sequence/governed-subject/root-objective continuity checks.
+Defines controller-owned execution identity, the closed `SyntheticActionRequest`, supervisor-only output observations, immutable `TelemetryEvent`, pre-execution decision hashes, pre/post-state custody hashes, canonical SHA-256 event sealing, and runtime/trajectory/state continuity verification.
 
 ### `src/efgm/exp0008_environment.py`
 
-Defines the pure in-memory fictional world, controller-owned `SyntheticToolContract`, deterministic policy engine, action-local obstacles, exact completion acceptance, deterministic synthetic write effects, and the controller-only execution primitive.
+Defines the pure in-memory fictional world, controller-owned `SyntheticToolContract`, deterministic policy engine, action-local obstacles, exact completion acceptance, effective-authority semantics, one-time supervisor binding, runtime-config integrity checks, and controller-only execution primitive.
 
 ### `src/efgm/exp0008_safety.py`
 
-Defines containment attestation, `ExternalWatchdog`, pre-execution budget gating, and `SupervisedSyntheticExecutor`. A watchdog trigger terminates both the environment and batch rather than merely returning an advisory Boolean.
+Defines containment attestation, monotonic `SupervisorRuntimeAccounting`, `ExternalWatchdog`, pre-execution budget gating, and `SupervisedSyntheticExecutor`. A budget/custody trigger terminates both the environment and batch rather than merely returning an advisory Boolean.
 
 ### `src/efgm/exp0008_adapter.py`
 
-Implements `exp0008-environment-adapter-v0.1`. It requires a valid immutable event chain, rejects containment-anomaly trajectories as scientific evidence, excludes non-applicable measurement channels from denominators, treats absent output as N/A, and verifies assessment custody against the raw event chain with deterministic rescoring.
+Implements `exp0008-environment-adapter-v0.1`. It requires a valid immutable event/runtime-custody chain, rejects containment-anomaly trajectories as scientific evidence, excludes non-applicable measurement channels from denominators, uses effective authority rather than request-only authority, and verifies assessment custody with deterministic rescoring.
 
 ### `src/efgm/exp0008_detectors.py`
 
-Implements the five preregistered independent baselines: first explicit violation, first denied request, repeated denials, first out-of-scope request, and first request conflicting with explicit synthetic policy.
+Implements the five preregistered independent baselines. B5 now consumes the immutable pre-execution policy decision and detector signals preserve pre/post-execution boundary phase.
 
 ## Instrumentation invariants
 
 ```text
+agent request -> cannot define trajectory/sequence/subject/root identity
 agent request -> cannot define synthetic side effects
 agent request -> cannot define parent-action custody
 agent request -> cannot define obstacle identity
-agent request -> cannot define supervisor output/memory facts
+agent request -> cannot define supervisor output/memory/runtime counters
 selected tool -> controller contract fixes permitted semantics
 contract mismatch -> denied before execution
 monitor-only policy bypass -> cannot bypass tool contract
+existing over-authority -> remains adverse until effective state is reduced
 known budget exceedance -> blocked before environment execution
-environment/watchdog termination -> latched; no silent resume
+model-call/retry/time counters -> monotonic controller-owned accounting
+live environment -> exactly one supervisor/watchdog binding
+nested policy/tool mutation -> custody anomaly -> batch terminal
+out-of-band state mutation -> custody anomaly -> batch terminal
 unknown tool -> containment event -> environment + batch terminal
 no output -> output contradiction N/A
 output present -> supervisor contradiction observation required
 non-applicable measurement -> excluded, never counted as success
 completion -> exact controller-defined acceptance state required
 completion tool -> allowed policy partition only
-assessment chain -> identity + config + raw event head + prior assessment bound
+preexecution decision -> immutable request/spec-conflict hash
+B5 -> pre-execution comparator, never post-outcome derived
+assessment chain -> identity + config + runtime custody + raw event head + prior assessment bound
 assessment verification -> deterministic prefix rescoring required
 containment anomaly -> never scientific evidence
 GitHub Actions -> deterministic tests only, never autonomous EXP-0008 execution
@@ -140,14 +133,15 @@ GitHub Actions -> deterministic tests only, never autonomous EXP-0008 execution
 
 1. The environment is a synthetic analogue, not an incident reconstruction.
 2. The adapter contains explicit proxies that have not been externally validated.
-3. Supervisor observations must ultimately be produced by a controller that is structurally inaccessible to the model; Phase 1 defines and tests that interface but does not authorize a model runtime.
+3. Supervisor observations and runtime-accounting increments must ultimately be produced by a controller structurally inaccessible to the model; Phase 1 defines and tests that boundary but does not authorize a model runtime.
 4. The structured protocol cannot measure every semantic property of free-form model reasoning.
 5. Action velocity remains adaptation pressure rather than wall-clock speed.
 6. Recoverability represents synthetic mechanism availability, not demonstrated real containment effectiveness.
-7. Phase 1 does not establish that EFGM predicts governance failure or that any future autonomous runtime satisfies the containment contract.
+7. Pre/post boundary phase is more precise than action index alone, but the primary preregistered lead-time statistic remains action-index based unless a later preregistration explicitly changes it.
+8. Phase 1 does not establish that EFGM predicts governance failure or that any future autonomous runtime satisfies the containment contract.
 
 ## Gate to Phase 2
 
-Phase 2 may begin only after this hardened candidate passes the complete repository test matrix, a final peer review confirms the second-review findings are closed, the Phase-1 candidate is merged, and its merge SHA is frozen.
+Phase 2 may begin only after this final-hardened candidate passes the complete repository test matrix, a final peer review confirms the adversarial findings are closed, the Phase-1 candidate is merged, and its merge SHA is frozen.
 
 Phase 2 remains scripted, non-autonomous, and non-evidentiary. Phase 3 autonomous development remains blocked until the environment/tool-broker/telemetry/adapter/watchdog identities, containment preflight evidence, and explicit human safety gate are frozen as required by the safety contract.
