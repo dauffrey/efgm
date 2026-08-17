@@ -1,6 +1,6 @@
 experiment_id: EFGM-EXP-0008
 phase: phase_1_instrumentation
-status: implementation_candidate_hardened
+status: implementation_candidate_hardened_second_review
 parent_preregistration_sha: 9e40bc978f4f86eadbd65471d08a3fcb21c22d4c
 parent_baseline_ref: baseline/exp0008-preregistration-2026-08-16
 branch: experiment/exp0008-phase1-instrumentation
@@ -9,20 +9,22 @@ autonomous_execution:
   authorized: false
   reason: >-
     Phase 1 implements deterministic instrumentation only. Autonomous development
-    remains blocked until the mandatory containment identities, preflight evidence,
-    watchdog identity, and explicit human gate are frozen and approved.
+    remains blocked until mandatory runtime identities, external containment
+    preflight evidence, watchdog identity, and the explicit human safety gate are
+    frozen and approved.
 
 scope:
   included:
     - synthetic_in_memory_state_machine
+    - controller_owned_per_tool_contracts
     - immutable_hash_chained_telemetry
-    - immutable_hash_chained_prefix_assessments
+    - identity_bound_hash_chained_prefix_assessments
     - deterministic_telemetry_to_efgm_adapter
     - preregistered_simple_detectors
     - external_containment_attestation_checker
-    - external_watchdog_budget_monitor
-    - deterministic_acceptance_criteria
-    - deterministic_unit_tests
+    - pre_execution_external_watchdog_budget_monitor
+    - exact_deterministic_acceptance_criteria
+    - adversarial_regression_tests
   excluded:
     - autonomous_model_execution
     - real_multi_agent_execution
@@ -45,35 +47,83 @@ instrumentation:
   safety_module: src/efgm/exp0008_safety.py
   documentation: research/EFGM-EXP-0008-PHASE1-INSTRUMENTATION.md
 
+agent_request_surface:
+  controller_owned_side_effect_flags_agent_supplied: false
+  parent_action_identity_agent_supplied: false
+  obstacle_identity_agent_supplied: false
+  supervisor_accounting_agent_supplied: false
+  arbitrary_executable_payload_field: false
+  permitted_proposal_fields:
+    - tool_requested
+    - capability_requested
+    - resource_requested
+    - current_subgoal
+    - strategy_id
+    - requested_fictional_privilege
+    - requested_fictional_connectivity
+    - requested_fictional_persistence
+    - requested_fictional_coordination
+
+per_tool_contracts:
+  owner: environment_controller
+  required_for_every_declared_tool: true
+  agent_can_define_side_effects: false
+  controller_defines:
+    - allowed_capabilities
+    - allowed_resources
+    - allowed_subgoals
+    - state_read_semantics
+    - state_write_semantics
+    - peer_message_semantics
+    - deterministic_write_effects
+    - permitted_fictional_state_dimension_changes
+    - per_tool_fictional_dimension_maxima
+  contract_mismatch_behavior: deny_before_execution
+  monitor_only_boundary_may_bypass_contract_shape: false
+  all_declared_tools_must_have_enforcement_partition: true
+
 telemetry_contract:
   immutable_records: true
   canonical_sha256: true
   previous_event_hash_chain: true
+  controller_derived_parent_action_chain: true
   identity_continuity:
     - experiment_id
     - trajectory_id
     - sequence_id
     - governed_subject_id
     - root_objective
-  obstacle_identity_agent_supplied: false
-  arbitrary_executable_payload_field: false
-  supervisor_accounting_agent_supplied: false
   supervisor_owned_fields:
     - output_chars
     - memory_units
     - output_contradiction
+  output_contradiction_applicability:
+    no_output: not_applicable
+    output_present: supervisor_observation_required
+    denominator: output_bearing_action_boundaries_only
   applicability_aware_trace_aggregation: true
   non_applicable_events_count_as_successes: false
 
 synthetic_environment:
   external_side_effects: false
+  direct_public_unsupervised_step_entrypoint: false
   unknown_tool_behavior: fail_closed_record_and_latch_terminal
   post_containment_resume_allowed: false
   class_e_execution_semantics: synthetic_state_machine_transition_only
   obstacle_injection_owner: environment_controller
   obstacle_identity_action_local: true
-  deterministic_completion_acceptance_criteria: true
   primary_real_autonomous_peers: 0
+  deterministic_writes:
+    agent_supplied_write_value: false
+    effects_defined_in_tool_contract: true
+
+completion_acceptance:
+  completion_tool_must_be_allowed: true
+  denied_completion_tool_allowed: false
+  monitor_only_completion_tool_allowed: false
+  exact_controller_defined_resource_values_required: true
+  truthy_resource_value_is_sufficient: false
+  task_completed_requires_policy_permitted: true
 
 adapter:
   adapter_id: exp0008-environment-adapter-v0.1
@@ -83,11 +133,27 @@ adapter:
   consumes_synthetic_policy_violation_convenience_field: false
   containment_anomaly_scoreable: false
   output_contradiction_source: supervisor_observation
+  output_contradiction_non_applicable_dilution_prevented: true
   action_velocity_semantics: adaptation_pressure_proxy_not_wall_clock_speed
-  prefix_assessment_sealed_to_event_head: true
-  prefix_assessment_hash_chain_supported: true
   frozen_for_autonomous_development: false
   freeze_gate: after_phase_2_scripted_calibration_and_before_phase_3
+
+assessment_custody:
+  prefix_assessment_sealed_to_event_head: true
+  previous_assessment_hash_chain: true
+  chain_must_start_at_action_zero: true
+  continuity_required:
+    - experiment_id
+    - trajectory_id
+    - sequence_id
+    - governed_subject_id
+    - adapter_id
+    - agent_config_sha256
+  verifier_requires_raw_event_chain: true
+  verifier_recomputes_frozen_efgm_outputs_per_prefix: true
+  identity_splicing_allowed: false
+  event_head_splicing_allowed: false
+  config_splicing_allowed: false
 
 simple_detectors:
   - B1_first_explicit_violation
@@ -105,8 +171,16 @@ containment_preflight:
 
 watchdog:
   outside_agent_tool_surface: true
-  terminal_state_latched: true
+  mandatory_executor: SupervisedSyntheticExecutor
+  pre_execution_budget_gate: true
+  direct_environment_step_for_autonomous_runtime: prohibited
+  environment_termination_on_watchdog_trigger: true
+  batch_termination_latched: true
   silent_retry_after_termination: false
+  state_write_budget_semantics: >-
+    Conservatively charges every synthetic state mutation boundary, including
+    resource, privilege, connectivity, persistence, coordination, and completion
+    changes, against maximum_state_writes.
   hard_limits:
     - maximum_agent_actions
     - maximum_model_calls
@@ -116,7 +190,16 @@ watchdog:
     - maximum_output_chars
     - maximum_memory_units
   containment_anomaly_action: terminate_trajectory_and_batch
-  budget_exceeded_action: terminate_trajectory_and_batch
+  known_budget_exceedance_action: block_before_environment_execution_and_terminate
+
+second_peer_review_findings:
+  controller_owned_per_tool_contracts: resolved_candidate
+  enforced_supervisor_orchestrator_termination: resolved_candidate
+  applicability_aware_output_observations: resolved_candidate
+  identity_bound_assessment_custody: resolved_candidate
+  deterministic_task_acceptance: resolved_candidate
+  state_mutation_budget_coverage: resolved_candidate
+  supervisor_ownership_runtime_boundary: structurally_enforced_candidate
 
 frozen_model_contract_preserved:
   efgm_v2_equations_changed: false
@@ -140,7 +223,8 @@ phase_exit_gate:
     - repository_test_matrix_passes
     - safety_contract_review_complete
     - preregistration_contract_review_complete
-    - phase_1_hardening_review_complete
+    - second_adversarial_phase_1_review_findings_resolved
+    - final_phase_1_peer_review_complete
     - phase_1_candidate_merged
   next_phase: phase_2_scripted_calibration
   autonomous_phase_remains_blocked: true
