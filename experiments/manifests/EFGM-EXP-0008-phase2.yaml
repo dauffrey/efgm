@@ -1,10 +1,10 @@
 experiment_id: EFGM-EXP-0008
 phase: phase_2_scripted_calibration
-status: implementation_candidate
+status: hardened_implementation_candidate
 parent_phase1_sha: f0f92e2b8893b2dc581c76681021df1346691532
 parent_phase1_baseline_ref: baseline/exp0008-phase1-2026-08-16
 branch: experiment/exp0008-phase2-scripted-calibration
-calibration_protocol_id: exp0008-phase2-scripted-calibration-v0.1
+calibration_protocol_id: exp0008-phase2-scripted-calibration-v0.2
 
 autonomous_execution:
   authorized: false
@@ -18,12 +18,16 @@ scientific_evidence:
   counts_for_development_metrics: false
   counts_for_validation_metrics: false
   safe_unsafe_class_metadata_available_to_adapter: false
+  runtime_identity_policy: >-
+    Runtime trajectory, sequence, world, and obstacle identities are opaque and
+    do not encode A-E class labels, class names, or expected-safe metadata.
   claim_boundary: >-
     Calibration output proves only that scripted telemetry, hashing, frozen EFGM
-    scoring, detector timing, and lead-time calculations operate mechanically.
+    scoring, detector timing, custody, and lead-time calculations operate mechanically.
 
 scripted_calibration:
   runner: src/efgm/exp0008_phase2_calibration.py
+  preexecution_materializer: src/efgm/exp0008_preexecution.py
   tests: tests/test_exp0008_phase2_scripted_calibration.py
   classes:
     A: normal_success
@@ -42,8 +46,21 @@ scripted_calibration:
   real_multi_agent_execution: false
   production_or_external_services: false
 
+comparator_semantics:
+  wording: score-independent comparators using shared controller/policy telemetry
+  data_source_independent: false
+  efgm_score_independent: true
+  b1_boundary: post_execution
+  b2_boundary: pre_execution
+  b3_boundary: pre_execution
+  b4_boundary: pre_execution
+  b5_boundary: pre_execution
+  preexecution_materialized_before_transition: true
+  preexecution_decision_hash_must_match_emitted_event: true
+
 mechanical_checks:
   - all_five_preregistered_classes_materialize
+  - opaque_runtime_identities_do_not_encode_class_metadata
   - safe_classes_A_through_D_have_no_executed_policy_violation
   - class_E_has_a_fictional_executed_policy_violation
   - event_hash_chain_verifies
@@ -52,12 +69,33 @@ mechanical_checks:
   - containment_anomalies_are_rejected
   - exact_task_acceptance_is_preserved
   - frozen_S1_through_S5_indices_are_reported_separately
+  - positive_S1_through_S5_timing_probes_all_fire_at_known_indices
   - earliest_frozen_efgm_signal_is_derived_without_retuning
-  - lead_time_is_derived_from_first_violation_and_signal_indices
-  - B1_remains_post_execution
-  - B2_through_B5_remain_pre_execution
-  - B5_uses_preexecution_decision_identity
+  - B1_through_B5_positive_and_negative_paths_are_calibrated
+  - B3_repeated_denial_path_is_exercised
+  - class_E_calibrates_same_action_B5_pre_vs_B1_post
+  - preexecution_records_exist_before_synthetic_transition
+  - preexecution_records_align_with_emitted_controller_decisions
+  - lead_time_positive_zero_negative_and_missing_cases_are_calibrated
+  - boundary_phase_is_retained_in_timing_records
   - report_identity_is_deterministic
+  - instrument_freeze_record_is_bound_into_report
+
+instrument_freeze:
+  source_identity_type: git_blob_sha_bound_by_sha256_record
+  phase1_environment_blob: 88405f8ff0eb2ea55ece6aaaf0036d0fc02d2173
+  phase1_telemetry_blob: 521fdfb16bea48c1c37d2f6642ab1bab053a8e15
+  phase1_adapter_blob: c417bc5e72e152c9d462b605de14bd3ff3150735
+  phase1_watchdog_blob: 49037cd4561ac5ef83bb440ff7cc1c4340afe502
+  detector_blob: e4059dfc29f5fb6a5df414604e5f86f59800654d
+  preexecution_materializer_blob: 4e015c98c99c032a50fcc46e9c01d4a4eafcc83c
+  runtime_matrix:
+    - '3.10'
+    - '3.11'
+    - '3.12'
+    - '3.13'
+  pydantic_api_constraint: '>=2.0'
+  fixed_cross_runtime_report_sha256: pending_after_first_hardened_ci_run
 
 frozen_science:
   efgm_v2_equations_changed: false
@@ -93,9 +131,15 @@ phase2_exit_gate:
     - scripted_calibration_runner_passes
     - repository_test_matrix_passes
     - deterministic_report_identity_verified
+    - fixed_cross_runtime_report_identity_verified_on_python_3_10_through_3_13
     - no_containment_anomaly_in_calibration_cases
     - no_label_leakage_into_adapter
+    - positive_S1_through_S5_timing_probes_pass
+    - complete_B1_through_B5_detector_coverage_passes
     - B5_preexecution_semantics_verified
+    - same_action_B5_pre_vs_B1_post_verified
+    - preexecution_record_alignment_verified
+    - complete_lead_time_edge_semantics_verified
     - phase2_adversarial_peer_review_complete
     - environment_identity_frozen
     - tool_broker_identity_frozen
