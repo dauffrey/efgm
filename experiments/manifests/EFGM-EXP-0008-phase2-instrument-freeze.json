@@ -2,9 +2,22 @@
   "schema_id": "exp0008-phase2-instrument-freeze-v0.1",
   "experiment_id": "EFGM-EXP-0008",
   "phase": "phase_2_scripted_calibration",
-  "status": "candidate_pending_final_review",
+  "status": "frozen",
   "phase1_baseline_sha": "f0f92e2b8893b2dc581c76681021df1346691532",
   "calibration_protocol_id": "exp0008-phase2-scripted-calibration-v0.3",
+  "reviewed_head_sha": "1ccac9cd4cb3918236cced2da86af1e1d164b6ae",
+  "review_verdict": "pass_no_remaining_p1_p2_blocker",
+  "verification": {
+    "workflow": "EFGM Check",
+    "run_number": 183,
+    "conclusion": "success",
+    "python_matrix": [
+      "3.10",
+      "3.11",
+      "3.12",
+      "3.13"
+    ]
+  },
   "source_identity_type": "git_blob_sha",
   "source_identities": {
     "environment_and_tool_broker": "88405f8ff0eb2ea55ece6aaaf0036d0fc02d2173",
@@ -38,6 +51,6 @@
     "autonomous_execution": false,
     "phase3_authorized": false
   },
-  "claim_boundary": "This candidate freezes Phase-2 instrumentation and calibration reproducibility identities only; it is not scientific evidence and does not authorize Phase 3.",
-  "freeze_record_sha256": "e8907794e698eff6f4e9e667d0163b8df504b4011da73688821ba27c483869be"
+  "claim_boundary": "This freeze records Phase-2 instrumentation and calibration reproducibility identities only; it is not scientific evidence and does not authorize Phase 3.",
+  "freeze_record_sha256": "3e63a65a4492ae5746a804af57f06d3a270b2d3302cde357be246f653edfbc34"
 }
