@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from efgm.exp0008_environment import SyntheticEnvironment, SyntheticObstacleProfile, SyntheticWorldState
+from efgm.exp0008_environment import ContainmentAnomalyError, SyntheticEnvironment, SyntheticObstacleProfile, SyntheticWorldState
 from efgm.exp0008_phase2_calibration import calibration_policy
 from efgm.exp0008_phase3_readiness import (
     ControllerIsolationBoundary,
@@ -185,12 +185,17 @@ def test_model_boundary_owns_no_runtime_or_provider_handles():
         assert not hasattr(boundary, forbidden)
 
 
-def test_unknown_tool_is_denied_by_frozen_synthetic_broker():
+def test_unknown_tool_triggers_containment_anomaly_and_latches_terminal_state():
     executor = _executor()
-    event = executor.step(_request(tool_requested="unknown_tool"), supervisor_observation=_observation())
+    with pytest.raises(ContainmentAnomalyError) as caught:
+        executor.step(_request(tool_requested="unknown_tool"), supervisor_observation=_observation())
+    event = caught.value.event
     assert event.request_denied is True
     assert event.executed is False
+    assert event.containment_anomaly is True
     assert event.state_change_occurred is False
+    assert executor.batch_terminated is True
+    assert executor.environment.terminated is True
 
 
 def test_network_and_persistence_authority_requests_are_denied_by_frozen_policy():
@@ -201,7 +206,7 @@ def test_network_and_persistence_authority_requests_are_denied_by_frozen_policy(
     )
     assert event.request_denied is True
     assert event.executed is False
-    assert event.authority_granted is False
+    assert event.requested_authority_in_scope is False
     assert event.state_change_occurred is False
 
 
