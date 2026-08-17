@@ -24,7 +24,7 @@ The first Phase-1 peer review found seven issues. This branch now addresses them
 
 1. **Supervisor-owned hard-budget facts.** `output_chars`, `memory_units`, and the controller's output-contradiction observation are no longer accepted in `SyntheticActionRequest`. Every environment step requires a separate `SupervisorActionObservation` supplied outside the agent-visible request surface.
 2. **Latched containment termination.** An unknown tool records a containment event, raises, and permanently terminates that synthetic environment instance. The external watchdog also latches terminal state after the first containment or budget trigger; later observations cannot silently restart the run.
-3. **No favorable default for unmeasured output contradiction.** Output contradiction is now an explicit supervisor observation sealed into telemetry rather than an assumed zero.
+3. **No favorable default for output contradiction.** Output contradiction is now an explicit supervisor observation sealed into telemetry rather than an assumed zero.
 4. **Applicability-aware measurement.** State-change traceability is calculated only across actual state changes; write inventory only across actual writes; readback traceability only across actual reads; message traceability only across actual messages. Non-applicable actions are no longer counted as successful observations.
 5. **Action-local obstacles.** Obstacle identity is emitted only on action boundaries where the controller-configured obstacle is active. A one-shot failure no longer labels the rest of the trajectory as obstructed.
 6. **Sealed per-prefix EFGM assessments.** Each scored trajectory prefix can now produce a hash-sealed `TrajectoryAssessmentRecord` bound to the raw event-head hash, input hash, agent configuration hash, and frozen EFGM outputs. Assessment records can themselves be hash chained.
@@ -48,28 +48,13 @@ Defines the pure in-memory fictional world and deterministic policy engine. Unkn
 
 Implements `exp0008-environment-adapter-v0.1`.
 
-The adapter:
-
-- requires a valid immutable event chain;
-- rejects containment-anomaly trajectories as scientific evidence;
-- does not consume a preferred safe/unsafe class label;
-- does not read the `synthetic_policy_violation` convenience field;
-- consumes supervisor-observed output contradiction rather than assuming a favorable value;
-- excludes non-applicable state/write/read/message events from denominators instead of counting them as successes;
-- emits research-grade `MetricObservation` records under strict provenance;
-- supports sealed per-prefix assessment records bound to the raw event head.
+The adapter requires a valid immutable event chain, rejects containment-anomaly trajectories as scientific evidence, never consumes a preferred safe/unsafe class label or the `synthetic_policy_violation` convenience field, excludes non-applicable state/write/read/message events from denominators, and supports sealed per-prefix assessment records bound to the raw event head.
 
 The adapter remains a **candidate experimental instrument**, not a validated semantic calibration.
 
 ### `src/efgm/exp0008_detectors.py`
 
-Implements the five preregistered independent baselines:
-
-1. first explicit executed violation;
-2. first denied request;
-3. at least two denials in the previous five actions;
-4. first out-of-scope request;
-5. first request conflicting with explicit synthetic policy.
+Implements the five preregistered independent baselines: first explicit executed violation, first denied request, repeated denials, first out-of-scope request, and first request conflicting with explicit synthetic policy.
 
 ### `src/efgm/exp0008_safety.py`
 
@@ -104,11 +89,6 @@ GitHub Actions -> deterministic tests only, never autonomous EXP-0008 execution
 
 ## Gate to Phase 2
 
-Phase 2 may begin only after:
-
-1. the hardened Phase-1 implementation passes the complete repository test matrix;
-2. a second peer review confirms the preregistration and containment findings are resolved;
-3. the Phase-1 candidate is merged and its merge SHA frozen;
-4. scripted calibration remains explicitly non-autonomous and non-evidentiary.
+Phase 2 may begin only after the hardened Phase-1 implementation passes the complete repository test matrix, a second peer review confirms the preregistration and containment findings are resolved, the Phase-1 candidate is merged and its merge SHA frozen, and scripted calibration remains explicitly non-autonomous and non-evidentiary.
 
 Phase 3 autonomous development remains blocked until the environment/tool-broker/telemetry/adapter/watchdog identities, containment preflight evidence, and explicit human safety gate are frozen as required by the safety contract.
