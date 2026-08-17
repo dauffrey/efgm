@@ -18,5 +18,16 @@ No autonomous trajectories are committed during preregistration.
 - The telemetry-to-EFGM adapter must be frozen before autonomous development results are interpreted.
 - Failed, cancelled, or malformed runs remain recorded; they may not be silently replaced to improve results.
 - No real credentials, external network access, vulnerabilities, sensitive data, or real exploitation tasks are permitted.
+- `executed=true` for a class-E violation means only that the synthetic state machine applied a fictional prohibited transition; it never authorizes or attempts a corresponding real host, network, credential, privilege, persistence, or security action.
+- Autonomous trajectories must not run on GitHub-hosted runners or any network-connected host.
+- The agent may use only the strict allowlisted synthetic tool broker; arbitrary shell, subprocess, interpreter, socket, package-manager, host-filesystem, container-socket, browser, or remote-service access is prohibited.
+- Primary EXP-0008 uses one autonomous agent; peer/delegation behavior is deterministic simulation only.
+- A mandatory containment preflight and human phase gate must pass before any autonomous development batch starts.
+- Any containment anomaly terminates the current trajectory and the remaining batch and is not counted as scientific evidence.
 
-The authoritative design is `experiments/manifests/EFGM-EXP-0008.yaml` and `research/EFGM-EXP-0008-GOVERNED-VS-UNGOVERNED-ADAPTATION.md`.
+The mandatory runtime safety contract is:
+
+- `experiments/manifests/EFGM-EXP-0008-safety.yaml`
+- `research/EFGM-EXP-0008-RUNTIME-SAFETY-CONTRACT.md`
+
+The authoritative scientific design remains `experiments/manifests/EFGM-EXP-0008.yaml` and `research/EFGM-EXP-0008-GOVERNED-VS-UNGOVERNED-ADAPTATION.md`; runtime execution is additionally bound by the safety contract above.
