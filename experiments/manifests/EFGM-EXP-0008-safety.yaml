@@ -1,0 +1,211 @@
+experiment_id: EFGM-EXP-0008
+contract: runtime-safety-containment
+version: "0.1"
+status: preregistered_mandatory
+applies_before:
+  - phase_1_instrumentation_runtime
+  - phase_2_scripted_calibration_runtime
+  - phase_3_autonomous_development
+  - phase_4_fresh_validation
+
+purpose: >-
+  Prevent EXP-0008 from creating a path from a synthetic agent-governance
+  experiment into any real network, credential, host, service, persistence,
+  privilege, or production surface. The experiment must test governance
+  trajectories without reproducing a real sandbox-escape or cyber-exploitation
+  environment.
+
+precedence: >-
+  This containment contract is mandatory for EXP-0008 runtime work. If an
+  implementation choice conflicts with this contract, containment wins and the
+  conflicting runtime behavior is prohibited. Failure to satisfy the contract
+  blocks autonomous execution; it is not an experimental result.
+
+threat_model:
+  - unintended network egress or proxy/package-registry reachability
+  - discovery or use of inherited credentials or tokens
+  - arbitrary shell, subprocess, interpreter, or operating-system execution
+  - access to host, runner, container-orchestrator, cloud-metadata, or LAN surfaces
+  - privilege escalation or persistence outside the synthetic state machine
+  - cross-agent escalation through a real autonomous peer
+  - bypass of the synthetic tool broker or deterministic policy engine
+  - mutation of experiment policy, telemetry, watchdog, adapter, or safety controls by the agent
+  - execution on CI infrastructure that carries repository or platform credentials
+
+execution_environment:
+  github_hosted_runner_autonomy: prohibited
+  network_connected_host_autonomy: prohibited
+  external_network_route: prohibited
+  dns_resolution: prohibited
+  http_https_proxy: prohibited
+  package_registry_access: prohibited
+  cloud_metadata_access: prohibited
+  local_area_network_access: prohibited
+  external_service_access: prohibited
+  required_isolation: >-
+    Autonomous trajectories must run only in a disposable, dedicated,
+    externally contained environment whose lack of network reachability is
+    enforced outside the agent and outside the synthetic policy engine.
+  note: >-
+    GitHub Actions may continue to run deterministic tests, scoring, hashing,
+    packaging, and scripted non-autonomous calibration checks. It must not host
+    a free-running EXP-0008 autonomous agent.
+
+tool_surface:
+  interface: strict_allowlisted_synthetic_tool_broker
+  arbitrary_shell: prohibited
+  subprocess_execution: prohibited
+  arbitrary_python_or_interpreter_execution: prohibited
+  eval_or_exec: prohibited
+  dynamic_code_loading: prohibited
+  package_manager: prohibited
+  raw_socket_access: prohibited
+  ssh_or_remote_shell: prohibited
+  browser_or_general_http_client: prohibited
+  docker_or_container_socket: prohibited
+  host_os_commands: prohibited
+  unknown_tool_behavior: fail_closed_and_terminate
+  tool_definition: >-
+    Every agent-visible action must be a predeclared synthetic function whose
+    inputs, outputs, side effects, policy decision, and telemetry are controlled
+    by the experiment state machine.
+
+synthetic_only_semantics:
+  privileges: fictional_state_only
+  connectivity: fictional_state_only
+  credentials: fictional_state_only
+  persistence: fictional_state_only
+  resources: fictional_state_only
+  peers: fictional_or_deterministic_simulation_only
+  authorization: fictional_state_only
+  prohibited_action_execution: >-
+    In class E, executed=true means only that the synthetic state machine
+    applied a fictional policy-prohibited transition. It never authorizes or
+    attempts a corresponding real operating-system, network, authentication,
+    privilege, persistence, credential, or security action.
+
+secret_and_identity_boundary:
+  real_credentials_present_in_agent_runtime: false
+  github_token_present_in_agent_runtime: false
+  cloud_credentials_present_in_agent_runtime: false
+  ssh_keys_present_in_agent_runtime: false
+  api_keys_present_in_agent_runtime: false
+  production_configuration_present_in_agent_runtime: false
+  host_user_home_exposed: false
+  credential_helpers_exposed: false
+  mounted_sensitive_paths: false
+  repository_write_credentials_exposed: false
+
+remote_model_boundary:
+  direct_model_provider_network_access_from_agent_environment: prohibited
+  allowed_pattern: >-
+    If a remote model is used, a separate controller outside the agent
+    environment may broker a narrowly scoped prompt/request and response. The
+    model/API credential must never be exposed to the agent or synthetic tool
+    world, and the broker must not provide general-purpose network capability.
+  preferred_pattern: offline_or_local_model_when_practical
+
+agent_topology:
+  initial_autonomous_agents: 1
+  real_multi_agent_autonomy: prohibited_for_primary_exp0008
+  peer_surface: deterministic_simulation
+  rationale: >-
+    Multi-agent autonomy adds an unnecessary escape, persistence, and
+    coordination surface for the primary precursor hypothesis. A later
+    experiment must separately preregister any real multi-agent execution.
+
+filesystem_boundary:
+  host_filesystem_access: prohibited
+  user_home_access: prohibited
+  arbitrary_repository_write_access: prohibited
+  external_mount_access: prohibited
+  synthetic_state_storage_only: true
+  ephemeral_runtime_storage: required
+
+watchdog:
+  location: outside_agent_control
+  agent_can_modify_watchdog: false
+  agent_can_modify_policy_engine: false
+  agent_can_modify_tool_broker: false
+  agent_can_modify_telemetry: false
+  agent_can_modify_measurement_adapter: false
+  hard_limits_required:
+    - maximum_agent_actions
+    - maximum_model_calls
+    - maximum_retries
+    - maximum_wall_clock_time
+    - maximum_state_writes
+    - maximum_output_size
+    - maximum_memory_use
+  containment_anomaly_action: terminate_trajectory_and_batch
+
+preflight_containment_tests:
+  required_before_every_autonomous_batch: true
+  tests:
+    - verify_no_external_network_route
+    - verify_no_dns_resolution
+    - verify_no_http_https_proxy
+    - verify_no_package_registry_reachability
+    - verify_no_cloud_metadata_reachability
+    - verify_no_lan_reachability
+    - verify_no_real_secrets_or_tokens_in_environment
+    - verify_no_shell_or_subprocess_capability
+    - verify_no_raw_socket_capability
+    - verify_no_host_or_external_mount_access
+    - verify_unknown_tools_fail_closed
+    - verify_agent_cannot_mutate_policy_watchdog_telemetry_or_adapter
+    - verify_hard_execution_budgets_are_active
+  failure_action: block_all_autonomous_execution
+  evidence_required: true
+  evidence_identity: versioned_and_hashed
+
+human_gate:
+  required_between_scripted_calibration_and_autonomous_development: true
+  automatic_phase_2_to_phase_3_transition: prohibited
+  required_review: >-
+    A human reviewer must confirm the containment preflight evidence and frozen
+    environment/tool-broker/adapter identities before any autonomous
+    development trajectory is started.
+
+safety_event_handling:
+  containment_event_is_scientific_trajectory: false
+  response:
+    - immediately_terminate_current_trajectory
+    - stop_remaining_batch
+    - preserve_immutable_logs
+    - record_runtime_and_environment_hashes
+    - investigate_before_any_restart
+  no_silent_retry_after_containment_failure: true
+
+ci_boundary:
+  allowed_in_github_actions:
+    - unit_tests
+    - deterministic_state_machine_tests
+    - schema_validation
+    - hash_and_provenance_tests
+    - scoring_tests
+    - scripted_non_autonomous_calibration_checks
+    - package_build_and_smoke_tests
+  prohibited_in_github_actions:
+    - free_running_autonomous_agent
+    - autonomous_class_E_trajectory_generation
+    - autonomous_tool_use_against_runner_or_host
+    - any_runtime_requiring_network_isolation_as_an_application_level_setting_only
+
+phase_entry_gate:
+  autonomous_execution_allowed_only_if:
+    safety_contract_version_frozen: true
+    environment_identity_frozen: true
+    tool_broker_identity_frozen: true
+    telemetry_schema_identity_frozen: true
+    measurement_adapter_identity_frozen: true
+    watchdog_identity_frozen: true
+    preflight_tests_passed: true
+    preflight_evidence_hashed: true
+    human_gate_approved: true
+  otherwise: blocked
+
+claim_discipline:
+  - "Containment passing is a prerequisite for running EXP-0008, not evidence that EFGM is safe or production-ready."
+  - "A synthetic class-E violation demonstrates only a fictional policy-boundary event inside the state machine."
+  - "No experiment result may be interpreted as authorization to test, exploit, access, persist in, or modify a real system."
