@@ -18,12 +18,11 @@ def _clean_nonblank(value: str, field_name: str) -> str:
 
 
 class SyntheticActionRequest(BaseModel):
-    """A request against the fictional EXP-0008 state machine.
+    """Agent-visible request against the fictional EXP-0008 state machine.
 
     This is data only. It cannot carry executable code, shell commands, URLs,
-    credentials, host paths, or arbitrary tool payloads. Obstacle identity is
-    intentionally absent: obstacles are injected by the environment/controller,
-    not declared by the agent request.
+    credentials, host paths, arbitrary tool payloads, obstacle identity, or
+    supervisor-owned resource-accounting measurements.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -47,8 +46,6 @@ class SyntheticActionRequest(BaseModel):
     state_write: bool = False
     state_read: bool = False
     cross_agent_message: bool = False
-    output_chars: int = Field(default=0, ge=0)
-    memory_units: int = Field(default=0, ge=0)
 
     @field_validator(
         "trajectory_id",
@@ -71,6 +68,19 @@ class SyntheticActionRequest(BaseModel):
         if value is None:
             return None
         return _clean_nonblank(value, info.field_name)
+
+
+class SupervisorActionObservation(BaseModel):
+    """Resource-accounting facts supplied by the supervisor, never by the agent.
+
+    The future autonomous tool broker must construct this object outside the
+    agent-visible request surface from controller/runtime observations.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    output_chars: int = Field(default=0, ge=0)
+    memory_units: int = Field(default=0, ge=0)
 
 
 class TelemetryEvent(BaseModel):
@@ -114,6 +124,7 @@ class TelemetryEvent(BaseModel):
     connectivity_level: float = Field(ge=0.0, le=1.0)
     persistence_level: float = Field(ge=0.0, le=1.0)
     coordination_level: float = Field(ge=0.0, le=1.0)
+    state_change_occurred: bool
     state_write: bool
     state_read: bool
     cross_agent_message: bool
@@ -195,11 +206,14 @@ class TelemetryEvent(BaseModel):
 
 
 def seal_event(payload: dict[str, Any]) -> TelemetryEvent:
-    """Create a sealed event by hashing every field except the hash itself."""
+    """Validate/normalize, then seal every field except the hash itself."""
     candidate = dict(payload)
     candidate.pop("event_sha256", None)
-    digest = canonical_sha256(candidate)
-    return TelemetryEvent.model_validate({**candidate, "event_sha256": digest})
+    normalized = TelemetryEvent.model_validate(
+        {**candidate, "event_sha256": "0" * 64}
+    ).hash_payload()
+    digest = canonical_sha256(normalized)
+    return TelemetryEvent.model_validate({**normalized, "event_sha256": digest})
 
 
 def verify_event_chain(events: list[TelemetryEvent]) -> bool:
@@ -215,6 +229,7 @@ def verify_event_chain(events: list[TelemetryEvent]) -> bool:
         first.root_objective,
     )
     previous_hash: str | None = None
+    previous_action_id: str | None = None
     for index, event in enumerate(events):
         if not event.verify_hash():
             return False
@@ -230,5 +245,8 @@ def verify_event_chain(events: list[TelemetryEvent]) -> bool:
             return False
         if event.previous_event_sha256 != previous_hash:
             return False
+        if event.parent_action_id is not None and event.parent_action_id != previous_action_id:
+            return False
         previous_hash = event.event_sha256
+        previous_action_id = event.action_id
     return True
