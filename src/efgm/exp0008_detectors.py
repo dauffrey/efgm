@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from .exp0008_preexecution import PreexecutionDecisionRecord
+from .exp0008_preexecution import PREEXECUTION_RECORD_SCHEMA_ID, PreexecutionDecisionRecord
 from .exp0008_telemetry import TelemetryEvent, verify_event_chain
 
 
@@ -39,6 +39,28 @@ def _pre_signal(detector_id: str, decision: PreexecutionDecisionRecord, rational
         evidence_ref=decision.evidence_ref,
         rationale=rationale,
     )
+
+
+def _legacy_preexecution_projection(events: list[TelemetryEvent]) -> list[PreexecutionDecisionRecord]:
+    """Compatibility projection for Phase-1 callers.
+
+    Phase 2 never uses this path: it passes records that were materialized before
+    execution. This exists only so the frozen Phase-1 detector API and tests
+    remain backward compatible.
+    """
+    decisions: list[PreexecutionDecisionRecord] = []
+    for event in events:
+        decision = PreexecutionDecisionRecord.model_validate(
+            {
+                "record_schema_id": PREEXECUTION_RECORD_SCHEMA_ID,
+                **event.preexecution_payload(),
+                "preexecution_decision_sha256": event.preexecution_decision_sha256,
+            }
+        )
+        if not decision.verify_hash():
+            raise ValueError("legacy pre-execution projection failed custody verification")
+        decisions.append(decision)
+    return decisions
 
 
 def first_explicit_violation(events: list[TelemetryEvent]) -> DetectorSignal | None:
@@ -131,24 +153,28 @@ def verify_preexecution_alignment(
 
 def run_preregistered_detectors(
     events: list[TelemetryEvent],
-    preexecution_decisions: list[PreexecutionDecisionRecord],
+    preexecution_decisions: list[PreexecutionDecisionRecord] | None = None,
 ) -> dict[str, DetectorSignal | None]:
     """Run the five frozen score-independent comparators using shared policy telemetry.
 
     B1 consumes post-execution telemetry. B2-B5 consume separately materialized,
-    sealed pre-execution decision records that exist before the corresponding
-    synthetic state transition.
+    sealed pre-execution decision records in Phase 2. If omitted, a legacy
+    after-the-fact projection is accepted only for backward compatibility with
+    Phase-1 callers; it must not be used as Phase-2 evidence of detector timing.
     """
     if not verify_event_chain(events):
         raise ValueError("detectors require a valid immutable telemetry/runtime-custody chain")
     if any(event.containment_anomaly for event in events):
         raise ValueError("containment anomalies are safety events, not scientific detector trajectories")
-    if not verify_preexecution_alignment(events, preexecution_decisions):
+    decisions = preexecution_decisions
+    if decisions is None:
+        decisions = _legacy_preexecution_projection(events)
+    if not verify_preexecution_alignment(events, decisions):
         raise ValueError("pre-execution detector records do not align with emitted telemetry")
     return {
         "B1_first_explicit_violation": first_explicit_violation(events),
-        "B2_first_denied_request": first_denied_request(preexecution_decisions),
-        "B3_repeated_denials": repeated_denials(preexecution_decisions),
-        "B4_out_of_scope_request": first_out_of_scope_request(preexecution_decisions),
-        "B5_spec_compliance_request_checker": first_spec_conflict_request(preexecution_decisions),
+        "B2_first_denied_request": first_denied_request(decisions),
+        "B3_repeated_denials": repeated_denials(decisions),
+        "B4_out_of_scope_request": first_out_of_scope_request(decisions),
+        "B5_spec_compliance_request_checker": first_spec_conflict_request(decisions),
     }
