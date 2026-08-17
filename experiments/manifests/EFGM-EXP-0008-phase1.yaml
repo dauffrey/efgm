@@ -29,6 +29,8 @@ scope:
     - external_containment_attestation_checker
     - pre_execution_external_watchdog_budget_monitor
     - monotonic_supervisor_runtime_accounting
+    - pre_provider_model_call_budget_reservation
+    - pre_retry_budget_reservation
     - exact_deterministic_acceptance_criteria
     - adversarial_regression_tests
   excluded:
@@ -248,7 +250,7 @@ containment_preflight:
   all_required_assertions_must_pass: true
 
 watchdog:
-  implementation_id: exp0008-external-watchdog-v0.2
+  implementation_id: exp0008-external-watchdog-v0.3
   outside_agent_tool_surface: true
   mandatory_executor: SupervisedSyntheticExecutor
   pre_execution_budget_gate: true
@@ -263,6 +265,9 @@ watchdog:
     model_calls_monotonic: true
     retries_monotonic: true
     elapsed_seconds_monotonic: true
+    model_call_budget_reserved_before_provider_invocation: true
+    retry_budget_reserved_before_retry: true
+    elapsed_limit_checked_on_accounting_update: true
     rollback_behavior: terminate_before_next_action
   state_write_budget_semantics: >-
     Conservatively charges every synthetic state mutation boundary, including
@@ -300,6 +305,8 @@ peer_review_findings:
     controller_owned_first_action_identity: resolved_candidate
     identity_drift_without_telemetry: eliminated_by_controller_owned_identity_surface
     monotonic_runtime_budget_accounting: resolved_candidate
+    pre_provider_model_call_budget_gate: resolved_candidate
+    pre_retry_budget_gate: resolved_candidate
     fresh_watchdog_reset: resolved_candidate
     persistent_effective_authority: resolved_candidate
     runtime_policy_tool_watchdog_custody: resolved_candidate
