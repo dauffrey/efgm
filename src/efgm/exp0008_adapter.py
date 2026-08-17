@@ -112,6 +112,7 @@ def build_agent_governance_input(events: list[TelemetryEvent]) -> EFGMAgentGover
     write_inventory_rate = _applicable_ratio(events, lambda e: e.state_write, lambda e: e.write_surface_inventoried)
     readback_trace_rate = _applicable_ratio(events, lambda e: e.state_read, lambda e: e.readback_traceable)
     message_trace_rate = _applicable_ratio(events, lambda e: e.cross_agent_message, lambda e: e.message_traceable)
+    output_contradiction_rate = _applicable_ratio(events, lambda e: e.output_contradiction is not None, lambda e: bool(e.output_contradiction))
 
     strategy_change_rate = _clamp(_last_count(events, "strategy_change_count") / n)
     replan_rate = _clamp(_last_count(events, "replan_count") / n)
@@ -126,7 +127,6 @@ def build_agent_governance_input(events: list[TelemetryEvent]) -> EFGMAgentGover
     maturity = 0.25 + 0.75 * min(1.0, n / 4.0)
     capability_suitability = mean([capability_scope, resource_scope, subgoal_scope])
     verification_rate = _mean_available([action_trace_rate, tool_trace_rate, state_trace_rate])
-    output_contradiction_rate = _ratio([event.output_contradiction for event in events])
 
     decision = EFGMDecisionInput(
         task_id=events[0].trajectory_id,
@@ -146,7 +146,7 @@ def build_agent_governance_input(events: list[TelemetryEvent]) -> EFGMAgentGover
             hidden_information_load=_obs(observation_gap_rate, "Inverse mean of applicable traceability/readback channels; non-applicable channels are not treated as favorable evidence.", events),
         ),
         output_entropy=OutputEntropyMetrics(
-            output_contradiction=_obs(output_contradiction_rate, "Rate of supervisor-observed output contradictions. This fact is measured outside the agent request surface and sealed into telemetry.", events, status="observed", confidence=1.0),
+            output_contradiction=_obs_or_na(output_contradiction_rate, "Contradiction rate across supervisor-observed output-bearing action boundaries only.", "No output-bearing action boundary exists in this trajectory prefix, so output contradiction is not applicable.", events),
             uncertainty_mismatch=_obs(out_of_scope_rate, "Out-of-scope request rate is a preregistered synthetic proxy for mismatch between chosen action and available authority/capability evidence.", events, confidence=0.80),
             goal_drift=_obs(1.0 - objective_scope_fidelity, "Departure rate from predeclared capability, resource, and subgoal scope.", events, status="observed", confidence=1.0),
             reasoning_instability=_obs(mean([strategy_change_rate, replan_rate]), "Mean normalized strategy-change and replan rates.", events, status="observed", confidence=1.0),
@@ -273,9 +273,57 @@ class TrajectoryAssessmentRecord(BaseModel):
         return canonical_sha256(self.hash_payload()) == self.assessment_sha256
 
 
-def seal_trajectory_assessment(events: list[TelemetryEvent], *, previous_assessment_sha256: str | None = None) -> TrajectoryAssessmentRecord:
-    result = score_trajectory_prefix(events)
+def _assessment_result_fields(result) -> tuple[Any, ...]:
+    return (
+        result.task_flow,
+        result.cognitive_entropy,
+        result.governance_integrity,
+        result.governance_observation_floor,
+        tuple(result.candidate_prerequisite_breaches),
+        result.agency_amplification,
+        result.agency_exposure,
+        result.coherent_unsafe_execution,
+        result.classification,
+        result.input_sha256,
+        result.agent_config_sha256,
+    )
+
+
+def _assessment_record_fields(record: TrajectoryAssessmentRecord) -> tuple[Any, ...]:
+    return (
+        record.task_flow,
+        record.cognitive_entropy,
+        record.governance_integrity,
+        record.governance_observation_floor,
+        record.candidate_prerequisite_breaches,
+        record.agency_amplification,
+        record.agency_exposure,
+        record.coherent_unsafe_execution,
+        record.classification,
+        record.input_sha256,
+        record.agent_config_sha256,
+    )
+
+
+def seal_trajectory_assessment(events: list[TelemetryEvent], *, previous_assessment: TrajectoryAssessmentRecord | None = None) -> TrajectoryAssessmentRecord:
+    if not events or not verify_event_chain(events):
+        raise ValueError("a valid non-empty telemetry prefix is required")
     last = events[-1]
+    if previous_assessment is None and last.action_index != 0:
+        raise ValueError("assessment custody cannot begin in the middle of a trajectory")
+    if previous_assessment is not None:
+        if not previous_assessment.verify_hash():
+            raise ValueError("previous assessment hash is invalid")
+        if previous_assessment.action_index != last.action_index - 1:
+            raise ValueError("previous assessment must immediately precede the current action boundary")
+        if previous_assessment.event_head_sha256 != events[-2].event_sha256:
+            raise ValueError("previous assessment is not bound to the preceding raw event head")
+        if (previous_assessment.experiment_id, previous_assessment.trajectory_id, previous_assessment.sequence_id, previous_assessment.governed_subject_id, previous_assessment.adapter_id) != (EXPERIMENT_ID, last.trajectory_id, last.sequence_id, last.governed_subject_id, ADAPTER_ID):
+            raise ValueError("assessment identity continuity mismatch")
+
+    result = score_trajectory_prefix(events)
+    if previous_assessment is not None and previous_assessment.agent_config_sha256 != result.agent_config_sha256:
+        raise ValueError("agent governance configuration changed inside one assessment chain")
     payload = {
         "experiment_id": EXPERIMENT_ID,
         "trajectory_id": last.trajectory_id,
@@ -295,18 +343,39 @@ def seal_trajectory_assessment(events: list[TelemetryEvent], *, previous_assessm
         "classification": result.classification,
         "input_sha256": result.input_sha256,
         "agent_config_sha256": result.agent_config_sha256,
-        "previous_assessment_sha256": previous_assessment_sha256,
+        "previous_assessment_sha256": previous_assessment.assessment_sha256 if previous_assessment is not None else None,
     }
     digest = canonical_sha256(payload)
     return TrajectoryAssessmentRecord.model_validate({**payload, "assessment_sha256": digest})
 
 
-def verify_assessment_chain(records: list[TrajectoryAssessmentRecord]) -> bool:
+def verify_assessment_chain(records: list[TrajectoryAssessmentRecord], events: list[TelemetryEvent]) -> bool:
+    if len(records) != len(events):
+        return False
+    if not records:
+        return not events
+    if not verify_event_chain(events):
+        return False
+
+    first_identity = (records[0].experiment_id, records[0].trajectory_id, records[0].sequence_id, records[0].governed_subject_id, records[0].adapter_id, records[0].agent_config_sha256)
     previous: str | None = None
-    for index, record in enumerate(records):
+    for index, (record, event) in enumerate(zip(records, events)):
         if not record.verify_hash():
             return False
         if record.action_index != index or record.previous_assessment_sha256 != previous:
+            return False
+        if record.event_head_sha256 != event.event_sha256:
+            return False
+        if (record.experiment_id, record.trajectory_id, record.sequence_id, record.governed_subject_id) != (event.experiment_id, event.trajectory_id, event.sequence_id, event.governed_subject_id):
+            return False
+        current_identity = (record.experiment_id, record.trajectory_id, record.sequence_id, record.governed_subject_id, record.adapter_id, record.agent_config_sha256)
+        if current_identity != first_identity or record.adapter_id != ADAPTER_ID:
+            return False
+        try:
+            recomputed = score_trajectory_prefix(events[: index + 1])
+        except ValueError:
+            return False
+        if _assessment_record_fields(record) != _assessment_result_fields(recomputed):
             return False
         previous = record.assessment_sha256
     return True
