@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .scoring_v2 import canonical_sha256
 
@@ -18,7 +18,7 @@ def _clean_nonblank(value: str, field_name: str) -> str:
 
 
 class SyntheticActionRequest(BaseModel):
-    """Agent-visible request against the fictional EXP-0008 state machine."""
+    """Agent-visible proposal against controller-owned synthetic tool contracts."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -28,7 +28,6 @@ class SyntheticActionRequest(BaseModel):
     root_objective: str
     current_subgoal: str
     strategy_id: str
-    parent_action_id: str | None = None
     tool_requested: str
     capability_requested: str
     resource_requested: str
@@ -36,9 +35,6 @@ class SyntheticActionRequest(BaseModel):
     requested_connectivity: float = Field(default=0.0, ge=0.0, le=1.0)
     requested_persistence: float = Field(default=0.0, ge=0.0, le=1.0)
     requested_coordination: float = Field(default=0.0, ge=0.0, le=1.0)
-    state_write: bool = False
-    state_read: bool = False
-    cross_agent_message: bool = False
 
     @field_validator(
         "trajectory_id", "sequence_id", "governed_subject_id", "root_objective",
@@ -49,21 +45,22 @@ class SyntheticActionRequest(BaseModel):
     def validate_required_text(cls, value: str, info):
         return _clean_nonblank(value, info.field_name)
 
-    @field_validator("parent_action_id")
-    @classmethod
-    def validate_optional_text(cls, value: str | None, info):
-        if value is None:
-            return None
-        return _clean_nonblank(value, info.field_name)
-
 
 class SupervisorActionObservation(BaseModel):
-    """Controller/runtime facts that are never accepted from the agent request."""
+    """Controller/runtime facts outside the agent-visible request surface."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     output_chars: int = Field(ge=0)
     memory_units: int = Field(ge=0)
-    output_contradiction: bool
+    output_contradiction: bool | None = None
+
+    @model_validator(mode="after")
+    def validate_output_applicability(self):
+        if self.output_chars == 0 and self.output_contradiction is not None:
+            raise ValueError("output_contradiction must be null when no output was emitted")
+        if self.output_chars > 0 and self.output_contradiction is None:
+            raise ValueError("output_contradiction must be observed when output_chars is positive")
+        return self
 
 
 class TelemetryEvent(BaseModel):
@@ -86,6 +83,7 @@ class TelemetryEvent(BaseModel):
     tool_requested: str
     capability_requested: str
     resource_requested: str
+    tool_contract_matched: bool
     policy_rule_ids: tuple[str, ...]
     policy_permitted: bool
     request_denied: bool
@@ -127,7 +125,7 @@ class TelemetryEvent(BaseModel):
     containment_anomaly: bool = False
     output_chars: int = Field(ge=0)
     memory_units: int = Field(ge=0)
-    output_contradiction: bool
+    output_contradiction: bool | None = None
     previous_event_sha256: str | None = None
     event_sha256: str
 
@@ -156,6 +154,14 @@ class TelemetryEvent(BaseModel):
         if len(cleaned) != len(set(cleaned)):
             raise ValueError("policy_rule_ids must not contain duplicates")
         return cleaned
+
+    @model_validator(mode="after")
+    def validate_output_applicability(self):
+        if self.output_chars == 0 and self.output_contradiction is not None:
+            raise ValueError("output_contradiction must be null when no output was emitted")
+        if self.output_chars > 0 and self.output_contradiction is None:
+            raise ValueError("output_contradiction must be observed when output_chars is positive")
+        return self
 
     @property
     def evidence_ref(self) -> str:
@@ -192,7 +198,9 @@ def verify_event_chain(events: list[TelemetryEvent]) -> bool:
             return False
         if event.previous_event_sha256 != previous_hash:
             return False
-        if event.parent_action_id is not None and event.parent_action_id != previous_action_id:
+        if index == 0 and event.parent_action_id is not None:
+            return False
+        if index > 0 and event.parent_action_id != previous_action_id:
             return False
         previous_hash = event.event_sha256
         previous_action_id = event.action_id
