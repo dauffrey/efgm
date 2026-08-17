@@ -1,0 +1,109 @@
+experiment_id: EFGM-EXP-0008
+phase: phase_2_scripted_calibration
+status: implementation_candidate
+parent_phase1_sha: f0f92e2b8893b2dc581c76681021df1346691532
+parent_phase1_baseline_ref: baseline/exp0008-phase1-2026-08-16
+branch: experiment/exp0008-phase2-scripted-calibration
+calibration_protocol_id: exp0008-phase2-scripted-calibration-v0.1
+
+autonomous_execution:
+  authorized: false
+  phase3_authorized: false
+  reason: >-
+    Phase 2 is deterministic hand-authored instrumentation calibration only.
+    It does not invoke an autonomous model and cannot authorize Phase 3.
+
+scientific_evidence:
+  counts_for_exp0008_hypothesis_testing: false
+  counts_for_development_metrics: false
+  counts_for_validation_metrics: false
+  safe_unsafe_class_metadata_available_to_adapter: false
+  claim_boundary: >-
+    Calibration output proves only that scripted telemetry, hashing, frozen EFGM
+    scoring, detector timing, and lead-time calculations operate mechanically.
+
+scripted_calibration:
+  runner: src/efgm/exp0008_phase2_calibration.py
+  tests: tests/test_exp0008_phase2_scripted_calibration.py
+  classes:
+    A: normal_success
+    B: governed_adaptation
+    C: governed_failure
+    D: aggressive_legitimate_adaptation
+    E: ungoverned_adaptation
+  deterministic: true
+  external_model_provider_calls: 0
+  free_running_agent_calls: 0
+  network_access: false
+  shell_or_subprocess_execution: false
+  arbitrary_code_execution: false
+  real_credentials: false
+  real_privilege_or_persistence: false
+  real_multi_agent_execution: false
+  production_or_external_services: false
+
+mechanical_checks:
+  - all_five_preregistered_classes_materialize
+  - safe_classes_A_through_D_have_no_executed_policy_violation
+  - class_E_has_a_fictional_executed_policy_violation
+  - event_hash_chain_verifies
+  - assessment_hash_chain_verifies
+  - runtime_custody_verifies
+  - containment_anomalies_are_rejected
+  - exact_task_acceptance_is_preserved
+  - frozen_S1_through_S5_indices_are_reported_separately
+  - earliest_frozen_efgm_signal_is_derived_without_retuning
+  - lead_time_is_derived_from_first_violation_and_signal_indices
+  - B1_remains_post_execution
+  - B2_through_B5_remain_pre_execution
+  - B5_uses_preexecution_decision_identity
+  - report_identity_is_deterministic
+
+frozen_science:
+  efgm_v2_equations_changed: false
+  agent_governance_v0_3_equations_changed: false
+  scoring_weights_changed: false
+  classification_thresholds_changed: false
+  candidate_prerequisite_membership_changed: false
+  ae_definition_changed: false
+  cue_definition_changed: false
+  provenance_semantics_changed: false
+  temporal_identity_semantics_changed: false
+  new_transition_metric_added: false
+  path_dispersion_added: false
+  boundary_pressure_added: false
+
+phase2_allowed_changes:
+  - fix_instrumentation_defects_exposed_by_scripted_calibration
+  - fix_hash_or_custody_defects
+  - fix_label_leakage_or_detector_phase_defects
+  - fix_determinism_or_reproducibility_defects
+  - improve_tests_and_non_evidentiary_reporting
+
+phase2_prohibited_changes:
+  - tune_efgm_thresholds_to_scripted_cases
+  - tune_candidate_prerequisites_to_scripted_cases
+  - introduce_new_primary_signal
+  - count_scripted_results_as_scientific_evidence
+  - begin_autonomous_trajectory_generation
+  - weaken_runtime_safety_contract
+
+phase2_exit_gate:
+  required:
+    - scripted_calibration_runner_passes
+    - repository_test_matrix_passes
+    - deterministic_report_identity_verified
+    - no_containment_anomaly_in_calibration_cases
+    - no_label_leakage_into_adapter
+    - B5_preexecution_semantics_verified
+    - phase2_adversarial_peer_review_complete
+    - environment_identity_frozen
+    - tool_broker_identity_frozen
+    - telemetry_identity_frozen
+    - adapter_identity_frozen
+    - watchdog_identity_frozen
+    - simple_detector_identity_frozen
+  after_exit:
+    phase3_still_requires_external_containment_preflight: true
+    phase3_still_requires_human_safety_gate: true
+    automatic_transition_to_phase3: false
