@@ -1,6 +1,6 @@
 experiment_id: EFGM-EXP-0008
 phase: phase_2_scripted_calibration
-status: hardened_implementation_candidate
+status: hardened_cross_runtime_candidate
 parent_phase1_sha: f0f92e2b8893b2dc581c76681021df1346691532
 parent_phase1_baseline_ref: baseline/exp0008-phase1-2026-08-16
 branch: experiment/exp0008-phase2-scripted-calibration
@@ -80,6 +80,7 @@ mechanical_checks:
   - boundary_phase_is_retained_in_timing_records
   - report_identity_is_deterministic
   - instrument_freeze_record_is_bound_into_report
+  - cross_runtime_report_identity_is_pinned_in_matrix_tests
 
 instrument_freeze:
   source_identity_type: git_blob_sha_bound_by_sha256_record
@@ -87,15 +88,17 @@ instrument_freeze:
   phase1_telemetry_blob: 521fdfb16bea48c1c37d2f6642ab1bab053a8e15
   phase1_adapter_blob: c417bc5e72e152c9d462b605de14bd3ff3150735
   phase1_watchdog_blob: 49037cd4561ac5ef83bb440ff7cc1c4340afe502
-  detector_blob: e4059dfc29f5fb6a5df414604e5f86f59800654d
+  detector_blob: bb3828b2070c0c740f14ed7874bc30ff4220b759
   preexecution_materializer_blob: 4e015c98c99c032a50fcc46e9c01d4a4eafcc83c
+  instrument_set_sha256: 36f4cf0512e4b0756e69d92b26736a4c44b20c7c406a204b3c9cfc04fba8ba29
   runtime_matrix:
     - '3.10'
     - '3.11'
     - '3.12'
     - '3.13'
   pydantic_api_constraint: '>=2.0'
-  fixed_cross_runtime_report_sha256: pending_after_first_hardened_ci_run
+  pydantic_runtime_version: '2.13.4'
+  fixed_cross_runtime_report_sha256: 5f2c1f60cd2e9494f9f2fac2170be1abc8642195c2d7bf2442ad30adf7605c0e
 
 frozen_science:
   efgm_v2_equations_changed: false
