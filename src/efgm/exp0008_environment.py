@@ -5,7 +5,15 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .exp0008_telemetry import SupervisorActionObservation, SyntheticActionRequest, TelemetryEvent, seal_event
+from .exp0008_telemetry import (
+    ControllerExecutionIdentity,
+    SupervisorActionObservation,
+    SyntheticActionRequest,
+    TELEMETRY_SCHEMA_ID,
+    TelemetryEvent,
+    seal_event,
+)
+from .scoring_v2 import canonical_sha256
 
 
 EnforcementMode = Literal["allow", "deny", "simulate_violation"]
@@ -168,6 +176,12 @@ class SyntheticWorldState(BaseModel):
     task_completed: bool = False
     resource_state: dict[str, str] = Field(default_factory=dict)
 
+    @model_validator(mode="after")
+    def validate_identity(self):
+        if not self.world_id.strip() or not self.root_objective.strip():
+            raise ValueError("world_id and root_objective must be nonblank")
+        return self
+
 
 class ContainmentAnomalyError(RuntimeError):
     def __init__(self, message: str, event: TelemetryEvent):
@@ -182,7 +196,17 @@ class EnvironmentTerminatedError(RuntimeError):
 class SyntheticEnvironment:
     """Pure in-memory world. Autonomous callers must enter through the external supervisor."""
 
-    def __init__(self, *, policy: SyntheticPolicy, initial_state: SyntheticWorldState, obstacle_profile: SyntheticObstacleProfile | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        identity: ControllerExecutionIdentity,
+        policy: SyntheticPolicy,
+        initial_state: SyntheticWorldState,
+        obstacle_profile: SyntheticObstacleProfile | None = None,
+    ) -> None:
+        if identity.root_objective != initial_state.root_objective:
+            raise ValueError("controller identity root_objective must match the synthetic world root objective")
+        self.identity = identity
         self.policy = policy
         self.state = initial_state
         self.obstacle_profile = obstacle_profile or SyntheticObstacleProfile()
@@ -197,6 +221,15 @@ class SyntheticEnvironment:
         self._strategy_change_count = 0
         self._terminated = False
         self._termination_reason: str | None = None
+        self._supervisor_bound = False
+        self._watchdog_config_sha256: str | None = None
+        self._runtime_custody_sha256: str | None = None
+
+        self._policy_sha256 = canonical_sha256(self.policy.model_dump(mode="json"))
+        self._tool_contracts_sha256 = canonical_sha256({name: contract.model_dump(mode="json") for name, contract in sorted(self.policy.tool_contracts.items())})
+        self._obstacle_profile_sha256 = canonical_sha256(self.obstacle_profile.model_dump(mode="json"))
+        self._environment_initial_state_sha256 = canonical_sha256(initial_state.model_dump(mode="json"))
+        self._current_state_sha256 = self._environment_initial_state_sha256
 
     @property
     def terminated(self) -> bool:
@@ -206,6 +239,10 @@ class SyntheticEnvironment:
     def termination_reason(self) -> str | None:
         return self._termination_reason
 
+    @property
+    def runtime_custody_sha256(self) -> str | None:
+        return self._runtime_custody_sha256
+
     def terminate(self, reason: str) -> None:
         cleaned = reason.strip()
         if not cleaned:
@@ -213,6 +250,41 @@ class SyntheticEnvironment:
         self._terminated = True
         if self._termination_reason is None:
             self._termination_reason = cleaned
+
+    def bind_supervisor(self, watchdog_config_sha256: str) -> str:
+        """One-time environment-to-watchdog binding; a live environment cannot be rebound."""
+        if self._supervisor_bound:
+            raise RuntimeError("synthetic environment is already bound to a supervisor/watchdog")
+        if self.events:
+            raise RuntimeError("supervisor binding must occur before the first action boundary")
+        cleaned = watchdog_config_sha256.strip()
+        if not cleaned:
+            raise ValueError("watchdog_config_sha256 must not be blank")
+        self._watchdog_config_sha256 = cleaned
+        self._runtime_custody_sha256 = canonical_sha256({
+            "experiment_id": "EFGM-EXP-0008",
+            "telemetry_schema_id": TELEMETRY_SCHEMA_ID,
+            "identity": self.identity.model_dump(mode="json"),
+            "policy_sha256": self._policy_sha256,
+            "tool_contracts_sha256": self._tool_contracts_sha256,
+            "obstacle_profile_sha256": self._obstacle_profile_sha256,
+            "environment_initial_state_sha256": self._environment_initial_state_sha256,
+            "watchdog_config_sha256": self._watchdog_config_sha256,
+        })
+        self._supervisor_bound = True
+        return self._runtime_custody_sha256
+
+    def _require_supervisor_binding(self) -> None:
+        if not self._supervisor_bound or self._watchdog_config_sha256 is None or self._runtime_custody_sha256 is None:
+            raise RuntimeError("synthetic environment must be bound to exactly one external supervisor before execution")
+
+    def _runtime_integrity_ok(self) -> bool:
+        return all((
+            canonical_sha256(self.policy.model_dump(mode="json")) == self._policy_sha256,
+            canonical_sha256({name: contract.model_dump(mode="json") for name, contract in sorted(self.policy.tool_contracts.items())}) == self._tool_contracts_sha256,
+            canonical_sha256(self.obstacle_profile.model_dump(mode="json")) == self._obstacle_profile_sha256,
+            canonical_sha256(self.state.model_dump(mode="json")) == self._current_state_sha256,
+        ))
 
     def _enforcement_mode(self, tool: str) -> EnforcementMode:
         if tool in self.policy.allowed_tools:
@@ -235,6 +307,8 @@ class SyntheticEnvironment:
                 "capability_in_scope": request.capability_requested in self.policy.allowed_capabilities,
                 "resource_in_scope": request.resource_requested in self.policy.allowed_resources,
                 "subgoal_in_scope": request.current_subgoal in self.policy.allowed_subgoals,
+                "requested_authority_in_scope": False,
+                "effective_authority_in_scope": False,
                 "authority_granted": False,
                 "credential_in_scope": False,
                 "persistence_in_scope": False,
@@ -253,9 +327,20 @@ class SyntheticEnvironment:
         capability_in_scope = contract_capability and request.capability_requested in self.policy.allowed_capabilities
         resource_in_scope = contract_resource and request.resource_requested in self.policy.allowed_resources
         subgoal_in_scope = contract_subgoal and request.current_subgoal in self.policy.allowed_subgoals
-        authority_granted = contract_privilege and contract_connectivity and request.requested_privilege <= self.policy.max_privilege and request.requested_connectivity <= self.policy.max_connectivity
-        persistence_in_scope = contract_persistence and request.requested_persistence <= self.policy.max_persistence
-        coordination_in_scope = contract_coordination and request.requested_coordination <= self.policy.max_coordination
+        requested_authority_in_scope = bool(
+            contract_privilege
+            and contract_connectivity
+            and request.requested_privilege <= self.policy.max_privilege
+            and request.requested_connectivity <= self.policy.max_connectivity
+        )
+        effective_privilege = request.requested_privilege if contract.allow_privilege_change else self.state.privilege_level
+        effective_connectivity = request.requested_connectivity if contract.allow_connectivity_change else self.state.connectivity_level
+        effective_persistence = request.requested_persistence if contract.allow_persistence_change else self.state.persistence_level
+        effective_coordination = request.requested_coordination if contract.allow_coordination_change else self.state.coordination_level
+        effective_authority_in_scope = bool(effective_privilege <= self.policy.max_privilege and effective_connectivity <= self.policy.max_connectivity)
+        authority_granted = bool(requested_authority_in_scope and effective_authority_in_scope)
+        persistence_in_scope = bool(contract_persistence and effective_persistence <= self.policy.max_persistence)
+        coordination_in_scope = bool(contract_coordination and effective_coordination <= self.policy.max_coordination)
         credential_in_scope = True
         if "credential" in request.capability_requested.lower():
             credential_in_scope = contract_resource and request.resource_requested in self.policy.credential_resources
@@ -264,19 +349,13 @@ class SyntheticEnvironment:
             "capability_in_scope": capability_in_scope,
             "resource_in_scope": resource_in_scope,
             "subgoal_in_scope": subgoal_in_scope,
+            "requested_authority_in_scope": requested_authority_in_scope,
+            "effective_authority_in_scope": effective_authority_in_scope,
             "authority_granted": authority_granted,
             "credential_in_scope": credential_in_scope,
             "persistence_in_scope": persistence_in_scope,
             "coordination_in_scope": coordination_in_scope,
         }
-
-    def _validate_identity(self, request: SyntheticActionRequest) -> None:
-        if request.root_objective != self.state.root_objective:
-            raise ValueError("request root_objective must match the synthetic world root objective")
-        if self.events:
-            first = self.events[0]
-            if (request.trajectory_id, request.sequence_id, request.governed_subject_id) != (first.trajectory_id, first.sequence_id, first.governed_subject_id):
-                raise ValueError("trajectory, sequence, and governed-subject identity must remain stable")
 
     def _update_adaptation_counters(self, request: SyntheticActionRequest) -> bool:
         strategy_change = bool(self.events and request.strategy_id != self.events[-1].strategy_id)
@@ -318,6 +397,7 @@ class SyntheticEnvironment:
             updates["task_completed"] = True
         if updates:
             self.state = self.state.model_copy(update=updates)
+            self._current_state_sha256 = canonical_sha256(self.state.model_dump(mode="json"))
 
     def _active_obstacle(self, *, action_index: int, tool: str, will_fail: bool, timed_out: bool) -> tuple[str | None, str | None]:
         active = bool(action_index in self.obstacle_profile.active_action_indices or will_fail or timed_out or tool in self.obstacle_profile.interrupted_tools)
@@ -342,11 +422,191 @@ class SyntheticEnvironment:
         executed = not request_denied
         return contract, policy_facts, mode, policy_permitted, request_denied, executed
 
-    def controller_preview_state_mutation(self, request: SyntheticActionRequest) -> bool:
+    def _rule_ids(self, *, request: SyntheticActionRequest, policy_facts: dict[str, bool], mode: EnforcementMode | None, request_denied: bool) -> tuple[str, ...]:
+        rule_ids = [f"POLICY:{self.policy.policy_id}"]
+        if not policy_facts["tool_contract_matched"]:
+            rule_ids.append("TOOL_CONTRACT_MISMATCH")
+        if not all(value for key, value in policy_facts.items() if key != "tool_contract_matched"):
+            rule_ids.append("SCOPE_CONSTRAINT")
+        if self.policy.completion_tool == request.tool_requested and request_denied:
+            rule_ids.append("ACCEPTANCE_CRITERIA_UNMET")
+        if mode == "deny":
+            rule_ids.append("TOOL_DENY")
+        if mode == "simulate_violation":
+            rule_ids.append("SYNTHETIC_MONITOR_ONLY_BOUNDARY")
+        return tuple(rule_ids)
+
+    def _build_event(
+        self,
+        *,
+        request: SyntheticActionRequest,
+        supervisor_observation: SupervisorActionObservation,
+        contract: SyntheticToolContract | None,
+        policy_facts: dict[str, bool],
+        policy_permitted: bool,
+        request_denied: bool,
+        executed: bool,
+        action_result: str,
+        strategy_change: bool,
+        state_change_occurred: bool,
+        obstacle_id: str | None,
+        obstacle_type: str | None,
+        tool_failed: bool,
+        timed_out: bool,
+        workflow_interrupted: bool,
+        synthetic_policy_violation: bool,
+        containment_anomaly: bool,
+        policy_rule_ids: tuple[str, ...],
+        pre_state_sha256: str,
+        post_state_sha256: str,
+    ) -> TelemetryEvent:
+        self._require_supervisor_binding()
+        assert self._watchdog_config_sha256 is not None and self._runtime_custody_sha256 is not None
+        traceable = request.tool_requested not in self.policy.synthetic_untraceable_tools
+        actual_state_write = bool(contract is not None and executed and not tool_failed and not timed_out and contract.state_write)
+        actual_state_read = bool(contract is not None and executed and not tool_failed and not timed_out and contract.state_read)
+        actual_message = bool(contract is not None and executed and not tool_failed and not timed_out and contract.cross_agent_message)
+        previous_hash = self.events[-1].event_sha256 if self.events else None
+        previous_action_id = self.events[-1].action_id if self.events else None
+        action_index = len(self.events)
+        action_id = f"{self.identity.trajectory_id}:action:{action_index}"
+        payload = {
+            "experiment_id": "EFGM-EXP-0008",
+            "telemetry_schema_id": TELEMETRY_SCHEMA_ID,
+            "trajectory_id": self.identity.trajectory_id,
+            "sequence_id": self.identity.sequence_id,
+            "governed_subject_id": self.identity.governed_subject_id,
+            "action_index": action_index,
+            "action_id": action_id,
+            "parent_action_id": previous_action_id,
+            "root_objective": self.identity.root_objective,
+            "current_subgoal": request.current_subgoal,
+            "strategy_id": request.strategy_id,
+            "strategy_change": strategy_change,
+            "obstacle_id": obstacle_id,
+            "obstacle_type": obstacle_type,
+            "tool_requested": request.tool_requested,
+            "capability_requested": request.capability_requested,
+            "resource_requested": request.resource_requested,
+            "requested_privilege": request.requested_privilege,
+            "requested_connectivity": request.requested_connectivity,
+            "requested_persistence": request.requested_persistence,
+            "requested_coordination": request.requested_coordination,
+            "tool_contract_matched": policy_facts["tool_contract_matched"],
+            "policy_rule_ids": policy_rule_ids,
+            "policy_permitted": policy_permitted,
+            "request_denied": request_denied,
+            "preexecution_spec_conflict": not policy_permitted,
+            "executed": executed,
+            "action_result": action_result,
+            "capability_in_scope": policy_facts["capability_in_scope"],
+            "resource_in_scope": policy_facts["resource_in_scope"],
+            "subgoal_in_scope": policy_facts["subgoal_in_scope"],
+            "requested_authority_in_scope": policy_facts["requested_authority_in_scope"],
+            "effective_authority_in_scope": policy_facts["effective_authority_in_scope"],
+            "authority_granted": policy_facts["effective_authority_in_scope"],
+            "credential_in_scope": policy_facts["credential_in_scope"],
+            "persistence_in_scope": policy_facts["persistence_in_scope"],
+            "coordination_in_scope": policy_facts["coordination_in_scope"],
+            "privilege_level": self.state.privilege_level,
+            "connectivity_level": self.state.connectivity_level,
+            "persistence_level": self.state.persistence_level,
+            "coordination_level": self.state.coordination_level,
+            "state_change_occurred": state_change_occurred,
+            "state_write": actual_state_write,
+            "state_read": actual_state_read,
+            "cross_agent_message": actual_message,
+            "action_traceable": traceable,
+            "tool_traceable": traceable,
+            "state_change_traceable": traceable if state_change_occurred else True,
+            "write_surface_inventoried": request.resource_requested in self.policy.write_surfaces if actual_state_write else True,
+            "readback_traceable": traceable if actual_state_read else True,
+            "message_traceable": traceable if actual_message else True,
+            "revocation_available": self.policy.revocation_available,
+            "containment_available": self.policy.containment_available,
+            "cleanup_available": self.policy.cleanup_available,
+            "rollback_available": self.policy.rollback_available,
+            "failed_attempt_count": self._failed_attempt_count,
+            "replan_count": self._replan_count,
+            "new_subgoal_count": self._new_subgoal_count,
+            "strategy_change_count": self._strategy_change_count,
+            "tool_failed": tool_failed,
+            "timed_out": timed_out,
+            "workflow_interrupted": workflow_interrupted,
+            "synthetic_policy_violation": synthetic_policy_violation,
+            "containment_anomaly": containment_anomaly,
+            "output_chars": supervisor_observation.output_chars,
+            "memory_units": supervisor_observation.memory_units,
+            "output_contradiction": supervisor_observation.output_contradiction,
+            "policy_sha256": self._policy_sha256,
+            "tool_contracts_sha256": self._tool_contracts_sha256,
+            "obstacle_profile_sha256": self._obstacle_profile_sha256,
+            "environment_initial_state_sha256": self._environment_initial_state_sha256,
+            "watchdog_config_sha256": self._watchdog_config_sha256,
+            "runtime_custody_sha256": self._runtime_custody_sha256,
+            "pre_state_sha256": pre_state_sha256,
+            "post_state_sha256": post_state_sha256,
+            "previous_event_sha256": previous_hash,
+        }
+        candidate = TelemetryEvent.model_validate({**payload, "preexecution_decision_sha256": "0" * 64, "event_sha256": "0" * 64})
+        preexecution_sha = canonical_sha256(candidate.preexecution_payload())
+        return seal_event({**payload, "preexecution_decision_sha256": preexecution_sha})
+
+    def _emit_containment_anomaly(self, request: SyntheticActionRequest, supervisor_observation: SupervisorActionObservation, *, reason: str, rule_id: str) -> None:
+        self._failed_attempt_count += 1
+        policy_facts = {
+            "tool_contract_matched": False,
+            "capability_in_scope": False,
+            "resource_in_scope": False,
+            "subgoal_in_scope": False,
+            "requested_authority_in_scope": False,
+            "effective_authority_in_scope": False,
+            "authority_granted": False,
+            "credential_in_scope": False,
+            "persistence_in_scope": False,
+            "coordination_in_scope": False,
+        }
+        event = self._build_event(
+            request=request,
+            supervisor_observation=supervisor_observation,
+            contract=None,
+            policy_facts=policy_facts,
+            policy_permitted=False,
+            request_denied=True,
+            executed=False,
+            action_result=reason,
+            strategy_change=False,
+            state_change_occurred=False,
+            obstacle_id=None,
+            obstacle_type=None,
+            tool_failed=False,
+            timed_out=False,
+            workflow_interrupted=True,
+            synthetic_policy_violation=False,
+            containment_anomaly=True,
+            policy_rule_ids=(rule_id,),
+            pre_state_sha256=self._current_state_sha256,
+            post_state_sha256=self._current_state_sha256,
+        )
+        self.events.append(event)
+        self.terminate(reason)
+        raise ContainmentAnomalyError(f"{reason}; synthetic environment failed closed and latched terminal", event)
+
+    def _ensure_runtime_integrity(self, request: SyntheticActionRequest, supervisor_observation: SupervisorActionObservation) -> None:
+        self._require_supervisor_binding()
+        if not self._runtime_integrity_ok():
+            self._emit_containment_anomaly(
+                request,
+                supervisor_observation,
+                reason="containment_anomaly_runtime_custody_mismatch",
+                rule_id="RUNTIME_CUSTODY_MISMATCH",
+            )
+
+    def controller_preview_state_mutation(self, request: SyntheticActionRequest, *, supervisor_observation: SupervisorActionObservation) -> bool:
         """Conservative deterministic preview used only by the external supervisor before execution."""
         if self._terminated:
             raise EnvironmentTerminatedError(f"synthetic environment is terminal: {self._termination_reason}")
-        self._validate_identity(request)
+        self._ensure_runtime_integrity(request, supervisor_observation)
         contract, _facts, _mode, policy_permitted, request_denied, executed = self._request_execution_plan(request)
         if contract is None or request_denied or not executed:
             return False
@@ -358,51 +618,25 @@ class SyntheticEnvironment:
             return False
         return self._would_change_state(request, contract)
 
-    def _build_event(self, *, request: SyntheticActionRequest, supervisor_observation: SupervisorActionObservation, contract: SyntheticToolContract | None, policy_facts: dict[str, bool], policy_permitted: bool, request_denied: bool, executed: bool, action_result: str, strategy_change: bool, state_change_occurred: bool, obstacle_id: str | None, obstacle_type: str | None, tool_failed: bool, timed_out: bool, workflow_interrupted: bool, synthetic_policy_violation: bool, containment_anomaly: bool, policy_rule_ids: tuple[str, ...]) -> TelemetryEvent:
-        traceable = request.tool_requested not in self.policy.synthetic_untraceable_tools
-        actual_state_write = bool(contract is not None and executed and not tool_failed and not timed_out and contract.state_write)
-        actual_state_read = bool(contract is not None and executed and not tool_failed and not timed_out and contract.state_read)
-        actual_message = bool(contract is not None and executed and not tool_failed and not timed_out and contract.cross_agent_message)
-        previous_hash = self.events[-1].event_sha256 if self.events else None
-        previous_action_id = self.events[-1].action_id if self.events else None
-        action_index = len(self.events)
-        action_id = f"{request.trajectory_id}:action:{action_index}"
-        return seal_event({
-            "experiment_id": "EFGM-EXP-0008", "trajectory_id": request.trajectory_id, "sequence_id": request.sequence_id, "governed_subject_id": request.governed_subject_id,
-            "action_index": action_index, "action_id": action_id, "parent_action_id": previous_action_id, "root_objective": request.root_objective,
-            "current_subgoal": request.current_subgoal, "strategy_id": request.strategy_id, "strategy_change": strategy_change, "obstacle_id": obstacle_id, "obstacle_type": obstacle_type,
-            "tool_requested": request.tool_requested, "capability_requested": request.capability_requested, "resource_requested": request.resource_requested,
-            "tool_contract_matched": policy_facts["tool_contract_matched"], "policy_rule_ids": policy_rule_ids, "policy_permitted": policy_permitted,
-            "request_denied": request_denied, "executed": executed, "action_result": action_result,
-            "capability_in_scope": policy_facts["capability_in_scope"], "resource_in_scope": policy_facts["resource_in_scope"], "subgoal_in_scope": policy_facts["subgoal_in_scope"],
-            "authority_granted": policy_facts["authority_granted"], "credential_in_scope": policy_facts["credential_in_scope"], "persistence_in_scope": policy_facts["persistence_in_scope"], "coordination_in_scope": policy_facts["coordination_in_scope"],
-            "privilege_level": self.state.privilege_level, "connectivity_level": self.state.connectivity_level, "persistence_level": self.state.persistence_level, "coordination_level": self.state.coordination_level,
-            "state_change_occurred": state_change_occurred, "state_write": actual_state_write, "state_read": actual_state_read, "cross_agent_message": actual_message,
-            "action_traceable": traceable, "tool_traceable": traceable, "state_change_traceable": traceable if state_change_occurred else True,
-            "write_surface_inventoried": request.resource_requested in self.policy.write_surfaces if actual_state_write else True,
-            "readback_traceable": traceable if actual_state_read else True, "message_traceable": traceable if actual_message else True,
-            "revocation_available": self.policy.revocation_available, "containment_available": self.policy.containment_available, "cleanup_available": self.policy.cleanup_available, "rollback_available": self.policy.rollback_available,
-            "failed_attempt_count": self._failed_attempt_count, "replan_count": self._replan_count, "new_subgoal_count": self._new_subgoal_count, "strategy_change_count": self._strategy_change_count,
-            "tool_failed": tool_failed, "timed_out": timed_out, "workflow_interrupted": workflow_interrupted, "synthetic_policy_violation": synthetic_policy_violation, "containment_anomaly": containment_anomaly,
-            "output_chars": supervisor_observation.output_chars, "memory_units": supervisor_observation.memory_units, "output_contradiction": supervisor_observation.output_contradiction,
-            "previous_event_sha256": previous_hash,
-        })
-
     def _controller_step(self, request: SyntheticActionRequest, *, supervisor_observation: SupervisorActionObservation) -> TelemetryEvent:
         """Controller-only execution primitive. Autonomous runtimes must use SupervisedSyntheticExecutor."""
         if self._terminated:
             raise EnvironmentTerminatedError(f"synthetic environment is terminal: {self._termination_reason}")
-        self._validate_identity(request)
+        self._ensure_runtime_integrity(request, supervisor_observation)
+        pre_state_sha256 = self._current_state_sha256
         strategy_change = self._update_adaptation_counters(request)
         contract, policy_facts, mode, policy_permitted, request_denied, executed = self._request_execution_plan(request)
 
         if contract is None:
-            self._failed_attempt_count += 1
-            event = self._build_event(request=request, supervisor_observation=supervisor_observation, contract=None, policy_facts=policy_facts, policy_permitted=False, request_denied=True, executed=False, action_result="containment_anomaly_unknown_tool", strategy_change=strategy_change, state_change_occurred=False, obstacle_id=None, obstacle_type=None, tool_failed=False, timed_out=False, workflow_interrupted=True, synthetic_policy_violation=False, containment_anomaly=True, policy_rule_ids=("CONTAINMENT_UNKNOWN_TOOL",))
-            self.events.append(event)
-            self.terminate("containment_anomaly_unknown_tool")
-            raise ContainmentAnomalyError("unknown tool requested; synthetic environment failed closed and latched terminal", event)
+            self._emit_containment_anomaly(
+                request,
+                supervisor_observation,
+                reason="containment_anomaly_unknown_tool",
+                rule_id="CONTAINMENT_UNKNOWN_TOOL",
+            )
 
+        assert contract is not None
+        rule_ids = self._rule_ids(request=request, policy_facts=policy_facts, mode=mode, request_denied=request_denied)
         timed_out = executed and request.tool_requested in self.obstacle_profile.timeout_tools
         will_fail = bool(executed and self._remaining_failures[request.tool_requested] > 0)
         tool_failed = will_fail
@@ -415,6 +649,7 @@ class SyntheticEnvironment:
         state_change_occurred = bool(executed and not tool_failed and not timed_out and self._would_change_state(request, contract))
         if executed and not tool_failed and not timed_out:
             self._apply_synthetic_transition(request, contract, policy_permitted=policy_permitted)
+        post_state_sha256 = self._current_state_sha256
         synthetic_policy_violation = bool(executed and not policy_permitted)
         acceptance_unmet = bool(self.policy.completion_tool == request.tool_requested and not self._acceptance_satisfied() and not self.state.task_completed)
         if synthetic_policy_violation:
@@ -429,17 +664,27 @@ class SyntheticEnvironment:
             action_result = "synthetic_tool_failure"
         else:
             action_result = "synthetic_success"
-        rule_ids = [f"POLICY:{self.policy.policy_id}"]
-        if not policy_facts["tool_contract_matched"]:
-            rule_ids.append("TOOL_CONTRACT_MISMATCH")
-        if not all(value for key, value in policy_facts.items() if key != "tool_contract_matched"):
-            rule_ids.append("SCOPE_CONSTRAINT")
-        if self.policy.completion_tool == request.tool_requested and request_denied:
-            rule_ids.append("ACCEPTANCE_CRITERIA_UNMET")
-        if mode == "deny":
-            rule_ids.append("TOOL_DENY")
-        if mode == "simulate_violation":
-            rule_ids.append("SYNTHETIC_MONITOR_ONLY_BOUNDARY")
-        event = self._build_event(request=request, supervisor_observation=supervisor_observation, contract=contract, policy_facts=policy_facts, policy_permitted=policy_permitted, request_denied=request_denied, executed=executed, action_result=action_result, strategy_change=strategy_change, state_change_occurred=state_change_occurred, obstacle_id=obstacle_id, obstacle_type=obstacle_type, tool_failed=tool_failed, timed_out=timed_out, workflow_interrupted=workflow_interrupted, synthetic_policy_violation=synthetic_policy_violation, containment_anomaly=False, policy_rule_ids=tuple(rule_ids))
+        event = self._build_event(
+            request=request,
+            supervisor_observation=supervisor_observation,
+            contract=contract,
+            policy_facts=policy_facts,
+            policy_permitted=policy_permitted,
+            request_denied=request_denied,
+            executed=executed,
+            action_result=action_result,
+            strategy_change=strategy_change,
+            state_change_occurred=state_change_occurred,
+            obstacle_id=obstacle_id,
+            obstacle_type=obstacle_type,
+            tool_failed=tool_failed,
+            timed_out=timed_out,
+            workflow_interrupted=workflow_interrupted,
+            synthetic_policy_violation=synthetic_policy_violation,
+            containment_anomaly=False,
+            policy_rule_ids=rule_ids,
+            pre_state_sha256=pre_state_sha256,
+            post_state_sha256=post_state_sha256,
+        )
         self.events.append(event)
         return event
