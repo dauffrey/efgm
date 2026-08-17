@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError, __version__ as pydantic_version
 
@@ -19,8 +22,12 @@ from efgm.exp0008_phase2_calibration import (
     scripted_scenarios,
 )
 from efgm.exp0008_preexecution import PREEXECUTION_RECORD_SCHEMA_ID
+from efgm.scoring_v2 import canonical_sha256
 
+EXPECTED_PHASE2_REPORT_SHA256 = "94d9b7bad0024ff88dce942ba654bebfbc0749ed0cdd0bd343c5cfd53a20cda8"
+EXPECTED_RUNTIME_INSTRUMENT_SHA256 = "1be866e307e5dd8ccaee7307ae0e6e4a8cc7d756595312e0820aaadcd7b8ce08"
 EXPECTED_PYDANTIC_VERSION = "2.13.4"
+FREEZE_ARTIFACT = Path(__file__).resolve().parents[1] / "experiments" / "manifests" / "EFGM-EXP-0008-phase2-instrument-freeze.json"
 
 
 def test_phase2_scripted_calibration_covers_all_five_preregistered_classes():
@@ -75,6 +82,7 @@ def test_instrument_freeze_binds_all_required_runtime_components():
     assert freeze.calibration_tool_contracts_sha256
     assert freeze.watchdog_config_sha256
     assert freeze.runtime_matrix == ("3.10", "3.11", "3.12", "3.13")
+    assert freeze.instrument_set_sha256 == EXPECTED_RUNTIME_INSTRUMENT_SHA256
 
 
 def test_safe_scripted_classes_never_execute_a_policy_violation():
@@ -273,6 +281,27 @@ def test_scripted_calibration_is_bitwise_reproducible_at_report_identity_level()
     assert first.model_dump(mode="json") == second.model_dump(mode="json")
 
 
-def test_phase2_dependency_version_is_exact_for_freeze_candidate():
+def test_phase2_report_identity_and_dependency_version_are_pinned_across_ci_matrix():
     assert pydantic_version == EXPECTED_PYDANTIC_VERSION
-    assert len(run_scripted_calibration().report_sha256) == 64
+    report = run_scripted_calibration()
+    assert report.report_sha256 == EXPECTED_PHASE2_REPORT_SHA256
+    assert report.instrument_freeze.instrument_set_sha256 == EXPECTED_RUNTIME_INSTRUMENT_SHA256
+
+
+def test_full_phase2_freeze_artifact_self_verifies_and_binds_exact_reproducibility_identity():
+    freeze = json.loads(FREEZE_ARTIFACT.read_text(encoding="utf-8"))
+    supplied_hash = freeze.pop("freeze_record_sha256")
+    assert canonical_sha256(freeze) == supplied_hash
+    assert freeze["schema_id"] == "exp0008-phase2-instrument-freeze-v0.1"
+    assert freeze["status"] == "candidate_pending_final_review"
+    assert freeze["phase1_baseline_sha"] == PHASE1_BASELINE_SHA
+    assert freeze["calibration_protocol_id"] == CALIBRATION_PROTOCOL_ID
+    assert freeze["behavioral_identity"]["canonical_report_sha256"] == EXPECTED_PHASE2_REPORT_SHA256
+    assert freeze["behavioral_identity"]["runtime_instrument_set_sha256"] == EXPECTED_RUNTIME_INSTRUMENT_SHA256
+    assert freeze["dependencies"]["pydantic"] == EXPECTED_PYDANTIC_VERSION
+    assert freeze["runtime_matrix"] == ["3.10", "3.11", "3.12", "3.13"]
+    assert freeze["boundaries"] == {
+        "scientific_evidence": False,
+        "autonomous_execution": False,
+        "phase3_authorized": False,
+    }
