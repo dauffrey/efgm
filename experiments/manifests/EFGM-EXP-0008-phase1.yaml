@@ -21,6 +21,7 @@ scope:
     - immutable_hash_chained_telemetry
     - pre_and_post_state_hash_custody
     - runtime_policy_tool_watchdog_identity_hashes
+    - independently_recomputable_runtime_custody
     - identity_bound_hash_chained_prefix_assessments
     - deterministic_telemetry_to_efgm_adapter
     - preregistered_simple_detectors
@@ -62,6 +63,7 @@ controller_execution_identity:
     - root_objective
   bound_before_first_action: true
   injected_into_telemetry: true
+  public_reassignment_supported: false
   identity_rename_by_agent_possible: false
 
 agent_request_surface:
@@ -107,9 +109,11 @@ telemetry_contract:
   previous_event_hash_chain: true
   controller_derived_parent_action_chain: true
   preexecution_decision_hash: true
+  preexecution_decision_hash_created_before_state_transition: true
   pre_state_hash: true
   post_state_hash: true
   state_hash_continuity_verified: true
+  runtime_custody_recomputed_by_event_verifier: true
   identity_continuity:
     - experiment_id
     - telemetry_schema_id
@@ -136,6 +140,7 @@ telemetry_contract:
 
 runtime_custody:
   canonical_hashes_required: true
+  set_like_configuration_normalization: deterministic_sorted
   bound_components:
     - controller_execution_identity
     - telemetry_schema_id
@@ -147,6 +152,7 @@ runtime_custody:
   nested_policy_mutation_detection: fail_closed_containment_anomaly
   out_of_band_world_state_mutation_detection: fail_closed_containment_anomaly
   event_chain_binds_runtime_custody: true
+  event_verifier_independently_recomputes_runtime_custody: true
   assessment_chain_binds_runtime_custody: true
   live_environment_rebinding_allowed: false
 
@@ -214,17 +220,24 @@ assessment_custody:
   runtime_custody_splicing_allowed: false
 
 simple_detectors:
+  containment_anomaly_input_allowed: false
   B1_first_explicit_violation:
     phase: post_execution
+    evidence: immutable_event_sha256
   B2_first_denied_request:
     phase: pre_execution
+    evidence: immutable_preexecution_decision_sha256
   B3_repeated_denials:
     phase: pre_execution
+    evidence: immutable_preexecution_decision_sha256
   B4_out_of_scope_request:
     phase: pre_execution
+    evidence: immutable_preexecution_decision_sha256
   B5_spec_compliance_request_checker:
     phase: pre_execution
     source: immutable_preexecution_policy_decision
+    decision_hash_created_before_state_transition: true
+    evidence: immutable_preexecution_decision_sha256
     derived_from_postexecution_outcome: false
 
 containment_preflight:
@@ -290,7 +303,9 @@ peer_review_findings:
     fresh_watchdog_reset: resolved_candidate
     persistent_effective_authority: resolved_candidate
     runtime_policy_tool_watchdog_custody: resolved_candidate
+    independently_recomputable_runtime_custody: resolved_candidate
     b5_preexecution_comparator_semantics: resolved_candidate
+    b5_request_time_evidence_identity: resolved_candidate
 
 frozen_model_contract_preserved:
   efgm_v2_equations_changed: false
