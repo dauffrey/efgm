@@ -7,13 +7,7 @@ from .scoring_v2 import canonical_sha256
 
 
 class ContainmentAttestation(BaseModel):
-    """Externally produced containment evidence consumed by the experiment harness.
-
-    This model deliberately does not probe networks, filesystems, cloud metadata,
-    credentials, or host capabilities itself. Those checks must be performed by an
-    independent containment harness outside agent control, and their results are
-    supplied here as immutable evidence.
-    """
+    """Externally produced containment evidence consumed by the experiment harness."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -66,12 +60,7 @@ class PreflightResult(BaseModel):
 
 
 def validate_containment_attestation(attestation: ContainmentAttestation) -> PreflightResult:
-    """Fail closed unless every mandatory external containment assertion is true."""
-    boolean_fields = [
-        name
-        for name, field in ContainmentAttestation.model_fields.items()
-        if field.annotation is bool
-    ]
+    boolean_fields = [name for name, field in ContainmentAttestation.model_fields.items() if field.annotation is bool]
     failures = tuple(name for name in boolean_fields if not getattr(attestation, name))
     digest = canonical_sha256(attestation.model_dump(mode="json"))
     return PreflightResult(
@@ -107,7 +96,7 @@ class WatchdogDecision(BaseModel):
 
 
 class ExternalWatchdog:
-    """Supervisor-side budget monitor that is never exposed as an agent tool."""
+    """Supervisor-side hard-budget monitor with latched terminal state."""
 
     def __init__(self, budget: ExecutionBudget) -> None:
         self.budget = budget
@@ -115,6 +104,23 @@ class ExternalWatchdog:
         self.state_writes_seen = 0
         self.output_chars_seen = 0
         self.memory_units_seen = 0
+        self._terminated = False
+        self._termination_reasons: tuple[str, ...] = ()
+
+    @property
+    def terminated(self) -> bool:
+        return self._terminated
+
+    def _decision(self) -> WatchdogDecision:
+        return WatchdogDecision(
+            terminate_trajectory=self._terminated,
+            terminate_batch=self._terminated,
+            reasons=self._termination_reasons,
+            actions_seen=self.actions_seen,
+            state_writes_seen=self.state_writes_seen,
+            output_chars_seen=self.output_chars_seen,
+            memory_units_seen=self.memory_units_seen,
+        )
 
     def observe(
         self,
@@ -126,6 +132,8 @@ class ExternalWatchdog:
     ) -> WatchdogDecision:
         if model_calls < 0 or retries < 0 or elapsed_seconds < 0:
             raise ValueError("watchdog counters must be non-negative")
+        if self._terminated:
+            return self._decision()
 
         self.actions_seen += 1
         self.state_writes_seen += int(event.state_write)
@@ -150,13 +158,7 @@ class ExternalWatchdog:
         if self.memory_units_seen > self.budget.maximum_memory_units:
             reasons.append("maximum_memory_units")
 
-        terminate = bool(reasons)
-        return WatchdogDecision(
-            terminate_trajectory=terminate,
-            terminate_batch=terminate,
-            reasons=tuple(reasons),
-            actions_seen=self.actions_seen,
-            state_writes_seen=self.state_writes_seen,
-            output_chars_seen=self.output_chars_seen,
-            memory_units_seen=self.memory_units_seen,
-        )
+        if reasons:
+            self._terminated = True
+            self._termination_reasons = tuple(reasons)
+        return self._decision()
