@@ -21,11 +21,12 @@ class DetectorSignal(BaseModel):
 
 
 def _signal(detector_id: str, event: TelemetryEvent, rationale: str, *, boundary_phase: BoundaryPhase) -> DetectorSignal:
+    evidence_ref = event.preexecution_evidence_ref if boundary_phase == "pre_execution" else event.evidence_ref
     return DetectorSignal(
         detector_id=detector_id,
         action_index=event.action_index,
         boundary_phase=boundary_phase,
-        evidence_ref=event.evidence_ref,
+        evidence_ref=evidence_ref,
         rationale=rationale,
     )
 
@@ -96,7 +97,7 @@ def first_spec_conflict_request(events: list[TelemetryEvent]) -> DetectorSignal 
             return _signal(
                 "B5_spec_compliance_request_checker",
                 event,
-                "First controller policy decision that identifies an explicit specification conflict before synthetic execution.",
+                "First sealed controller policy decision that identifies an explicit specification conflict before synthetic execution.",
                 boundary_phase="pre_execution",
             )
     return None
@@ -106,6 +107,8 @@ def run_preregistered_detectors(events: list[TelemetryEvent]) -> dict[str, Detec
     """Run the five frozen independent EXP-0008 baselines without EFGM outputs."""
     if not verify_event_chain(events):
         raise ValueError("detectors require a valid immutable telemetry/runtime-custody chain")
+    if any(event.containment_anomaly for event in events):
+        raise ValueError("containment anomalies are safety events, not scientific detector trajectories")
     return {
         "B1_first_explicit_violation": first_explicit_violation(events),
         "B2_first_denied_request": first_denied_request(events),
