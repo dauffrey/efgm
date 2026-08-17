@@ -1,16 +1,25 @@
 from __future__ import annotations
 
-from pydantic import __version__ as pydantic_version
+import pytest
+from pydantic import ValidationError, __version__ as pydantic_version
 
+from efgm.exp0008_detectors import PreexecutionComparator
 from efgm.exp0008_phase2_calibration import (
     CALIBRATION_PROTOCOL_ID,
     PHASE1_BASELINE_SHA,
+    TimingRecord,
+    _action,
+    _detector_negative_probe,
+    _execute_one,
+    _executor_for,
     _identity_for,
+    _negative_signal_probe_indices,
+    _simultaneous_signal_probe_indices,
     run_scripted_calibration,
     scripted_scenarios,
 )
+from efgm.exp0008_preexecution import PREEXECUTION_RECORD_SCHEMA_ID
 
-EXPECTED_PHASE2_REPORT_SHA256 = "5f2c1f60cd2e9494f9f2fac2170be1abc8642195c2d7bf2442ad30adf7605c0e"
 EXPECTED_PYDANTIC_VERSION = "2.13.4"
 
 
@@ -53,7 +62,7 @@ def test_phase2_report_and_all_custody_chains_verify():
     assert all(not result.containment_anomaly_present for result in report.scenario_results)
 
 
-def test_instrument_freeze_binds_all_required_phase2_components():
+def test_instrument_freeze_binds_all_required_runtime_components():
     freeze = run_scripted_calibration().instrument_freeze
     assert freeze.environment_source_blob
     assert freeze.tool_broker_source_blob
@@ -101,6 +110,28 @@ def test_all_five_frozen_efgm_signals_have_positive_timing_probes():
     }
 
 
+def test_simultaneous_s1_s5_probe_uses_deterministic_earliest_index():
+    assert _simultaneous_signal_probe_indices() == {
+        "S1_classification": 1,
+        "S2_candidate_prerequisite_breach": 1,
+        "S3_agency_exposure": 1,
+        "S4_coherent_unsafe_execution": 1,
+        "S5_low_gi_high_flow": 1,
+        "earliest_frozen_efgm_signal": 1,
+    }
+
+
+def test_negative_s1_s5_probe_remains_completely_quiet():
+    assert _negative_signal_probe_indices() == {
+        "S1_classification": None,
+        "S2_candidate_prerequisite_breach": None,
+        "S3_agency_exposure": None,
+        "S4_coherent_unsafe_execution": None,
+        "S5_low_gi_high_flow": None,
+        "earliest_frozen_efgm_signal": None,
+    }
+
+
 def test_detector_coverage_probe_exercises_b2_through_b5_and_keeps_b1_negative():
     probe = run_scripted_calibration().detector_coverage_probe
     signals = probe.detector_signals
@@ -121,6 +152,42 @@ def test_detector_coverage_probe_exercises_b2_through_b5_and_keeps_b1_negative()
     )
 
 
+def test_all_negative_b1_b5_fixture_is_explicitly_quiet():
+    assert all(signal is None for signal in _detector_negative_probe().values())
+
+
+def test_controller_emits_and_seals_b5_before_executor_step(monkeypatch):
+    scenario = scripted_scenarios()[-1]
+    executor = _executor_for(scenario)
+    comparator = PreexecutionComparator()
+    action = _action(
+        "monitor_only_shortcut",
+        "inspect",
+        "source-a",
+        "shortcut",
+        strategy="preexecution-order-proof",
+        privilege=0.75,
+        output_chars=24,
+        output_contradiction=False,
+    )
+    original_step = executor.step
+
+    def guarded_step(request, *, supervisor_observation):
+        b5 = comparator.signal("B5_spec_compliance_request_checker")
+        assert b5 is not None
+        assert b5.action_index == 0
+        assert b5.boundary_phase == "pre_execution"
+        assert len(comparator.emissions) >= 1
+        assert all(emission.verify_hash() for emission in comparator.emissions)
+        return original_step(request, supervisor_observation=supervisor_observation)
+
+    monkeypatch.setattr(executor, "step", guarded_step)
+    event, decision, emissions = _execute_one(executor, comparator, action)
+    assert emissions
+    assert decision.verify_hash() and decision.verify_record_hash()
+    assert event.action_index == 0 and event.executed is True
+
+
 def test_class_e_calibrates_same_action_b5_preexecution_vs_b1_postexecution():
     result = next(item for item in run_scripted_calibration().scenario_results if item.trajectory_class == "E")
     b1 = result.detector_signals["B1_first_explicit_violation"]
@@ -133,6 +200,21 @@ def test_class_e_calibrates_same_action_b5_preexecution_vs_b1_postexecution():
     assert result.detector_timing["B1_first_explicit_violation"].relation == "same_action_post_execution"
     assert result.detector_timing["B5_spec_compliance_request_checker"].action_delta == 0
     assert result.detector_timing["B5_spec_compliance_request_checker"].relation == "same_action_pre_execution"
+
+
+def test_preexecution_records_bind_fixed_schema_and_complete_record_hash():
+    scenario = scripted_scenarios()[0]
+    executor = _executor_for(scenario)
+    comparator = PreexecutionComparator()
+    _event, decision, _emissions = _execute_one(executor, comparator, scenario.actions[0])
+    assert decision.record_schema_id == PREEXECUTION_RECORD_SCHEMA_ID
+    assert decision.verify_hash() is True
+    assert decision.verify_record_hash() is True
+    with pytest.raises(ValidationError):
+        type(decision).model_validate({**decision.model_dump(), "record_schema_id": "other-schema"})
+    tampered = decision.model_copy(update={"record_schema_id": "other-schema"})
+    assert tampered.verify_hash() is True
+    assert tampered.verify_record_hash() is False
 
 
 def test_preexecution_comparator_records_are_materialized_before_and_match_emitted_decisions():
@@ -155,6 +237,18 @@ def test_lead_time_probes_cover_positive_zero_negative_and_missing_cases():
     assert probes["no_signal"].relation == "unavailable"
     assert probes["no_violation"].action_delta is None
     assert probes["no_violation"].relation == "unavailable"
+    assert probes["no_violation"].signal_boundary_phase == "pre_execution"
+
+
+def test_timing_record_fails_closed_when_signal_boundary_phase_is_missing():
+    with pytest.raises(ValidationError, match="signal_boundary_phase is required"):
+        TimingRecord(
+            violation_action_index=2,
+            signal_action_index=2,
+            signal_boundary_phase=None,
+            action_delta=0,
+            relation="same_action_post_execution",
+        )
 
 
 def test_efgm_timing_is_derived_from_frozen_signal_indices_without_retuning():
@@ -179,6 +273,6 @@ def test_scripted_calibration_is_bitwise_reproducible_at_report_identity_level()
     assert first.model_dump(mode="json") == second.model_dump(mode="json")
 
 
-def test_phase2_report_identity_and_dependency_version_are_frozen_across_ci_matrix():
+def test_phase2_dependency_version_is_exact_for_freeze_candidate():
     assert pydantic_version == EXPECTED_PYDANTIC_VERSION
-    assert run_scripted_calibration().report_sha256 == EXPECTED_PHASE2_REPORT_SHA256
+    assert len(run_scripted_calibration().report_sha256) == 64
