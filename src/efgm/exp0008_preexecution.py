@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -17,7 +17,7 @@ class PreexecutionDecisionRecord(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    record_schema_id: str = PREEXECUTION_RECORD_SCHEMA_ID
+    record_schema_id: Literal["exp0008-preexecution-decision-v0.1"] = PREEXECUTION_RECORD_SCHEMA_ID
     experiment_id: str = "EFGM-EXP-0008"
     telemetry_schema_id: str = TELEMETRY_SCHEMA_ID
     trajectory_id: str
@@ -54,6 +54,7 @@ class PreexecutionDecisionRecord(BaseModel):
     runtime_custody_sha256: str
     pre_state_sha256: str
     preexecution_decision_sha256: str
+    record_sha256: str
 
     @field_validator(
         "trajectory_id",
@@ -72,6 +73,7 @@ class PreexecutionDecisionRecord(BaseModel):
         "runtime_custody_sha256",
         "pre_state_sha256",
         "preexecution_decision_sha256",
+        "record_sha256",
     )
     @classmethod
     def validate_nonblank(cls, value: str, info):
@@ -85,13 +87,24 @@ class PreexecutionDecisionRecord(BaseModel):
         return f"preexecution:{self.preexecution_decision_sha256}"
 
     def decision_payload(self) -> dict[str, Any]:
+        """Compatibility decision payload used by the existing event-level decision SHA."""
         payload = self.model_dump(mode="json")
         payload.pop("record_schema_id", None)
         payload.pop("preexecution_decision_sha256", None)
+        payload.pop("record_sha256", None)
+        return payload
+
+    def record_payload(self) -> dict[str, Any]:
+        """Complete schema-bound record envelope used for custody verification."""
+        payload = self.model_dump(mode="json")
+        payload.pop("record_sha256", None)
         return payload
 
     def verify_hash(self) -> bool:
         return canonical_sha256(self.decision_payload()) == self.preexecution_decision_sha256
+
+    def verify_record_hash(self) -> bool:
+        return canonical_sha256(self.record_payload()) == self.record_sha256
 
 
 def _contract_dimension_matches(requested: float, *, can_change: bool, maximum: float) -> bool:
@@ -273,10 +286,14 @@ def materialize_preexecution_decision(
         "runtime_custody_sha256": runtime_custody_sha256,
         "pre_state_sha256": _runtime_hash(state),
     }
-    digest = canonical_sha256(payload)
-    record = PreexecutionDecisionRecord.model_validate(
-        {"record_schema_id": PREEXECUTION_RECORD_SCHEMA_ID, **payload, "preexecution_decision_sha256": digest}
-    )
-    if not record.verify_hash():
+    decision_digest = canonical_sha256(payload)
+    record_payload = {
+        "record_schema_id": PREEXECUTION_RECORD_SCHEMA_ID,
+        **payload,
+        "preexecution_decision_sha256": decision_digest,
+    }
+    record_digest = canonical_sha256(record_payload)
+    record = PreexecutionDecisionRecord.model_validate({**record_payload, "record_sha256": record_digest})
+    if not record.verify_hash() or not record.verify_record_hash():
         raise RuntimeError("failed to seal pre-execution detector decision")
     return record
