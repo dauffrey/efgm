@@ -59,18 +59,26 @@ class SyntheticPolicy(BaseModel):
 
 
 class SyntheticObstacleProfile(BaseModel):
-    """Deterministic obstacle injection for the fictional state machine."""
+    """Controller-owned deterministic obstacle injection for the fictional world."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
+    obstacle_id: str | None = None
+    obstacle_type: str | None = None
     failure_budget_by_tool: dict[str, int] = Field(default_factory=dict)
     timeout_tools: frozenset[str] = frozenset()
     interrupted_tools: frozenset[str] = frozenset()
 
     @model_validator(mode="after")
-    def validate_failure_budgets(self):
+    def validate_profile(self):
         if any(count < 0 for count in self.failure_budget_by_tool.values()):
             raise ValueError("failure budgets must be non-negative")
+        if (self.obstacle_id is None) != (self.obstacle_type is None):
+            raise ValueError("obstacle_id and obstacle_type must either both be set or both be absent")
+        if self.obstacle_id is not None and not self.obstacle_id.strip():
+            raise ValueError("obstacle_id must not be blank")
+        if self.obstacle_type is not None and not self.obstacle_type.strip():
+            raise ValueError("obstacle_type must not be blank")
         return self
 
 
@@ -157,7 +165,7 @@ class SyntheticEnvironment:
             if current != identity:
                 raise ValueError("trajectory, sequence, and governed-subject identity must remain stable")
 
-    def _update_adaptation_counters(self, request: SyntheticActionRequest) -> tuple[bool, bool]:
+    def _update_adaptation_counters(self, request: SyntheticActionRequest) -> bool:
         strategy_change = bool(self.events and request.strategy_id != self.events[-1].strategy_id)
         subgoal_change = bool(self.events and request.current_subgoal != self.events[-1].current_subgoal)
         if strategy_change:
@@ -165,7 +173,7 @@ class SyntheticEnvironment:
             self._replan_count += 1
         if subgoal_change:
             self._new_subgoal_count += 1
-        return strategy_change, subgoal_change
+        return strategy_change
 
     def _apply_synthetic_transition(self, request: SyntheticActionRequest) -> None:
         updates = {
@@ -219,7 +227,8 @@ class SyntheticEnvironment:
                 "current_subgoal": request.current_subgoal,
                 "strategy_id": request.strategy_id,
                 "strategy_change": strategy_change,
-                "obstacle_id": request.obstacle_id,
+                "obstacle_id": self.obstacle_profile.obstacle_id,
+                "obstacle_type": self.obstacle_profile.obstacle_type,
                 "tool_requested": request.tool_requested,
                 "capability_requested": request.capability_requested,
                 "resource_requested": request.resource_requested,
@@ -263,7 +272,7 @@ class SyntheticEnvironment:
 
     def step(self, request: SyntheticActionRequest) -> TelemetryEvent:
         self._validate_identity(request)
-        strategy_change, _ = self._update_adaptation_counters(request)
+        strategy_change = self._update_adaptation_counters(request)
         policy_facts = self._policy_facts(request)
 
         if request.tool_requested not in self.policy.declared_tools:
@@ -292,14 +301,14 @@ class SyntheticEnvironment:
         mode = self._enforcement_mode(request.tool_requested)
         all_scope_checks = all(policy_facts.values())
         policy_permitted = mode == "allow" and all_scope_checks
-        synthetic_policy_violation = mode == "simulate_violation" or (
-            mode == "allow" and not all_scope_checks
-        )
 
-        if mode == "deny" or (mode == "allow" and not all_scope_checks):
-            request_denied = mode != "simulate_violation"
-        else:
+        # A monitor-only boundary is intentionally synthetic: it lets the state machine
+        # represent a prohibited transition without invoking any corresponding real
+        # operating-system, network, credential, privilege, or persistence action.
+        if mode == "simulate_violation":
             request_denied = False
+        else:
+            request_denied = mode == "deny" or not all_scope_checks
 
         executed = not request_denied
         timed_out = executed and request.tool_requested in self.obstacle_profile.timeout_tools
@@ -308,8 +317,8 @@ class SyntheticEnvironment:
             self._remaining_failures[request.tool_requested] -= 1
             tool_failed = True
         workflow_interrupted = (
-            request.tool_requested in self.obstacle_profile.interrupted_tools
-            or request.obstacle_id is not None
+            self.obstacle_profile.obstacle_id is not None
+            or request.tool_requested in self.obstacle_profile.interrupted_tools
             or request_denied
             or tool_failed
             or timed_out
@@ -321,7 +330,8 @@ class SyntheticEnvironment:
         if executed and not tool_failed and not timed_out:
             self._apply_synthetic_transition(request)
 
-        if synthetic_policy_violation and executed:
+        synthetic_policy_violation = bool(executed and not policy_permitted)
+        if synthetic_policy_violation:
             action_result = "synthetic_policy_violation"
         elif request_denied:
             action_result = "denied"
@@ -351,7 +361,7 @@ class SyntheticEnvironment:
             tool_failed=tool_failed,
             timed_out=timed_out,
             workflow_interrupted=workflow_interrupted,
-            synthetic_policy_violation=bool(synthetic_policy_violation and executed),
+            synthetic_policy_violation=synthetic_policy_violation,
             containment_anomaly=False,
             policy_rule_ids=tuple(rule_ids),
         )
