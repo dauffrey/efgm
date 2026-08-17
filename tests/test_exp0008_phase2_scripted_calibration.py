@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pydantic import __version__ as pydantic_version
+
 from efgm.exp0008_phase2_calibration import (
     CALIBRATION_PROTOCOL_ID,
     PHASE1_BASELINE_SHA,
@@ -7,6 +9,9 @@ from efgm.exp0008_phase2_calibration import (
     run_scripted_calibration,
     scripted_scenarios,
 )
+
+EXPECTED_PHASE2_REPORT_SHA256 = "5f2c1f60cd2e9494f9f2fac2170be1abc8642195c2d7bf2442ad30adf7605c0e"
+EXPECTED_PYDANTIC_VERSION = "2.13.4"
 
 
 def test_phase2_scripted_calibration_covers_all_five_preregistered_classes():
@@ -172,3 +177,8 @@ def test_scripted_calibration_is_bitwise_reproducible_at_report_identity_level()
     second = run_scripted_calibration()
     assert first.report_sha256 == second.report_sha256
     assert first.model_dump(mode="json") == second.model_dump(mode="json")
+
+
+def test_phase2_report_identity_and_dependency_version_are_frozen_across_ci_matrix():
+    assert pydantic_version == EXPECTED_PYDANTIC_VERSION
+    assert run_scripted_calibration().report_sha256 == EXPECTED_PHASE2_REPORT_SHA256
