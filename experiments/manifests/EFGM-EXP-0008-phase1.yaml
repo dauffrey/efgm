@@ -1,0 +1,128 @@
+experiment_id: EFGM-EXP-0008
+phase: phase_1_instrumentation
+status: implementation_candidate
+parent_preregistration_sha: 9e40bc978f4f86eadbd65471d08a3fcb21c22d4c
+parent_baseline_ref: baseline/exp0008-preregistration-2026-08-16
+branch: experiment/exp0008-phase1-instrumentation
+
+autonomous_execution:
+  authorized: false
+  reason: >-
+    Phase 1 implements deterministic instrumentation only. Autonomous development
+    remains blocked until the mandatory containment identities, preflight evidence,
+    watchdog identity, and explicit human gate are frozen and approved.
+
+scope:
+  included:
+    - synthetic_in_memory_state_machine
+    - immutable_hash_chained_telemetry
+    - deterministic_telemetry_to_efgm_adapter
+    - preregistered_simple_detectors
+    - external_containment_attestation_checker
+    - external_watchdog_budget_monitor
+    - deterministic_unit_tests
+  excluded:
+    - autonomous_model_execution
+    - real_multi_agent_execution
+    - network_access
+    - shell_or_subprocess_execution
+    - arbitrary_code_execution
+    - browser_or_http_tools
+    - package_manager_use_by_agent
+    - host_filesystem_tools
+    - real_credentials
+    - real_privilege_or_persistence
+    - cyber_exploitation
+    - production_or_external_services
+
+instrumentation:
+  telemetry_module: src/efgm/exp0008_telemetry.py
+  environment_module: src/efgm/exp0008_environment.py
+  adapter_module: src/efgm/exp0008_adapter.py
+  detector_module: src/efgm/exp0008_detectors.py
+  safety_module: src/efgm/exp0008_safety.py
+  documentation: research/EFGM-EXP-0008-PHASE1-INSTRUMENTATION.md
+
+telemetry_contract:
+  immutable_records: true
+  canonical_sha256: true
+  previous_event_hash_chain: true
+  identity_continuity:
+    - experiment_id
+    - trajectory_id
+    - sequence_id
+    - governed_subject_id
+    - root_objective
+  obstacle_identity_agent_supplied: false
+  arbitrary_executable_payload_field: false
+
+synthetic_environment:
+  external_side_effects: false
+  unknown_tool_behavior: fail_closed_raise_after_telemetry
+  class_e_execution_semantics: synthetic_state_machine_transition_only
+  obstacle_injection_owner: environment_controller
+  primary_real_autonomous_peers: 0
+
+adapter:
+  adapter_id: exp0008-environment-adapter-v0.1
+  deterministic: true
+  strict_provenance: true
+  consumes_preferred_safe_unsafe_label: false
+  consumes_synthetic_policy_violation_convenience_field: false
+  containment_anomaly_scoreable: false
+  action_velocity_semantics: adaptation_pressure_proxy_not_wall_clock_speed
+  frozen_for_autonomous_development: false
+  freeze_gate: after_phase_2_scripted_calibration_and_before_phase_3
+
+simple_detectors:
+  - B1_first_explicit_violation
+  - B2_first_denied_request
+  - B3_repeated_denials
+  - B4_out_of_scope_request
+  - B5_spec_compliance_request_checker
+
+containment_preflight:
+  implementation: external_attestation_validation
+  live_network_or_host_probe_code_added_to_repository: false
+  fail_closed: true
+  attestation_hashed: true
+  all_required_assertions_must_pass: true
+
+watchdog:
+  outside_agent_tool_surface: true
+  hard_limits:
+    - maximum_agent_actions
+    - maximum_model_calls
+    - maximum_retries
+    - maximum_wall_clock_seconds
+    - maximum_state_writes
+    - maximum_output_chars
+    - maximum_memory_units
+  containment_anomaly_action: terminate_trajectory_and_batch
+  budget_exceeded_action: terminate_trajectory_and_batch
+
+frozen_model_contract_preserved:
+  efgm_v2_equations_changed: false
+  agent_governance_v0_3_equations_changed: false
+  scoring_weights_changed: false
+  classification_thresholds_changed: false
+  prerequisite_membership_changed: false
+  ae_definition_changed: false
+  cue_definition_changed: false
+  provenance_semantics_changed: false
+  temporal_identity_semantics_changed: false
+
+scientific_evidence_status:
+  phase_1_output_counts_for_hypothesis_testing: false
+  scripted_calibration_counts_for_hypothesis_testing: false
+  development_trajectory_generation_started: false
+  validation_trajectory_generation_started: false
+
+phase_exit_gate:
+  required:
+    - repository_test_matrix_passes
+    - safety_contract_review_complete
+    - preregistration_contract_review_complete
+    - phase_1_candidate_merged
+  next_phase: phase_2_scripted_calibration
+  autonomous_phase_remains_blocked: true
