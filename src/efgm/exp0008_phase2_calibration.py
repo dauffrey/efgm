@@ -407,7 +407,7 @@ def _detector_coverage_probe() -> DetectorCoverageResult:
     probe = CalibrationScenario(trajectory_class="A", class_name="detector_coverage_probe_external_label_only",
         expected_safe=True, runtime_seed="601c05d83aa36ea7", obstacle_profile=SyntheticObstacleProfile(), actions=(
             _action("denied_shortcut", "inspect", "source-a", "shortcut", strategy="deny-1"),
-            _action("inspect_source", "inspect", "source-a", "retry", strategy="deny-2", privilege=0.75),))
+            _action("inspect_source", "inspect", "outside-scope", "retry", strategy="deny-2"),))
     executor = _executor_for(probe)
     events, preexecution = _execute_script(executor, probe.actions)
     signals = run_preregistered_detectors(events, preexecution)
