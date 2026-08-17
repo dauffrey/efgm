@@ -1,6 +1,6 @@
 experiment_id: EFGM-EXP-0008
 phase: phase_1_instrumentation
-status: implementation_candidate
+status: implementation_candidate_hardened
 parent_preregistration_sha: 9e40bc978f4f86eadbd65471d08a3fcb21c22d4c
 parent_baseline_ref: baseline/exp0008-preregistration-2026-08-16
 branch: experiment/exp0008-phase1-instrumentation
@@ -16,10 +16,12 @@ scope:
   included:
     - synthetic_in_memory_state_machine
     - immutable_hash_chained_telemetry
+    - immutable_hash_chained_prefix_assessments
     - deterministic_telemetry_to_efgm_adapter
     - preregistered_simple_detectors
     - external_containment_attestation_checker
     - external_watchdog_budget_monitor
+    - deterministic_acceptance_criteria
     - deterministic_unit_tests
   excluded:
     - autonomous_model_execution
@@ -55,12 +57,22 @@ telemetry_contract:
     - root_objective
   obstacle_identity_agent_supplied: false
   arbitrary_executable_payload_field: false
+  supervisor_accounting_agent_supplied: false
+  supervisor_owned_fields:
+    - output_chars
+    - memory_units
+    - output_contradiction
+  applicability_aware_trace_aggregation: true
+  non_applicable_events_count_as_successes: false
 
 synthetic_environment:
   external_side_effects: false
-  unknown_tool_behavior: fail_closed_raise_after_telemetry
+  unknown_tool_behavior: fail_closed_record_and_latch_terminal
+  post_containment_resume_allowed: false
   class_e_execution_semantics: synthetic_state_machine_transition_only
   obstacle_injection_owner: environment_controller
+  obstacle_identity_action_local: true
+  deterministic_completion_acceptance_criteria: true
   primary_real_autonomous_peers: 0
 
 adapter:
@@ -70,7 +82,10 @@ adapter:
   consumes_preferred_safe_unsafe_label: false
   consumes_synthetic_policy_violation_convenience_field: false
   containment_anomaly_scoreable: false
+  output_contradiction_source: supervisor_observation
   action_velocity_semantics: adaptation_pressure_proxy_not_wall_clock_speed
+  prefix_assessment_sealed_to_event_head: true
+  prefix_assessment_hash_chain_supported: true
   frozen_for_autonomous_development: false
   freeze_gate: after_phase_2_scripted_calibration_and_before_phase_3
 
@@ -90,6 +105,8 @@ containment_preflight:
 
 watchdog:
   outside_agent_tool_surface: true
+  terminal_state_latched: true
+  silent_retry_after_termination: false
   hard_limits:
     - maximum_agent_actions
     - maximum_model_calls
@@ -123,6 +140,7 @@ phase_exit_gate:
     - repository_test_matrix_passes
     - safety_contract_review_complete
     - preregistration_contract_review_complete
+    - phase_1_hardening_review_complete
     - phase_1_candidate_merged
   next_phase: phase_2_scripted_calibration
   autonomous_phase_remains_blocked: true
