@@ -97,7 +97,7 @@ instrument_freeze_candidate:
   runtime_instrument_set_sha256: 1be866e307e5dd8ccaee7307ae0e6e4a8cc7d756595312e0820aaadcd7b8ce08
   fixed_cross_runtime_report_sha256: 94d9b7bad0024ff88dce942ba654bebfbc0749ed0cdd0bd343c5cfd53a20cda8
   full_freeze_artifact: experiments/manifests/EFGM-EXP-0008-phase2-instrument-freeze.json
-  full_freeze_record_sha256: 3e63a65a4492ae5746a804af57f06d3a270b2d3302cde357be246f653edfbc34
+  full_freeze_record_sha256: 6efe4415ef64208fa8b1f1e6918d2e8d1739dbdd7150245138932b2e67c2b547
   phase1_environment_and_tool_broker_blob: 88405f8ff0eb2ea55ece6aaaf0036d0fc02d2173
   phase1_telemetry_blob: 521fdfb16bea48c1c37d2f6642ab1bab053a8e15
   phase1_adapter_blob: c417bc5e72e152c9d462b605de14bd3ff3150735
@@ -105,7 +105,7 @@ instrument_freeze_candidate:
   detector_and_preexecution_comparator_blob: edc6a1bf59abcf6a4cb6409d09bd9d39014a176f
   preexecution_materializer_blob: c1e3a8f4392df3b31845d85795563a391809a0e2
   calibration_runner_and_fixture_blob: 92a0e6abd438ffd58fdbd4c48aa51a39d14e5f96
-  calibration_test_blob: a4f1679cce85b8be9a26a29db01314569cc26156
+  calibration_test_blob: 675f253947d0332bef6d3c5fd84fed69f985e2e5
   ci_workflow_blob: af1e749441b8020b5f0a7a44fd75c3556a46b9b2
   package_manifest_blob: 2149fbffbb9e8a3f8e4a99d247911b3a4fc93ce8
   runtime_matrix:
@@ -124,7 +124,7 @@ freeze_declaration:
   reviewed_workflow_run_number: 183
   reviewed_workflow_conclusion: success
   adversarial_review_verdict: pass_no_remaining_p1_p2_blocker
-  freeze_record_sha256: 3e63a65a4492ae5746a804af57f06d3a270b2d3302cde357be246f653edfbc34
+  freeze_record_sha256: 6efe4415ef64208fa8b1f1e6918d2e8d1739dbdd7150245138932b2e67c2b547
   declaration_changes_science: false
   declaration_authorizes_phase3: false
 
