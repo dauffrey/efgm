@@ -37,9 +37,9 @@ def _freeze_record():
     return json.loads(FREEZE.read_text(encoding="utf-8"))
 
 
-def _assessment(evidence=None, approval=None):
+def _assessment(evidence=None, approval=None, freeze=None):
     return evaluate_phase3_readiness(
-        phase2_freeze_record=_freeze_record(),
+        phase2_freeze_record=freeze or _freeze_record(),
         containment_evidence=evidence or build_scripted_containment_fixture(),
         human_approval=approval,
     )
@@ -99,6 +99,16 @@ def _observation():
     return SupervisorActionObservation(output_chars=0, memory_units=1, output_contradiction=None)
 
 
+def _external_candidate():
+    fixture = build_scripted_containment_fixture()
+    return ExternalContainmentEvidence(
+        evidence_kind="external_preflight",
+        phase2_freeze_record_sha256=fixture.phase2_freeze_record_sha256,
+        runtime_instrument_set_sha256=fixture.runtime_instrument_set_sha256,
+        attestation=fixture.attestation.model_copy(update={"evidence_reference": "test-only:external-candidate"}),
+    )
+
+
 def test_frozen_phase2_baseline_and_freeze_record_self_verify():
     freeze = _freeze_record()
     supplied = freeze.pop("freeze_record_sha256")
@@ -115,17 +125,27 @@ def test_frozen_phase2_baseline_and_freeze_record_self_verify():
     }
 
 
-def test_scripted_containment_fixture_passes_mechanics_but_cannot_authorize_autonomy():
+def test_loaded_frozen_sources_and_dependency_runtime_match_phase2_freeze():
+    result = _assessment()
+    assert result.frozen_loaded_sources_verified is True
+    assert result.runtime_dependency_identity_verified is True
+    assert result.mechanical_preflight_passed is True
+
+
+def test_scripted_containment_fixture_passes_mechanics_but_is_not_external_candidate_or_evidence():
     result = _assessment()
     assert result.verify_hash()
     assert result.mechanical_preflight_passed is True
+    assert result.containment_attestation_valid is True
+    assert result.external_containment_candidate_valid is False
     assert result.external_containment_evidence_accepted is False
     assert result.human_safety_approval_present is False
     assert result.authorization_eligible is False
     assert result.autonomous_execution_authorized is False
     assert result.failures == ()
-    assert "external_containment_preflight_evidence_required" in result.authorization_blockers
-    assert "explicit_human_safety_approval_required" in result.authorization_blockers
+    assert "external_containment_preflight_candidate_required" in result.authorization_blockers
+    assert "trusted_external_containment_evidence_acceptance_required" in result.authorization_blockers
+    assert "separate_authorization_artifact_required" in result.authorization_blockers
 
 
 def test_false_external_containment_control_fails_closed():
@@ -134,6 +154,7 @@ def test_false_external_containment_control_fails_closed():
     evidence = fixture.model_copy(update={"attestation": bad_attestation})
     result = _assessment(evidence=evidence)
     assert result.mechanical_preflight_passed is False
+    assert result.containment_attestation_valid is False
     assert "containment_attestation:no_external_network_route" in result.failures
     assert result.autonomous_execution_authorized is False
 
@@ -144,19 +165,26 @@ def test_frozen_instrument_identity_mismatch_fails_closed():
     evidence = fixture.model_copy(update={"attestation": bad_attestation})
     result = _assessment(evidence=evidence)
     assert result.mechanical_preflight_passed is False
+    assert result.containment_attestation_valid is False
     assert "containment_identity_mismatch:watchdog_identity" in result.failures
 
 
 def test_phase2_freeze_tampering_fails_closed():
     freeze = _freeze_record()
     freeze["behavioral_identity"]["runtime_instrument_set_sha256"] = "tampered"
-    result = evaluate_phase3_readiness(
-        phase2_freeze_record=freeze,
-        containment_evidence=build_scripted_containment_fixture(),
-    )
+    result = _assessment(freeze=freeze)
     assert result.mechanical_preflight_passed is False
     assert "phase2_freeze_record_hash_mismatch" in result.failures
     assert "runtime_instrument_set_identity_mismatch" in result.failures
+
+
+def test_frozen_dependency_identity_tampering_fails_closed():
+    freeze = _freeze_record()
+    freeze["dependencies"]["pydantic"] = "0.0.0-tampered"
+    result = _assessment(freeze=freeze)
+    assert result.mechanical_preflight_passed is False
+    assert "phase2_freeze_record_hash_mismatch" in result.failures
+    assert "pydantic_runtime_identity_mismatch" in result.failures
 
 
 def test_model_boundary_rejects_top_level_credential_or_control_injection():
@@ -228,6 +256,7 @@ def test_human_approval_alone_cannot_authorize_without_real_external_containment
     )
     result = _assessment(approval=approval)
     assert result.mechanical_preflight_passed is True
+    assert result.external_containment_candidate_valid is False
     assert result.external_containment_evidence_accepted is False
     assert result.human_safety_approval_present is True
     assert result.authorization_eligible is False
@@ -236,36 +265,33 @@ def test_human_approval_alone_cannot_authorize_without_real_external_containment
         require_autonomous_authorization(result)
 
 
-def test_gate_semantics_require_both_external_evidence_and_explicit_human_approval():
-    fixture = build_scripted_containment_fixture()
-    external = ExternalContainmentEvidence(
-        evidence_kind="external_preflight",
-        phase2_freeze_record_sha256=fixture.phase2_freeze_record_sha256,
-        runtime_instrument_set_sha256=fixture.runtime_instrument_set_sha256,
-        attestation=fixture.attestation.model_copy(update={"evidence_reference": "test-only:external-preflight-semantics"}),
-    )
-    no_human = evaluate_phase3_readiness(
-        phase2_freeze_record=_freeze_record(),
-        containment_evidence=external,
-    )
-    assert no_human.external_containment_evidence_accepted is True
-    assert no_human.authorization_eligible is False
-    assert no_human.autonomous_execution_authorized is False
+def test_relabelled_external_candidate_is_never_trusted_or_authorized_by_readiness_module():
+    result = _assessment(evidence=_external_candidate())
+    assert result.mechanical_preflight_passed is True
+    assert result.external_containment_candidate_valid is True
+    assert result.external_containment_evidence_accepted is False
+    assert result.authorization_eligible is False
+    assert result.autonomous_execution_authorized is False
+    assert "trusted_external_containment_evidence_acceptance_required" in result.authorization_blockers
 
-    with_human = evaluate_phase3_readiness(
-        phase2_freeze_record=_freeze_record(),
-        containment_evidence=external,
-        human_approval=HumanSafetyApproval(
+
+def test_external_candidate_plus_human_record_still_requires_separate_authorization_artifact():
+    result = _assessment(
+        evidence=_external_candidate(),
+        approval=HumanSafetyApproval(
             authorized=True,
             approver_identity="test-human",
             approval_reference="test-only:explicit-human-gate-semantics",
         ),
     )
-    assert with_human.authorization_eligible is True
-    assert with_human.autonomous_execution_authorized is False
-    assert with_human.verify_hash()
+    assert result.external_containment_candidate_valid is True
+    assert result.external_containment_evidence_accepted is False
+    assert result.human_safety_approval_present is True
+    assert result.authorization_eligible is False
+    assert result.autonomous_execution_authorized is False
+    assert result.verify_hash()
     with pytest.raises(Phase3AuthorizationRequiredError):
-        require_autonomous_authorization(with_human)
+        require_autonomous_authorization(result)
 
 
 def test_provider_call_reservation_refuses_current_repo_state_before_budget_consumption():

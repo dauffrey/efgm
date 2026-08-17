@@ -1,52 +1,100 @@
 experiment_id: EFGM-EXP-0008
 phase: phase_3_containment_readiness
-status: implementation_candidate
+status: hardened_implementation_candidate
 parent_phase2_sha: 620dd9b85f7f05f0f04e4e34a69165510030535b
 parent_phase2_baseline_ref: baseline/exp0008-phase2-instruments-2026-08-17
-readiness_implementation_id: exp0008-phase3-readiness-v0.1
+readiness_implementation_id: exp0008-phase3-readiness-v0.2
 
 frozen_phase2_instruments:
   freeze_record_sha256: 6efe4415ef64208fa8b1f1e6918d2e8d1739dbdd7150245138932b2e67c2b547
   runtime_instrument_set_sha256: 1be866e307e5dd8ccaee7307ae0e6e4a8cc7d756595312e0820aaadcd7b8ce08
   canonical_phase2_report_sha256: 94d9b7bad0024ff88dce942ba654bebfbc0749ed0cdd0bd343c5cfd53a20cda8
   modification_authorized: false
+  loaded_package_source_git_blob_identity_recomputed: true
+  frozen_runtime_dependency_versions_verified: true
+  supported_python_matrix_verified: true
 
-readiness_contract:
-  structured_model_requests_only: true
+controller_isolation:
+  model_role: structured_data_producer_only
+  accepted_output_type: SyntheticActionRequest
+  extra_model_output_fields: fail_closed
   provider_credentials_external_to_model: true
+  environment_reference_exposed_to_model: false
+  watchdog_reference_exposed_to_model: false
+  telemetry_reference_exposed_to_model: false
+  shell_or_subprocess_exposed_to_model: false
+  filesystem_exposed_to_model: false
+  network_or_socket_exposed_to_model: false
+  browser_or_http_exposed_to_model: false
+  package_manager_exposed_to_model: false
+  arbitrary_code_execution_exposed_to_model: false
+  docker_or_host_control_exposed_to_model: false
+  raw_model_output_executes: false
   frozen_tool_broker_required: true
   frozen_watchdog_required: true
-  frozen_telemetry_required: true
-  hard_budgets_required: true
-  external_containment_preflight_required: true
-  scripted_ci_fixture_counts_as_external_evidence: false
-  explicit_human_safety_approval_required: true
-  readiness_pr_can_authorize_autonomy: false
-  separate_authorization_artifact_required: true
 
-tests:
-  boundary_injection_attacks: true
-  frozen_identity_tampering_attacks: true
-  containment_control_failure_attacks: true
-  unknown_tool_and_out_of_scope_request_attacks: true
-  hard_budget_overrun_attack: true
-  two_part_authorization_gate_attacks: true
+containment_preflight:
+  live_network_or_host_probe_code_added_to_repository: false
+  mechanism: externally_produced_attestation_validation
+  scripted_ci_vector_is_real_host_attestation: false
+  scripted_ci_vector_counts_as_external_evidence: false
+  caller_labelled_external_candidate_can_be_structurally_valid: true
+  readiness_module_can_trust_or_accept_external_evidence: false
+  trusted_external_evidence_acceptance_requires_separate_artifact: true
+  component_identities_must_match_frozen_sources: true
+  all_containment_assertions_must_pass: true
+
+hard_budget_boundary:
+  existing_external_watchdog_preserved: true
+  model_call_budget_reserved_before_future_provider_call: true
+  retry_budget_reserved_before_retry: true
+  wall_clock_budget_monotonic: true
+  action_state_write_output_memory_budgets_preflighted: true
+  watchdog_terminal_state_latched: true
+  agent_supplied_budget_counters: false
+
+adversarial_readiness_tests:
+  - reject_top_level_credential_or_control_injection
+  - reject_agent_supplied_identity_telemetry_budget_and_network_fields
+  - controller_boundary_owns_no_runtime_or_provider_handles
+  - recompute_and_verify_loaded_frozen_source_git_blob_identities
+  - verify_frozen_dependency_and_python_runtime_identity
+  - unknown_tool_latches_containment_terminal_state
+  - out_of_scope_connectivity_and_persistence_request_is_denied
+  - frozen_instrument_identity_mismatch_fails_closed
+  - containment_control_failure_fails_closed
+  - phase2_freeze_tampering_fails_closed
+  - frozen_dependency_tampering_fails_closed
+  - hard_model_call_budget_overrun_latches_terminal_state
+  - scripted_fixture_cannot_be_external_candidate
+  - relabelled_external_candidate_cannot_be_trusted_or_authorized
+  - human_record_alone_cannot_authorize
+  - external_candidate_plus_human_record_still_cannot_authorize
+  - provider_call_reservation_refuses_before_budget_consumption
 
 scientific_boundary:
-  counts_as_exp0008_evidence: false
-  model_provider_invoked: false
-  autonomous_agent_invoked: false
-  frozen_science_changed: false
-  phase2_instruments_changed: false
+  counts_as_exp0008_hypothesis_evidence: false
+  counts_as_development_trajectory: false
+  counts_as_validation_trajectory: false
+  model_provider_invoked_by_this_pr: false
+  autonomous_agent_invoked_by_this_pr: false
+  frozen_efgm_equations_changed: false
+  frozen_thresholds_changed: false
+  frozen_candidate_prerequisites_changed: false
+  frozen_AE_CUE_definitions_changed: false
+  phase2_instrument_identifiers_changed: false
 
 authorization_gate:
   external_containment_preflight_evidence_supplied: false
+  trusted_external_containment_evidence_accepted: false
   explicit_human_safety_approval_supplied: false
   authorization_eligible: false
   autonomous_execution_authorized: false
+  readiness_module_can_authorize: false
   automatic_transition_to_autonomy: false
   separate_authorization_artifact_required: true
   next_decision: >-
-    Readiness may establish authorization eligibility, but this PR cannot authorize
-    execution. After exact-head CI, adversarial review, real external containment
-    evidence, and human review, a separate explicit authorization artifact is required.
+    After exact-head CI and adversarial review pass, obtain real external containment
+    preflight evidence on an appropriate non-GitHub, non-network-connected host.
+    Only after trusted review of that evidence should the human authorization decision
+    be requested and recorded in a separate artifact.

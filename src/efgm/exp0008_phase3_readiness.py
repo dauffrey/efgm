@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+import pydantic
+import pydantic_core
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from .exp0008_safety import (
     ContainmentAttestation,
@@ -19,7 +23,7 @@ from .scoring_v2 import canonical_sha256
 
 EXPERIMENT_ID = "EFGM-EXP-0008"
 PHASE_ID = "phase_3_containment_readiness"
-READINESS_IMPLEMENTATION_ID = "exp0008-phase3-readiness-v0.1"
+READINESS_IMPLEMENTATION_ID = "exp0008-phase3-readiness-v0.2"
 PHASE2_BASELINE_SHA = "620dd9b85f7f05f0f04e4e34a69165510030535b"
 PHASE2_BASELINE_REF = "baseline/exp0008-phase2-instruments-2026-08-17"
 PHASE2_FREEZE_RECORD_SHA256 = "6efe4415ef64208fa8b1f1e6918d2e8d1739dbdd7150245138932b2e67c2b547"
@@ -35,13 +39,22 @@ FROZEN_SOURCE_IDENTITIES = {
     "preexecution_materializer": "c1e3a8f4392df3b31845d85795563a391809a0e2",
 }
 
+_FROZEN_PACKAGE_FILES = {
+    "environment_and_tool_broker": "exp0008_environment.py",
+    "telemetry": "exp0008_telemetry.py",
+    "adapter": "exp0008_adapter.py",
+    "watchdog": "exp0008_safety.py",
+    "simple_detectors_and_preexecution_comparator": "exp0008_detectors.py",
+    "preexecution_materializer": "exp0008_preexecution.py",
+}
+
 
 class Phase3AuthorizationRequiredError(RuntimeError):
     pass
 
 
 class ControllerIsolationContract(BaseModel):
-    """Declarative controller boundary. The autonomous model is a data producer, never a code/tool host."""
+    """Declarative controller boundary. A future model is a data producer, never a code/tool host."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -71,7 +84,7 @@ class ModelProposalEnvelope(BaseModel):
 
 
 class ControllerIsolationBoundary:
-    """Parser-only model boundary. It intentionally owns no environment, watchdog, provider, or credentials."""
+    """Parser-only model boundary. It owns no environment, watchdog, provider, or credentials."""
 
     def __init__(self, contract: ControllerIsolationContract | None = None) -> None:
         self.contract = contract or ControllerIsolationContract()
@@ -81,6 +94,8 @@ class ControllerIsolationBoundary:
 
 
 class ExternalContainmentEvidence(BaseModel):
+    """Candidate external evidence. This readiness module can validate but cannot trust/accept it."""
+
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     evidence_kind: Literal["external_preflight", "scripted_fixture"]
@@ -98,6 +113,8 @@ class ExternalContainmentEvidence(BaseModel):
 
 
 class HumanSafetyApproval(BaseModel):
+    """Readiness-stage representation only; it cannot authorize execution in this module."""
+
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     authorized: bool = False
@@ -128,9 +145,13 @@ class ReadinessAssessment(BaseModel):
     isolation_contract_sha256: str
     containment_attestation_sha256: str
     mechanical_preflight_passed: bool
-    external_containment_evidence_accepted: bool
+    frozen_loaded_sources_verified: bool
+    runtime_dependency_identity_verified: bool
+    containment_attestation_valid: bool
+    external_containment_candidate_valid: bool
+    external_containment_evidence_accepted: Literal[False] = False
     human_safety_approval_present: bool
-    authorization_eligible: bool
+    authorization_eligible: Literal[False] = False
     autonomous_execution_authorized: Literal[False] = False
     failures: tuple[str, ...]
     authorization_blockers: tuple[str, ...]
@@ -145,6 +166,13 @@ class ReadinessAssessment(BaseModel):
         return canonical_sha256(self.hash_payload()) == self.assessment_sha256
 
 
+def _git_blob_sha(path: Path) -> str:
+    """Compute Git's SHA-1 blob identity; SHA-1 is used only to match the already-frozen Git object IDs."""
+    data = path.read_bytes()
+    header = f"blob {len(data)}\0".encode("ascii")
+    return hashlib.sha1(header + data).hexdigest()
+
+
 def _verify_phase2_freeze_record(record: dict[str, Any]) -> tuple[str, ...]:
     failures: list[str] = []
     supplied_hash = str(record.get("freeze_record_sha256", ""))
@@ -156,6 +184,8 @@ def _verify_phase2_freeze_record(record: dict[str, Any]) -> tuple[str, ...]:
         failures.append("phase2_freeze_record_identity_mismatch")
     if record.get("status") != "frozen":
         failures.append("phase2_instruments_not_frozen")
+    if record.get("source_identity_type") != "git_blob_sha":
+        failures.append("phase2_source_identity_type_mismatch")
     if record.get("behavioral_identity", {}).get("runtime_instrument_set_sha256") != FROZEN_RUNTIME_INSTRUMENT_SET_SHA256:
         failures.append("runtime_instrument_set_identity_mismatch")
     if record.get("behavioral_identity", {}).get("canonical_report_sha256") != FROZEN_PHASE2_REPORT_SHA256:
@@ -171,6 +201,33 @@ def _verify_phase2_freeze_record(record: dict[str, Any]) -> tuple[str, ...]:
     for name, expected in FROZEN_SOURCE_IDENTITIES.items():
         if source_ids.get(name) != expected:
             failures.append(f"frozen_source_identity_mismatch:{name}")
+    return tuple(failures)
+
+
+def _loaded_frozen_source_failures() -> tuple[str, ...]:
+    package_dir = Path(__file__).resolve().parent
+    failures: list[str] = []
+    for name, filename in _FROZEN_PACKAGE_FILES.items():
+        path = package_dir / filename
+        if not path.is_file():
+            failures.append(f"frozen_source_missing:{name}")
+            continue
+        actual = _git_blob_sha(path)
+        if actual != FROZEN_SOURCE_IDENTITIES[name]:
+            failures.append(f"loaded_frozen_source_identity_mismatch:{name}")
+    return tuple(failures)
+
+
+def _runtime_dependency_failures(record: dict[str, Any]) -> tuple[str, ...]:
+    failures: list[str] = []
+    runtime = f"{sys.version_info.major}.{sys.version_info.minor}"
+    if runtime not in tuple(record.get("runtime_matrix", ())):
+        failures.append("python_runtime_outside_frozen_matrix")
+    dependencies = record.get("dependencies", {})
+    if pydantic.__version__ != dependencies.get("pydantic"):
+        failures.append("pydantic_runtime_identity_mismatch")
+    if pydantic_core.__version__ != dependencies.get("pydantic_core"):
+        failures.append("pydantic_core_runtime_identity_mismatch")
     return tuple(failures)
 
 
@@ -201,29 +258,44 @@ def evaluate_phase3_readiness(
     isolation_contract: ControllerIsolationContract | None = None,
     human_approval: HumanSafetyApproval | None = None,
 ) -> ReadinessAssessment:
-    """Evaluate readiness without invoking a model provider or authorizing autonomy by default."""
+    """Validate readiness mechanics. This function cannot accept evidence or authorize autonomous execution."""
 
     contract = isolation_contract or ControllerIsolationContract()
     approval = human_approval or HumanSafetyApproval()
 
-    failures = list(_verify_phase2_freeze_record(phase2_freeze_record))
+    freeze_failures = _verify_phase2_freeze_record(phase2_freeze_record)
+    source_failures = _loaded_frozen_source_failures()
+    dependency_failures = _runtime_dependency_failures(phase2_freeze_record)
     containment_result = validate_containment_attestation(containment_evidence.attestation)
-    failures.extend(f"containment_attestation:{item}" for item in containment_result.failures)
-    failures.extend(_containment_identity_failures(containment_evidence))
+    containment_failures = tuple(f"containment_attestation:{item}" for item in containment_result.failures)
+    containment_identity_failures = _containment_identity_failures(containment_evidence)
 
+    failures = (
+        *freeze_failures,
+        *source_failures,
+        *dependency_failures,
+        *containment_failures,
+        *containment_identity_failures,
+    )
     mechanical_preflight_passed = not failures
-    external_accepted = mechanical_preflight_passed and containment_evidence.evidence_kind == "external_preflight"
+    containment_attestation_valid = not containment_failures and not containment_identity_failures
+    external_candidate_valid = (
+        mechanical_preflight_passed
+        and containment_attestation_valid
+        and containment_evidence.evidence_kind == "external_preflight"
+    )
     human_present = approval.authorized
 
     blockers: list[str] = []
     if not mechanical_preflight_passed:
         blockers.append("mechanical_preflight_failed")
-    if not external_accepted:
-        blockers.append("external_containment_preflight_evidence_required")
+    if not external_candidate_valid:
+        blockers.append("external_containment_preflight_candidate_required")
+    blockers.append("trusted_external_containment_evidence_acceptance_required")
     if not human_present:
         blockers.append("explicit_human_safety_approval_required")
+    blockers.append("separate_authorization_artifact_required")
 
-    eligible = mechanical_preflight_passed and external_accepted and human_present
     payload = {
         "experiment_id": EXPERIMENT_ID,
         "phase": PHASE_ID,
@@ -234,9 +306,13 @@ def evaluate_phase3_readiness(
         "isolation_contract_sha256": canonical_sha256(contract.model_dump(mode="json")),
         "containment_attestation_sha256": containment_result.attestation_sha256,
         "mechanical_preflight_passed": mechanical_preflight_passed,
-        "external_containment_evidence_accepted": external_accepted,
+        "frozen_loaded_sources_verified": not source_failures,
+        "runtime_dependency_identity_verified": not dependency_failures,
+        "containment_attestation_valid": containment_attestation_valid,
+        "external_containment_candidate_valid": external_candidate_valid,
+        "external_containment_evidence_accepted": False,
         "human_safety_approval_present": human_present,
-        "authorization_eligible": eligible,
+        "authorization_eligible": False,
         "autonomous_execution_authorized": False,
         "failures": tuple(failures),
         "authorization_blockers": tuple(blockers),
@@ -250,7 +326,7 @@ def require_autonomous_authorization(assessment: ReadinessAssessment) -> None:
     blockers = ",".join(assessment.authorization_blockers)
     suffix = f": {blockers}" if blockers else ""
     raise Phase3AuthorizationRequiredError(
-        "Phase-3 readiness cannot authorize autonomous execution; a separate explicit authorization artifact is required"
+        "Phase-3 readiness cannot authorize autonomous execution; trusted external evidence acceptance and a separate explicit authorization artifact are required"
         + suffix
     )
 
@@ -259,8 +335,7 @@ def reserve_model_call_if_authorized(
     executor: SupervisedSyntheticExecutor,
     assessment: ReadinessAssessment,
 ) -> None:
-    """Reserve watchdog budget before a future provider call; never performs the provider call itself."""
-
+    """Future integration hook; current readiness state always refuses before budget consumption/provider use."""
     require_autonomous_authorization(assessment)
     try:
         executor.note_model_call()
@@ -269,7 +344,7 @@ def reserve_model_call_if_authorized(
 
 
 def build_scripted_containment_fixture() -> ExternalContainmentEvidence:
-    """CI-only fixture. It tests readiness mechanics and is deliberately inadmissible as real containment evidence."""
+    """CI-only synthetic vector. It is never evidence about the runner that executes this test."""
 
     attestation = ContainmentAttestation(
         environment_identity=FROZEN_SOURCE_IDENTITIES["environment_and_tool_broker"],
@@ -310,7 +385,11 @@ def _format_markdown(assessment: ReadinessAssessment) -> str:
     lines = [
         "# EFGM-EXP-0008 Phase 3 readiness mechanics",
         "",
-        f"- Mechanical preflight: {'PASS' if assessment.mechanical_preflight_passed else 'FAIL'}",
+        f"- Mechanical validation: {'PASS' if assessment.mechanical_preflight_passed else 'FAIL'}",
+        f"- Frozen loaded sources verified: {assessment.frozen_loaded_sources_verified}",
+        f"- Frozen runtime dependency identity verified: {assessment.runtime_dependency_identity_verified}",
+        f"- Containment attestation vector valid: {assessment.containment_attestation_valid}",
+        f"- External containment candidate valid: {assessment.external_containment_candidate_valid}",
         f"- External containment evidence accepted: {assessment.external_containment_evidence_accepted}",
         f"- Human safety approval present: {assessment.human_safety_approval_present}",
         f"- Authorization eligible: {assessment.authorization_eligible}",
@@ -323,13 +402,13 @@ def _format_markdown(assessment: ReadinessAssessment) -> str:
         lines.append(f"- Authorization blockers: {', '.join(assessment.authorization_blockers)}")
     lines.extend([
         "",
-        "This command uses a scripted containment fixture only. It is not external containment evidence and cannot authorize Phase 3 autonomy.",
+        "This command uses a scripted containment vector only. It does not attest the GitHub runner, accept external evidence, or authorize Phase 3 autonomy.",
     ])
     return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate EXP-0008 Phase 3 containment/readiness mechanics without autonomous execution.")
+    parser = argparse.ArgumentParser(description="Validate EXP-0008 Phase 3 readiness mechanics without autonomous execution.")
     parser.add_argument("--freeze-artifact", default=str(default_freeze_artifact_path()))
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
     args = parser.parse_args(argv)
@@ -341,8 +420,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if not assessment.mechanical_preflight_passed:
         raise SystemExit("Phase-3 readiness mechanics failed")
-    if assessment.autonomous_execution_authorized:
-        raise SystemExit("scripted readiness fixture must never authorize autonomous execution")
+    if assessment.external_containment_evidence_accepted or assessment.autonomous_execution_authorized:
+        raise SystemExit("scripted readiness vector must never accept evidence or authorize autonomous execution")
 
     if args.format == "json":
         print(json.dumps(assessment.model_dump(mode="json"), indent=2, sort_keys=True))
