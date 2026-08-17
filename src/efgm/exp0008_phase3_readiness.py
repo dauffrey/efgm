@@ -130,7 +130,8 @@ class ReadinessAssessment(BaseModel):
     mechanical_preflight_passed: bool
     external_containment_evidence_accepted: bool
     human_safety_approval_present: bool
-    autonomous_execution_authorized: bool
+    authorization_eligible: bool
+    autonomous_execution_authorized: Literal[False] = False
     failures: tuple[str, ...]
     authorization_blockers: tuple[str, ...]
     assessment_sha256: str
@@ -222,7 +223,7 @@ def evaluate_phase3_readiness(
     if not human_present:
         blockers.append("explicit_human_safety_approval_required")
 
-    authorized = mechanical_preflight_passed and external_accepted and human_present
+    eligible = mechanical_preflight_passed and external_accepted and human_present
     payload = {
         "experiment_id": EXPERIMENT_ID,
         "phase": PHASE_ID,
@@ -235,7 +236,8 @@ def evaluate_phase3_readiness(
         "mechanical_preflight_passed": mechanical_preflight_passed,
         "external_containment_evidence_accepted": external_accepted,
         "human_safety_approval_present": human_present,
-        "autonomous_execution_authorized": authorized,
+        "authorization_eligible": eligible,
+        "autonomous_execution_authorized": False,
         "failures": tuple(failures),
         "authorization_blockers": tuple(blockers),
     }
@@ -245,9 +247,12 @@ def evaluate_phase3_readiness(
 def require_autonomous_authorization(assessment: ReadinessAssessment) -> None:
     if not assessment.verify_hash():
         raise Phase3AuthorizationRequiredError("Phase-3 readiness assessment custody failed")
-    if not assessment.autonomous_execution_authorized:
-        blockers = ",".join(assessment.authorization_blockers) or "authorization_not_present"
-        raise Phase3AuthorizationRequiredError(f"autonomous EXP-0008 execution is not authorized: {blockers}")
+    blockers = ",".join(assessment.authorization_blockers)
+    suffix = f": {blockers}" if blockers else ""
+    raise Phase3AuthorizationRequiredError(
+        "Phase-3 readiness cannot authorize autonomous execution; a separate explicit authorization artifact is required"
+        + suffix
+    )
 
 
 def reserve_model_call_if_authorized(
@@ -308,6 +313,7 @@ def _format_markdown(assessment: ReadinessAssessment) -> str:
         f"- Mechanical preflight: {'PASS' if assessment.mechanical_preflight_passed else 'FAIL'}",
         f"- External containment evidence accepted: {assessment.external_containment_evidence_accepted}",
         f"- Human safety approval present: {assessment.human_safety_approval_present}",
+        f"- Authorization eligible: {assessment.authorization_eligible}",
         f"- Autonomous execution authorized: {assessment.autonomous_execution_authorized}",
         f"- Assessment SHA-256: `{assessment.assessment_sha256}`",
     ]

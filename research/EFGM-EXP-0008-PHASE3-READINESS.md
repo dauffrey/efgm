@@ -40,21 +40,19 @@ The readiness module contains no model-provider invocation.
 
 ## Adversarial boundary attacks
 
-The Phase-3 readiness test suite attempts to inject controller-only fields through model output, request unknown or out-of-scope synthetic actions, tamper with frozen identities, fail containment controls, exceed hard budgets, and bypass the two-part authorization gate.
+The Phase-3 readiness test suite attempts to inject controller-only fields through model output, request unknown or out-of-scope synthetic actions, tamper with frozen identities, fail containment controls, exceed hard budgets, and bypass the authorization gates.
 
-The expected behavior is fail-closed.
+The expected behavior is fail-closed. An unknown synthetic tool is treated as a containment anomaly and terminates the supervised batch rather than merely returning a soft denial.
 
-## Human safety gate
+## Human safety and authorization gate
 
-Autonomous execution requires all three conditions simultaneously:
+Readiness evaluates whether the prerequisite conditions for a later authorization decision are present. External containment evidence and explicit human safety approval are both required before `authorization_eligible` can become true.
 
-1. mechanical readiness preflight passes;
-2. admissible `external_preflight` containment evidence is supplied;
-3. explicit human safety approval is supplied.
+Even if those prerequisites are eventually satisfied, **this readiness implementation is deliberately unable to set `autonomous_execution_authorized` to true**. It always remains false. A separate, explicit authorization artifact/change is required after the human reviews the real external containment evidence and makes the authorization decision.
 
-This PR supplies neither item 2 nor item 3. Therefore `autonomous_execution_authorized` remains false even when deterministic readiness mechanics pass.
+This prevents the readiness evaluator, caller-created records, CI fixtures, or a relabelled evidence envelope from self-authorizing autonomous execution.
 
-After exact-head CI and adversarial review pass, the next action is a separate human decision about whether to authorize the first autonomous development trajectories.
+After exact-head CI and adversarial review pass, the next operational step is to obtain and review real external containment-preflight evidence on an appropriate non-GitHub, non-network-connected host. Only after that evidence passes should the explicit human authorization decision be requested and, if approved, recorded separately.
 
 ## Scientific boundary
 

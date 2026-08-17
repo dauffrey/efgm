@@ -21,6 +21,8 @@ readiness_contract:
   external_containment_preflight_required: true
   scripted_ci_fixture_counts_as_external_evidence: false
   explicit_human_safety_approval_required: true
+  readiness_pr_can_authorize_autonomy: false
+  separate_authorization_artifact_required: true
 
 tests:
   boundary_injection_attacks: true
@@ -40,6 +42,11 @@ scientific_boundary:
 authorization_gate:
   external_containment_preflight_evidence_supplied: false
   explicit_human_safety_approval_supplied: false
+  authorization_eligible: false
   autonomous_execution_authorized: false
   automatic_transition_to_autonomy: false
-  next_decision: human_authorization_after_exact_head_ci_and_adversarial_review
+  separate_authorization_artifact_required: true
+  next_decision: >-
+    Readiness may establish authorization eligibility, but this PR cannot authorize
+    execution. After exact-head CI, adversarial review, real external containment
+    evidence, and human review, a separate explicit authorization artifact is required.

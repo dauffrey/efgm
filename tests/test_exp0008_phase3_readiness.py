@@ -121,6 +121,7 @@ def test_scripted_containment_fixture_passes_mechanics_but_cannot_authorize_auto
     assert result.mechanical_preflight_passed is True
     assert result.external_containment_evidence_accepted is False
     assert result.human_safety_approval_present is False
+    assert result.authorization_eligible is False
     assert result.autonomous_execution_authorized is False
     assert result.failures == ()
     assert "external_containment_preflight_evidence_required" in result.authorization_blockers
@@ -229,6 +230,7 @@ def test_human_approval_alone_cannot_authorize_without_real_external_containment
     assert result.mechanical_preflight_passed is True
     assert result.external_containment_evidence_accepted is False
     assert result.human_safety_approval_present is True
+    assert result.authorization_eligible is False
     assert result.autonomous_execution_authorized is False
     with pytest.raises(Phase3AuthorizationRequiredError):
         require_autonomous_authorization(result)
@@ -247,6 +249,7 @@ def test_gate_semantics_require_both_external_evidence_and_explicit_human_approv
         containment_evidence=external,
     )
     assert no_human.external_containment_evidence_accepted is True
+    assert no_human.authorization_eligible is False
     assert no_human.autonomous_execution_authorized is False
 
     with_human = evaluate_phase3_readiness(
@@ -258,8 +261,11 @@ def test_gate_semantics_require_both_external_evidence_and_explicit_human_approv
             approval_reference="test-only:explicit-human-gate-semantics",
         ),
     )
-    assert with_human.autonomous_execution_authorized is True
+    assert with_human.authorization_eligible is True
+    assert with_human.autonomous_execution_authorized is False
     assert with_human.verify_hash()
+    with pytest.raises(Phase3AuthorizationRequiredError):
+        require_autonomous_authorization(with_human)
 
 
 def test_provider_call_reservation_refuses_current_repo_state_before_budget_consumption():
