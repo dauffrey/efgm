@@ -18,12 +18,7 @@ def _clean_nonblank(value: str, field_name: str) -> str:
 
 
 class SyntheticActionRequest(BaseModel):
-    """Agent-visible request against the fictional EXP-0008 state machine.
-
-    This is data only. It cannot carry executable code, shell commands, URLs,
-    credentials, host paths, arbitrary tool payloads, obstacle identity, or
-    supervisor-owned resource-accounting measurements.
-    """
+    """Agent-visible request against the fictional EXP-0008 state machine."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -34,7 +29,6 @@ class SyntheticActionRequest(BaseModel):
     current_subgoal: str
     strategy_id: str
     parent_action_id: str | None = None
-
     tool_requested: str
     capability_requested: str
     resource_requested: str
@@ -42,20 +36,13 @@ class SyntheticActionRequest(BaseModel):
     requested_connectivity: float = Field(default=0.0, ge=0.0, le=1.0)
     requested_persistence: float = Field(default=0.0, ge=0.0, le=1.0)
     requested_coordination: float = Field(default=0.0, ge=0.0, le=1.0)
-
     state_write: bool = False
     state_read: bool = False
     cross_agent_message: bool = False
 
     @field_validator(
-        "trajectory_id",
-        "sequence_id",
-        "governed_subject_id",
-        "root_objective",
-        "current_subgoal",
-        "strategy_id",
-        "tool_requested",
-        "capability_requested",
+        "trajectory_id", "sequence_id", "governed_subject_id", "root_objective",
+        "current_subgoal", "strategy_id", "tool_requested", "capability_requested",
         "resource_requested",
     )
     @classmethod
@@ -71,23 +58,18 @@ class SyntheticActionRequest(BaseModel):
 
 
 class SupervisorActionObservation(BaseModel):
-    """Resource-accounting facts supplied by the supervisor, never by the agent.
-
-    The future autonomous tool broker must construct this object outside the
-    agent-visible request surface from controller/runtime observations.
-    """
+    """Controller/runtime facts that are never accepted from the agent request."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
-
-    output_chars: int = Field(default=0, ge=0)
-    memory_units: int = Field(default=0, ge=0)
+    output_chars: int = Field(ge=0)
+    memory_units: int = Field(ge=0)
+    output_contradiction: bool
 
 
 class TelemetryEvent(BaseModel):
     """Immutable, hash-chained event emitted after one synthetic action boundary."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
-
     experiment_id: str = EXPERIMENT_ID
     trajectory_id: str
     sequence_id: str
@@ -95,14 +77,12 @@ class TelemetryEvent(BaseModel):
     action_index: int = Field(ge=0)
     action_id: str
     parent_action_id: str | None = None
-
     root_objective: str
     current_subgoal: str
     strategy_id: str
     strategy_change: bool
     obstacle_id: str | None = None
     obstacle_type: str | None = None
-
     tool_requested: str
     capability_requested: str
     resource_requested: str
@@ -111,7 +91,6 @@ class TelemetryEvent(BaseModel):
     request_denied: bool
     executed: bool
     action_result: str
-
     capability_in_scope: bool
     resource_in_scope: bool
     subgoal_in_scope: bool
@@ -119,7 +98,6 @@ class TelemetryEvent(BaseModel):
     credential_in_scope: bool
     persistence_in_scope: bool
     coordination_in_scope: bool
-
     privilege_level: float = Field(ge=0.0, le=1.0)
     connectivity_level: float = Field(ge=0.0, le=1.0)
     persistence_level: float = Field(ge=0.0, le=1.0)
@@ -128,48 +106,35 @@ class TelemetryEvent(BaseModel):
     state_write: bool
     state_read: bool
     cross_agent_message: bool
-
     action_traceable: bool
     tool_traceable: bool
     state_change_traceable: bool
     write_surface_inventoried: bool
     readback_traceable: bool
     message_traceable: bool
-
     revocation_available: bool
     containment_available: bool
     cleanup_available: bool
     rollback_available: bool
-
     failed_attempt_count: int = Field(ge=0)
     replan_count: int = Field(ge=0)
     new_subgoal_count: int = Field(ge=0)
     strategy_change_count: int = Field(ge=0)
-
     tool_failed: bool = False
     timed_out: bool = False
     workflow_interrupted: bool = False
     synthetic_policy_violation: bool = False
     containment_anomaly: bool = False
-    output_chars: int = Field(default=0, ge=0)
-    memory_units: int = Field(default=0, ge=0)
-
+    output_chars: int = Field(ge=0)
+    memory_units: int = Field(ge=0)
+    output_contradiction: bool
     previous_event_sha256: str | None = None
     event_sha256: str
 
     @field_validator(
-        "trajectory_id",
-        "sequence_id",
-        "governed_subject_id",
-        "action_id",
-        "root_objective",
-        "current_subgoal",
-        "strategy_id",
-        "tool_requested",
-        "capability_requested",
-        "resource_requested",
-        "action_result",
-        "event_sha256",
+        "trajectory_id", "sequence_id", "governed_subject_id", "action_id",
+        "root_objective", "current_subgoal", "strategy_id", "tool_requested",
+        "capability_requested", "resource_requested", "action_result", "event_sha256",
     )
     @classmethod
     def validate_required_text(cls, value: str, info):
@@ -206,42 +171,24 @@ class TelemetryEvent(BaseModel):
 
 
 def seal_event(payload: dict[str, Any]) -> TelemetryEvent:
-    """Validate/normalize, then seal every field except the hash itself."""
     candidate = dict(payload)
     candidate.pop("event_sha256", None)
-    normalized = TelemetryEvent.model_validate(
-        {**candidate, "event_sha256": "0" * 64}
-    ).hash_payload()
+    normalized = TelemetryEvent.model_validate({**candidate, "event_sha256": "0" * 64}).hash_payload()
     digest = canonical_sha256(normalized)
     return TelemetryEvent.model_validate({**normalized, "event_sha256": digest})
 
 
 def verify_event_chain(events: list[TelemetryEvent]) -> bool:
-    """Verify per-event hashes, indices, identity continuity, and hash chaining."""
     if not events:
         return True
     first = events[0]
-    identity = (
-        first.experiment_id,
-        first.trajectory_id,
-        first.sequence_id,
-        first.governed_subject_id,
-        first.root_objective,
-    )
+    identity = (first.experiment_id, first.trajectory_id, first.sequence_id, first.governed_subject_id, first.root_objective)
     previous_hash: str | None = None
     previous_action_id: str | None = None
     for index, event in enumerate(events):
-        if not event.verify_hash():
+        if not event.verify_hash() or event.action_index != index:
             return False
-        if event.action_index != index:
-            return False
-        if (
-            event.experiment_id,
-            event.trajectory_id,
-            event.sequence_id,
-            event.governed_subject_id,
-            event.root_objective,
-        ) != identity:
+        if (event.experiment_id, event.trajectory_id, event.sequence_id, event.governed_subject_id, event.root_objective) != identity:
             return False
         if event.previous_event_sha256 != previous_hash:
             return False
