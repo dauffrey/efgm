@@ -1,6 +1,6 @@
 experiment_id: EFGM-EXP-0008
 phase: phase_1_instrumentation
-status: implementation_candidate_hardened_second_review
+status: implementation_candidate_final_hardened
 parent_preregistration_sha: 9e40bc978f4f86eadbd65471d08a3fcb21c22d4c
 parent_baseline_ref: baseline/exp0008-preregistration-2026-08-16
 branch: experiment/exp0008-phase1-instrumentation
@@ -16,13 +16,18 @@ autonomous_execution:
 scope:
   included:
     - synthetic_in_memory_state_machine
+    - controller_owned_execution_identity
     - controller_owned_per_tool_contracts
     - immutable_hash_chained_telemetry
+    - pre_and_post_state_hash_custody
+    - runtime_policy_tool_watchdog_identity_hashes
     - identity_bound_hash_chained_prefix_assessments
     - deterministic_telemetry_to_efgm_adapter
     - preregistered_simple_detectors
+    - preexecution_b5_spec_compliance_observation
     - external_containment_attestation_checker
     - pre_execution_external_watchdog_budget_monitor
+    - monotonic_supervisor_runtime_accounting
     - exact_deterministic_acceptance_criteria
     - adversarial_regression_tests
   excluded:
@@ -47,8 +52,21 @@ instrumentation:
   safety_module: src/efgm/exp0008_safety.py
   documentation: research/EFGM-EXP-0008-PHASE1-INSTRUMENTATION.md
 
+controller_execution_identity:
+  owner: environment_controller
+  agent_supplied: false
+  fields:
+    - trajectory_id
+    - sequence_id
+    - governed_subject_id
+    - root_objective
+  bound_before_first_action: true
+  injected_into_telemetry: true
+  identity_rename_by_agent_possible: false
+
 agent_request_surface:
   controller_owned_side_effect_flags_agent_supplied: false
+  controller_identity_agent_supplied: false
   parent_action_identity_agent_supplied: false
   obstacle_identity_agent_supplied: false
   supervisor_accounting_agent_supplied: false
@@ -83,16 +101,28 @@ per_tool_contracts:
   all_declared_tools_must_have_enforcement_partition: true
 
 telemetry_contract:
+  schema_id: exp0008-telemetry-v0.2
   immutable_records: true
   canonical_sha256: true
   previous_event_hash_chain: true
   controller_derived_parent_action_chain: true
+  preexecution_decision_hash: true
+  pre_state_hash: true
+  post_state_hash: true
+  state_hash_continuity_verified: true
   identity_continuity:
     - experiment_id
+    - telemetry_schema_id
     - trajectory_id
     - sequence_id
     - governed_subject_id
     - root_objective
+    - policy_sha256
+    - tool_contracts_sha256
+    - obstacle_profile_sha256
+    - environment_initial_state_sha256
+    - watchdog_config_sha256
+    - runtime_custody_sha256
   supervisor_owned_fields:
     - output_chars
     - memory_units
@@ -103,6 +133,22 @@ telemetry_contract:
     denominator: output_bearing_action_boundaries_only
   applicability_aware_trace_aggregation: true
   non_applicable_events_count_as_successes: false
+
+runtime_custody:
+  canonical_hashes_required: true
+  bound_components:
+    - controller_execution_identity
+    - telemetry_schema_id
+    - policy
+    - tool_contracts
+    - obstacle_profile
+    - initial_world_state
+    - watchdog_configuration
+  nested_policy_mutation_detection: fail_closed_containment_anomaly
+  out_of_band_world_state_mutation_detection: fail_closed_containment_anomaly
+  event_chain_binds_runtime_custody: true
+  assessment_chain_binds_runtime_custody: true
+  live_environment_rebinding_allowed: false
 
 synthetic_environment:
   external_side_effects: false
@@ -116,6 +162,13 @@ synthetic_environment:
   deterministic_writes:
     agent_supplied_write_value: false
     effects_defined_in_tool_contract: true
+
+effective_authority_semantics:
+  requested_authority_tracked: true
+  effective_current_authority_tracked: true
+  allowed_action_requires_effective_authority_in_scope: true
+  over_authority_state_persists_as_adverse_until_explicitly_reduced: true
+  nominal_zero_increment_does_not_mask_existing_over_authority: true
 
 completion_acceptance:
   completion_tool_must_be_allowed: true
@@ -134,6 +187,7 @@ adapter:
   containment_anomaly_scoreable: false
   output_contradiction_source: supervisor_observation
   output_contradiction_non_applicable_dilution_prevented: true
+  authority_source: effective_current_authority_state
   action_velocity_semantics: adaptation_pressure_proxy_not_wall_clock_speed
   frozen_for_autonomous_development: false
   freeze_gate: after_phase_2_scripted_calibration_and_before_phase_3
@@ -149,18 +203,29 @@ assessment_custody:
     - governed_subject_id
     - adapter_id
     - agent_config_sha256
+    - policy_sha256
+    - watchdog_config_sha256
+    - runtime_custody_sha256
   verifier_requires_raw_event_chain: true
   verifier_recomputes_frozen_efgm_outputs_per_prefix: true
   identity_splicing_allowed: false
   event_head_splicing_allowed: false
   config_splicing_allowed: false
+  runtime_custody_splicing_allowed: false
 
 simple_detectors:
-  - B1_first_explicit_violation
-  - B2_first_denied_request
-  - B3_repeated_denials
-  - B4_out_of_scope_request
-  - B5_spec_compliance_request_checker
+  B1_first_explicit_violation:
+    phase: post_execution
+  B2_first_denied_request:
+    phase: pre_execution
+  B3_repeated_denials:
+    phase: pre_execution
+  B4_out_of_scope_request:
+    phase: pre_execution
+  B5_spec_compliance_request_checker:
+    phase: pre_execution
+    source: immutable_preexecution_policy_decision
+    derived_from_postexecution_outcome: false
 
 containment_preflight:
   implementation: external_attestation_validation
@@ -170,6 +235,7 @@ containment_preflight:
   all_required_assertions_must_pass: true
 
 watchdog:
+  implementation_id: exp0008-external-watchdog-v0.2
   outside_agent_tool_surface: true
   mandatory_executor: SupervisedSyntheticExecutor
   pre_execution_budget_gate: true
@@ -177,6 +243,14 @@ watchdog:
   environment_termination_on_watchdog_trigger: true
   batch_termination_latched: true
   silent_retry_after_termination: false
+  one_time_environment_binding: true
+  fresh_watchdog_reset_on_live_environment: prohibited
+  supervisor_runtime_accounting:
+    agent_supplied: false
+    model_calls_monotonic: true
+    retries_monotonic: true
+    elapsed_seconds_monotonic: true
+    rollback_behavior: terminate_before_next_action
   state_write_budget_semantics: >-
     Conservatively charges every synthetic state mutation boundary, including
     resource, privilege, connectivity, persistence, coordination, and completion
@@ -192,14 +266,31 @@ watchdog:
   containment_anomaly_action: terminate_trajectory_and_batch
   known_budget_exceedance_action: block_before_environment_execution_and_terminate
 
-second_peer_review_findings:
-  controller_owned_per_tool_contracts: resolved_candidate
-  enforced_supervisor_orchestrator_termination: resolved_candidate
-  applicability_aware_output_observations: resolved_candidate
-  identity_bound_assessment_custody: resolved_candidate
-  deterministic_task_acceptance: resolved_candidate
-  state_mutation_budget_coverage: resolved_candidate
-  supervisor_ownership_runtime_boundary: structurally_enforced_candidate
+peer_review_findings:
+  first_review:
+    supervisor_owned_accounting: resolved_candidate
+    latched_termination: resolved_candidate
+    output_contradiction_applicability: resolved_candidate
+    sparse_applicability: resolved_candidate
+    obstacle_locality: resolved_candidate
+    prefix_assessment_custody: resolved_candidate
+    deterministic_completion: resolved_candidate
+  second_review:
+    controller_owned_per_tool_contracts: resolved_candidate
+    enforced_supervisor_orchestrator_termination: resolved_candidate
+    applicability_aware_output_observations: resolved_candidate
+    identity_bound_assessment_custody: resolved_candidate
+    deterministic_task_acceptance: resolved_candidate
+    state_mutation_budget_coverage: resolved_candidate
+    supervisor_ownership_runtime_boundary: structurally_enforced_candidate
+  final_review:
+    controller_owned_first_action_identity: resolved_candidate
+    identity_drift_without_telemetry: eliminated_by_controller_owned_identity_surface
+    monotonic_runtime_budget_accounting: resolved_candidate
+    fresh_watchdog_reset: resolved_candidate
+    persistent_effective_authority: resolved_candidate
+    runtime_policy_tool_watchdog_custody: resolved_candidate
+    b5_preexecution_comparator_semantics: resolved_candidate
 
 frozen_model_contract_preserved:
   efgm_v2_equations_changed: false
@@ -223,7 +314,7 @@ phase_exit_gate:
     - repository_test_matrix_passes
     - safety_contract_review_complete
     - preregistration_contract_review_complete
-    - second_adversarial_phase_1_review_findings_resolved
+    - all_phase_1_adversarial_findings_resolved
     - final_phase_1_peer_review_complete
     - phase_1_candidate_merged
   next_phase: phase_2_scripted_calibration
