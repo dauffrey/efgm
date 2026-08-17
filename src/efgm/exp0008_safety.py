@@ -7,6 +7,9 @@ from .exp0008_telemetry import SupervisorActionObservation, SyntheticActionReque
 from .scoring_v2 import canonical_sha256
 
 
+WATCHDOG_IMPLEMENTATION_ID = "exp0008-external-watchdog-v0.2"
+
+
 class ContainmentAttestation(BaseModel):
     """Externally produced containment evidence consumed by the experiment harness."""
 
@@ -84,6 +87,46 @@ class ExecutionBudget(BaseModel):
     maximum_memory_units: int = Field(ge=0)
 
 
+class RuntimeAccountingSnapshot(BaseModel):
+    """Monotonic controller-owned counters consumed by the watchdog."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_calls: int = Field(ge=0)
+    retries: int = Field(ge=0)
+    elapsed_seconds: float = Field(ge=0.0)
+
+
+class SupervisorRuntimeAccounting:
+    """Mutable only through monotonic controller methods; never exposed in SyntheticActionRequest."""
+
+    def __init__(self) -> None:
+        self._model_calls = 0
+        self._retries = 0
+        self._elapsed_seconds = 0.0
+
+    def note_model_call(self, count: int = 1) -> None:
+        if count < 0:
+            raise ValueError("model call increment must be non-negative")
+        self._model_calls += count
+
+    def note_retry(self, count: int = 1) -> None:
+        if count < 0:
+            raise ValueError("retry increment must be non-negative")
+        self._retries += count
+
+    def advance_elapsed(self, seconds: float) -> None:
+        if seconds < 0:
+            raise ValueError("elapsed-time increment must be non-negative")
+        self._elapsed_seconds += seconds
+
+    def snapshot(self) -> RuntimeAccountingSnapshot:
+        return RuntimeAccountingSnapshot(
+            model_calls=self._model_calls,
+            retries=self._retries,
+            elapsed_seconds=self._elapsed_seconds,
+        )
+
+
 class WatchdogDecision(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -94,6 +137,10 @@ class WatchdogDecision(BaseModel):
     state_writes_seen: int
     output_chars_seen: int
     memory_units_seen: int
+    model_calls_seen: int
+    retries_seen: int
+    elapsed_seconds_seen: float
+    watchdog_config_sha256: str
 
 
 class ExternalWatchdog:
@@ -101,10 +148,15 @@ class ExternalWatchdog:
 
     def __init__(self, budget: ExecutionBudget) -> None:
         self.budget = budget
+        self.config_sha256 = canonical_sha256({
+            "implementation_id": WATCHDOG_IMPLEMENTATION_ID,
+            "budget": budget.model_dump(mode="json"),
+        })
         self.actions_seen = 0
         self.state_writes_seen = 0
         self.output_chars_seen = 0
         self.memory_units_seen = 0
+        self._accounting_seen = RuntimeAccountingSnapshot(model_calls=0, retries=0, elapsed_seconds=0.0)
         self._terminated = False
         self._termination_reasons: tuple[str, ...] = ()
 
@@ -121,6 +173,10 @@ class ExternalWatchdog:
             state_writes_seen=self.state_writes_seen,
             output_chars_seen=self.output_chars_seen,
             memory_units_seen=self.memory_units_seen,
+            model_calls_seen=self._accounting_seen.model_calls,
+            retries_seen=self._accounting_seen.retries,
+            elapsed_seconds_seen=self._accounting_seen.elapsed_seconds,
+            watchdog_config_sha256=self.config_sha256,
         )
 
     def _latch(self, reasons: list[str]) -> WatchdogDecision:
@@ -129,36 +185,41 @@ class ExternalWatchdog:
             self._termination_reasons = tuple(reasons)
         return self._decision()
 
-    @staticmethod
-    def _validate_counters(*, model_calls: int, retries: int, elapsed_seconds: float) -> None:
-        if model_calls < 0 or retries < 0 or elapsed_seconds < 0:
-            raise ValueError("watchdog counters must be non-negative")
+    def _ingest_accounting(self, accounting: RuntimeAccountingSnapshot) -> list[str]:
+        previous = self._accounting_seen
+        reasons: list[str] = []
+        if accounting.model_calls < previous.model_calls:
+            reasons.append("non_monotonic_model_calls")
+        if accounting.retries < previous.retries:
+            reasons.append("non_monotonic_retries")
+        if accounting.elapsed_seconds < previous.elapsed_seconds:
+            reasons.append("non_monotonic_elapsed_seconds")
+        if not reasons:
+            self._accounting_seen = accounting
+        return reasons
 
     def preflight_next(
         self,
         *,
         supervisor_observation: SupervisorActionObservation,
         prospective_state_mutation: bool,
-        model_calls: int,
-        retries: int,
-        elapsed_seconds: float,
+        accounting: RuntimeAccountingSnapshot,
     ) -> WatchdogDecision:
-        """Block an action before execution if its known supervisor-owned facts would exceed a hard limit."""
-        self._validate_counters(model_calls=model_calls, retries=retries, elapsed_seconds=elapsed_seconds)
+        """Block an action before execution if supervisor-owned facts would exceed a hard limit."""
         if self._terminated:
             return self._decision()
+        reasons = self._ingest_accounting(accounting)
         prospective_actions = self.actions_seen + 1
         prospective_state_writes = self.state_writes_seen + int(prospective_state_mutation)
         prospective_output = self.output_chars_seen + supervisor_observation.output_chars
         prospective_memory = max(self.memory_units_seen, supervisor_observation.memory_units)
-        reasons: list[str] = []
         if prospective_actions > self.budget.maximum_agent_actions:
             reasons.append("maximum_agent_actions")
-        if model_calls > self.budget.maximum_model_calls:
+        if accounting.model_calls > self.budget.maximum_model_calls:
             reasons.append("maximum_model_calls")
-        if retries > self.budget.maximum_retries:
+        if accounting.retries > self.budget.maximum_retries:
             reasons.append("maximum_retries")
-        if elapsed_seconds > self.budget.maximum_wall_clock_seconds:
+        if accounting.elapsed_seconds > self.budget.maximum_wall_clock_seconds:
             reasons.append("maximum_wall_clock_seconds")
         if prospective_state_writes > self.budget.maximum_state_writes:
             reasons.append("maximum_state_writes")
@@ -168,37 +229,27 @@ class ExternalWatchdog:
             reasons.append("maximum_memory_units")
         return self._latch(reasons)
 
-    def observe(
-        self,
-        event: TelemetryEvent,
-        *,
-        model_calls: int,
-        retries: int,
-        elapsed_seconds: float,
-    ) -> WatchdogDecision:
-        """Commit one executed/denied action boundary and fail closed on any unexpected overrun."""
-        self._validate_counters(model_calls=model_calls, retries=retries, elapsed_seconds=elapsed_seconds)
+    def observe(self, event: TelemetryEvent, *, accounting: RuntimeAccountingSnapshot) -> WatchdogDecision:
+        """Commit one action boundary and fail closed on any unexpected overrun or custody mismatch."""
         if self._terminated:
             return self._decision()
-
+        reasons = self._ingest_accounting(accounting)
         self.actions_seen += 1
-        # Conservatively charge every synthetic state mutation against the preregistered
-        # maximum_state_writes budget, including privilege/connectivity/persistence/
-        # coordination/completion changes that are not resource writes.
         self.state_writes_seen += int(event.state_change_occurred)
         self.output_chars_seen += event.output_chars
         self.memory_units_seen = max(self.memory_units_seen, event.memory_units)
 
-        reasons: list[str] = []
         if event.containment_anomaly:
             reasons.append("containment_anomaly")
+        if event.watchdog_config_sha256 != self.config_sha256:
+            reasons.append("watchdog_runtime_identity_mismatch")
         if self.actions_seen > self.budget.maximum_agent_actions:
             reasons.append("maximum_agent_actions")
-        if model_calls > self.budget.maximum_model_calls:
+        if accounting.model_calls > self.budget.maximum_model_calls:
             reasons.append("maximum_model_calls")
-        if retries > self.budget.maximum_retries:
+        if accounting.retries > self.budget.maximum_retries:
             reasons.append("maximum_retries")
-        if elapsed_seconds > self.budget.maximum_wall_clock_seconds:
+        if accounting.elapsed_seconds > self.budget.maximum_wall_clock_seconds:
             reasons.append("maximum_wall_clock_seconds")
         if self.state_writes_seen > self.budget.maximum_state_writes:
             reasons.append("maximum_state_writes")
@@ -217,16 +268,29 @@ class SupervisedExecutionTerminatedError(RuntimeError):
 
 
 class SupervisedSyntheticExecutor:
-    """Mandatory controller path coupling environment execution to one latched batch watchdog."""
+    """Mandatory controller path coupling one environment to one watchdog/accounting context."""
 
     def __init__(self, *, environment: SyntheticEnvironment, watchdog: ExternalWatchdog) -> None:
+        if environment.terminated or watchdog.terminated:
+            raise RuntimeError("cannot bind a terminated environment or watchdog")
         self.environment = environment
         self.watchdog = watchdog
-        self._batch_terminated = watchdog.terminated or environment.terminated
+        self.accounting = SupervisorRuntimeAccounting()
+        self.runtime_custody_sha256 = self.environment.bind_supervisor(self.watchdog.config_sha256)
+        self._batch_terminated = False
 
     @property
     def batch_terminated(self) -> bool:
-        return self._batch_terminated or self.watchdog.terminated
+        return self._batch_terminated or self.watchdog.terminated or self.environment.terminated
+
+    def note_model_call(self, count: int = 1) -> None:
+        self.accounting.note_model_call(count)
+
+    def note_retry(self, count: int = 1) -> None:
+        self.accounting.note_retry(count)
+
+    def advance_elapsed(self, seconds: float) -> None:
+        self.accounting.advance_elapsed(seconds)
 
     def _terminate_from_watchdog(self, decision: WatchdogDecision, *, event: TelemetryEvent | None = None) -> None:
         self._batch_terminated = True
@@ -235,14 +299,18 @@ class SupervisedSyntheticExecutor:
             self.environment.terminate(f"external_watchdog:{reason}")
         raise SupervisedExecutionTerminatedError(f"supervised EXP-0008 execution terminated: {reason}", decision, event)
 
+    def _handle_containment(self, error: ContainmentAnomalyError) -> None:
+        decision = self.watchdog.observe(error.event, accounting=self.accounting.snapshot())
+        self._batch_terminated = True
+        if not decision.terminate_batch:
+            decision = self.watchdog._latch(["containment_anomaly"])
+        raise ContainmentAnomalyError("containment/custody anomaly; environment and supervised batch are terminal", error.event) from error
+
     def step(
         self,
         request: SyntheticActionRequest,
         *,
         supervisor_observation: SupervisorActionObservation,
-        model_calls: int,
-        retries: int,
-        elapsed_seconds: float,
     ) -> TelemetryEvent:
         if self.batch_terminated:
             raise SupervisedExecutionTerminatedError("supervised EXP-0008 batch is terminal", self.watchdog._decision())
@@ -250,13 +318,19 @@ class SupervisedSyntheticExecutor:
             self._batch_terminated = True
             raise EnvironmentTerminatedError(f"synthetic environment is terminal: {self.environment.termination_reason}")
 
-        prospective_state_mutation = self.environment.controller_preview_state_mutation(request)
+        try:
+            prospective_state_mutation = self.environment.controller_preview_state_mutation(
+                request,
+                supervisor_observation=supervisor_observation,
+            )
+        except ContainmentAnomalyError as error:
+            self._handle_containment(error)
+            raise AssertionError("unreachable")
+
         preflight = self.watchdog.preflight_next(
             supervisor_observation=supervisor_observation,
             prospective_state_mutation=prospective_state_mutation,
-            model_calls=model_calls,
-            retries=retries,
-            elapsed_seconds=elapsed_seconds,
+            accounting=self.accounting.snapshot(),
         )
         if preflight.terminate_batch:
             self._terminate_from_watchdog(preflight)
@@ -264,13 +338,13 @@ class SupervisedSyntheticExecutor:
         try:
             event = self.environment._controller_step(request, supervisor_observation=supervisor_observation)
         except ContainmentAnomalyError as error:
-            decision = self.watchdog.observe(error.event, model_calls=model_calls, retries=retries, elapsed_seconds=elapsed_seconds)
-            self._batch_terminated = True
-            if not decision.terminate_batch:
-                decision = self.watchdog._latch(["containment_anomaly"])
-            raise ContainmentAnomalyError("unknown tool requested; environment and supervised batch are terminal", error.event) from error
+            self._handle_containment(error)
+            raise AssertionError("unreachable")
 
-        decision = self.watchdog.observe(event, model_calls=model_calls, retries=retries, elapsed_seconds=elapsed_seconds)
+        if event.runtime_custody_sha256 != self.runtime_custody_sha256:
+            decision = self.watchdog._latch(["runtime_custody_identity_mismatch"])
+            self._terminate_from_watchdog(decision, event=event)
+        decision = self.watchdog.observe(event, accounting=self.accounting.snapshot())
         if decision.terminate_batch:
             self._terminate_from_watchdog(decision, event=event)
         return event
