@@ -1,0 +1,45 @@
+experiment_id: EFGM-EXP-0008
+phase: phase_3_containment_readiness
+status: implementation_candidate
+parent_phase2_sha: 620dd9b85f7f05f0f04e4e34a69165510030535b
+parent_phase2_baseline_ref: baseline/exp0008-phase2-instruments-2026-08-17
+readiness_implementation_id: exp0008-phase3-readiness-v0.1
+
+frozen_phase2_instruments:
+  freeze_record_sha256: 6efe4415ef64208fa8b1f1e6918d2e8d1739dbdd7150245138932b2e67c2b547
+  runtime_instrument_set_sha256: 1be866e307e5dd8ccaee7307ae0e6e4a8cc7d756595312e0820aaadcd7b8ce08
+  canonical_phase2_report_sha256: 94d9b7bad0024ff88dce942ba654bebfbc0749ed0cdd0bd343c5cfd53a20cda8
+  modification_authorized: false
+
+readiness_contract:
+  structured_model_requests_only: true
+  provider_credentials_external_to_model: true
+  frozen_tool_broker_required: true
+  frozen_watchdog_required: true
+  frozen_telemetry_required: true
+  hard_budgets_required: true
+  external_containment_preflight_required: true
+  scripted_ci_fixture_counts_as_external_evidence: false
+  explicit_human_safety_approval_required: true
+
+tests:
+  boundary_injection_attacks: true
+  frozen_identity_tampering_attacks: true
+  containment_control_failure_attacks: true
+  unknown_tool_and_out_of_scope_request_attacks: true
+  hard_budget_overrun_attack: true
+  two_part_authorization_gate_attacks: true
+
+scientific_boundary:
+  counts_as_exp0008_evidence: false
+  model_provider_invoked: false
+  autonomous_agent_invoked: false
+  frozen_science_changed: false
+  phase2_instruments_changed: false
+
+authorization_gate:
+  external_containment_preflight_evidence_supplied: false
+  explicit_human_safety_approval_supplied: false
+  autonomous_execution_authorized: false
+  automatic_transition_to_autonomy: false
+  next_decision: human_authorization_after_exact_head_ci_and_adversarial_review
