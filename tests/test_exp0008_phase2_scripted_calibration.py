@@ -293,7 +293,15 @@ def test_full_phase2_freeze_artifact_self_verifies_and_binds_exact_reproducibili
     supplied_hash = freeze.pop("freeze_record_sha256")
     assert canonical_sha256(freeze) == supplied_hash
     assert freeze["schema_id"] == "exp0008-phase2-instrument-freeze-v0.1"
-    assert freeze["status"] == "candidate_pending_final_review"
+    assert freeze["status"] == "frozen"
+    assert freeze["reviewed_head_sha"] == "1ccac9cd4cb3918236cced2da86af1e1d164b6ae"
+    assert freeze["review_verdict"] == "pass_no_remaining_p1_p2_blocker"
+    assert freeze["verification"] == {
+        "workflow": "EFGM Check",
+        "run_number": 183,
+        "conclusion": "success",
+        "python_matrix": ["3.10", "3.11", "3.12", "3.13"],
+    }
     assert freeze["phase1_baseline_sha"] == PHASE1_BASELINE_SHA
     assert freeze["calibration_protocol_id"] == CALIBRATION_PROTOCOL_ID
     assert freeze["behavioral_identity"]["canonical_report_sha256"] == EXPECTED_PHASE2_REPORT_SHA256
