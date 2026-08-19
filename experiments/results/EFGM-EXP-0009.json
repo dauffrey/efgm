@@ -1,0 +1,48 @@
+{
+  "experiment_id": "EFGM-EXP-0009",
+  "title": "Direct deterministic test of original EFGM variables",
+  "status": "executed_result_frozen",
+  "classification": "FALSIFIED",
+  "original_formulation": "T × E = Et ~ F ± e = A|M",
+  "execution": {
+    "pr_number": 21,
+    "head_sha": "ecb6f0e92f42f514a3fcae1f9e01fe22297b971c",
+    "github_actions_workflow": "EFGM Check",
+    "github_actions_run_number": 202,
+    "github_actions_run_id": 32207981318,
+    "python": "3.12.13",
+    "pr_merge_test_sha": "0eb83fe81c5e140f00eb2deb7bb01159789c120d"
+  },
+  "dataset": {
+    "version": "original-formula-synthetic-v0.1",
+    "seed": "EFGM-EXP-0009-FROZEN-SEED-2026-08-18",
+    "sha256": "3497ade43a30a581893de21cb4e73eb5c2817b72861eb6ad0f8466f49891f6ae",
+    "trajectory_count": 200,
+    "aligned_count": 44,
+    "misaligned_count": 156,
+    "minority_class_fraction": 0.22
+  },
+  "auc": {
+    "joint_proxy": 0.9812062937062938,
+    "T_only": 0.5,
+    "E_only": 0.8496503496503497,
+    "Et_only": 0.9440559440559441,
+    "F_only": 0.9935897435897436,
+    "entropy_only": 0.7325174825174825
+  },
+  "frozen_criteria": {
+    "validity_minority_class_at_least_0_15": true,
+    "H1_joint_auc_at_least_0_75": true,
+    "H2_joint_beats_E_and_entropy_by_0_05": true,
+    "H3_joint_beats_F_by_0_02": false
+  },
+  "reason_for_classification": "The dataset was valid and the joint proxy strongly discriminated A from M, but it failed the preregistered incremental-value criterion against realized flow F alone. F-only AUC (0.9936) exceeded the joint proxy AUC (0.9812), rather than the joint proxy exceeding F-only by at least 0.02.",
+  "interpretation": [
+    "The measured original-variable relationship contains substantial signal in this synthetic environment.",
+    "Capability E alone and entropy e alone do not explain the outcome as well as the joint proxy.",
+    "However, realized flow F alone is a stronger discriminator than the frozen joint operationalization in this test.",
+    "Therefore the strict claim that the joint original-variable relationship adds predictive value beyond flow alone is falsified for this operationalization and environment."
+  ],
+  "claim_boundary": "Synthetic deterministic evidence only. This result does not falsify the historical conceptual expression as a universal theory and does not change EFGM v1, EFGM v2, Agent Governance v0.3, or EXP-0008.",
+  "immutability_rule": "Do not alter the frozen criteria, seed, trajectory factors, terminal labels, or joint-proxy definition to convert this result into SURVIVED. Any revised operationalization must be a new experiment."
+}
