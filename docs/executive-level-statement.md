@@ -6,25 +6,37 @@ The **Entropy-Flow Governance Model (EFGM)** is an experimental governance and m
 
 EFGM is not a proven scientific law, compliance standard, or production-ready risk engine.
 
-## Version Identity
+## Provenance and Version Identity
+
+EFGM has distinct historical and operational layers that must not be conflated:
 
 ```text
+Original formulation:   T × E = Et ~ F ± e = A|M
+Historical operational: EFGM v1 — Coherent Flow
 Canonical model:        EFGM v2 — Decision Integrity
 Python package:         0.2.0 — unreleased research package
 Experimental extension: Agent Governance v0.3
 ```
 
-Package `0.2.0` is not a model name. Agent Governance v0.3 is experimental and does not replace EFGM v2.
+The original expression is preserved as the historical conceptual formulation. It is not itself an executable scoring equation. EFGM v1 was a later coherent-flow operationalization; EFGM v2 is the current canonical research model; Agent Governance v0.3 is a later experimental autonomous-agent extension. Package `0.2.0` is not a model name.
 
 ## Current Model Authority
 
-The earlier coherent-flow equation:
+The preserved original formulation is:
+
+```text
+T × E = Et ~ F ± e = A|M
+```
+
+Historically, `T` represented Time, `E` Energy / Capability, `Et` Energy Transfer, `F` Flow, `e` Entropy, and `A|M` Alignment / Misalignment. Later models should not be projected backward into this original notation.
+
+The later v1 coherent-flow operationalization is:
 
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-belongs to historical v1 compatibility material. It is not the current operational research equation.
+It belongs to historical v1 compatibility material. It is neither the original formula nor the current operational research equation.
 
 The canonical EFGM v2 formula family is:
 
@@ -39,7 +51,7 @@ OutcomeConfidence = DQ × (1 - H)
 OD = OQ - DQ
 ```
 
-EFGM v2 intentionally separates input disorder from output degradation, internal coherence from grounding, uncertainty from calibration, decision quality from outcome quality, decision quality from coherence recovery, and missing evidence from measured low values.
+EFGM v2 intentionally separates input disorder from output degradation, internal coherence from grounding, uncertainty from calibration, decision quality from outcome quality, decision quality from coherence recovery, and missing evidence from measured low values. Its symbols are defined by the v2 specification; for example, v2 `T` is Observation Maturity / Sequence Continuity rather than the original formulation's literal Time.
 
 A successful outcome does not prove that the decision was good, and a poor outcome does not prove that the decision was bad.
 
@@ -57,6 +69,8 @@ not_applicable
 `unknown` is never silently interpreted as safe or numeric zero.
 
 ## Experimental Agent Governance v0.3
+
+Agent Governance v0.3 is a later experimental extension of EFGM v2, not part of the original EFGM formulation and not a replacement for the frozen v2 baseline.
 
 The core hypothesis is:
 
@@ -107,6 +121,8 @@ The autonomous-agent research loop tests whether governance can regain control a
 Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
 ```
 
+This loop is a later experimental governance mechanism; it is not part of the original EFGM expression.
+
 Temporal states carry an explicit `sequence_id`; unrelated sequences are rejected rather than compared as one recovery trajectory. Transition results preserve candidate config identity/hash, before/after input hashes, and residual-state identity when supplied.
 
 The temporal scaffold distinguishes:
@@ -126,13 +142,14 @@ It is not externally validated, independently replicated, a production autonomou
 
 ## Immediate Research Priorities
 
-1. Preserve the frozen EFGM v2 baseline.
-2. Run `EFGM-EXP-0004` on candidate prerequisites and benign controls.
-3. Run `EFGM-EXP-0005` on temporal sequence identity, intervention, residual state, and recovery.
-4. Run `EFGM-EXP-0006` on independently authored, mathematically feasible AE/CUE semantic contrasts.
-5. Continue inter-rater, construct-validity, sensitivity, and sealed-holdout work.
-6. Keep confidence propagation as an explicit future experiment rather than silently altering scores.
+1. Preserve the original EFGM formulation as historical provenance without retroactive reinterpretation.
+2. Preserve the frozen EFGM v2 baseline.
+3. Run `EFGM-EXP-0004` on candidate prerequisites and benign controls.
+4. Run `EFGM-EXP-0005` on temporal sequence identity, intervention, residual state, and recovery.
+5. Run `EFGM-EXP-0006` on independently authored, mathematically feasible AE/CUE semantic contrasts.
+6. Continue inter-rater, construct-validity, sensitivity, and sealed-holdout work.
+7. Keep confidence propagation as an explicit future experiment rather than silently altering scores.
 
 The current defensible positioning is:
 
-> **EFGM is an experimental, evidence-traceable framework for studying decision integrity, entropy recovery, and governed autonomous flow.**
+> **EFGM is an experimental, evidence-traceable framework for studying decision integrity, entropy recovery, and governed autonomous flow, developed from an earlier conceptual formulation whose original notation is preserved separately from later operational models.**

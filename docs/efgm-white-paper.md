@@ -3,6 +3,7 @@
 ## Status
 
 **Status:** Experimental governance and measurement research framework  
+**Original formulation:** `T × E = Et ~ F ± e = A|M`  
 **Canonical model:** EFGM v2 — Decision Integrity  
 **Python package:** `0.2.0` — unreleased research package  
 **Experimental extension:** Agent Governance v0.3  
@@ -16,21 +17,23 @@ EFGM is not a proven scientific law, compliance standard, autonomous approval en
 
 The Entropy-Flow Governance Model (EFGM) is a governance and measurement framework for evaluating whether a decision process preserves useful coherent flow while facing uncertainty, contradiction, incomplete information, behavioral pressure, and operational disruption.
 
-The original EFGM concept used:
+EFGM's historical provenance begins with the original conceptual formulation:
 
 ```text
-T × E → Et → F ± e → A|M
+T × E = Et ~ F ± e = A|M
 ```
 
-and later the v1 compatibility equation:
+In that original notation, `T` represented Time, `E` Energy / Capability, `Et` Energy Transfer, `F` Flow, `e` Entropy, and `A|M` Alignment / Misalignment. This expression is preserved as the original conceptual hypothesis. It is not an executable scoring equation and must not be retrospectively rewritten using later v1, v2, or Agent Governance semantics.
+
+A later v1 coherent-flow operationalization introduced:
 
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-Those expressions remain part of EFGM's conceptual lineage, but they are **not the current canonical research model**.
+That v1 expression is part of EFGM's operational lineage, but it is **not the original formula and not the current canonical research model**.
 
-The canonical EFGM v2 baseline is a decision-integrity model:
+The canonical EFGM v2 baseline is a later decision-integrity model:
 
 ```text
 Ei = weighted input entropy
@@ -47,9 +50,23 @@ The central EFGM v2 research question is:
 
 > Given the evidence available at decision time, how coherent, grounded, calibrated, traceable, and operationally reliable was the decision process?
 
-Agent Governance v0.3 adds a separate experimental question for autonomous agents:
+Agent Governance v0.3 is a separate later experimental extension for autonomous agents. It does not replace v2 and is not part of the original formulation. Its question is:
 
 > Can high coherent task flow coexist with weak governance integrity, and can that condition be measured without treating agency itself as inherently unsafe?
+
+The provenance chain is therefore:
+
+```text
+Original conceptual formulation
+        ↓
+EFGM v1 coherent-flow operationalization
+        ↓
+EFGM v2 canonical decision-integrity model
+        ↓
+Agent Governance v0.3 experimental extension
+```
+
+Later evidence may motivate new hypotheses, but it must not be used to rewrite the historical content of the original formulation.
 
 ---
 
@@ -75,6 +92,8 @@ EFGM is intended to expose evidence and degradation drivers rather than produce 
 ---
 
 # 3. Canonical EFGM v2 Decision-Integrity Model
+
+The equations and symbol meanings in this section belong specifically to **EFGM v2**. They are later operational research definitions and should not be projected backward onto the original EFGM notation.
 
 ## 3.1 Positive factors
 
@@ -245,7 +264,7 @@ No candidate prerequisite or veto is canonical.
 
 # 7. Experimental Extension: Agent Governance v0.3
 
-Agent Governance v0.3 is not part of the frozen EFGM v2 baseline.
+Agent Governance v0.3 is a later experimental autonomous-agent extension. It is **not part of the original EFGM formulation and not part of the frozen EFGM v2 baseline**.
 
 Its central proposition is:
 
@@ -403,6 +422,8 @@ For autonomous agents:
 Observe → Detect deviation → Constrain / revoke → Clean residual state → Verify recovery → Reassess
 ```
 
+These are later governance constructs developed within the research program; neither loop is part of the preserved original EFGM formula.
+
 The purpose is not merely to classify degradation. It is to make degradation and recovery measurable enough to support accountable intervention.
 
 ---
@@ -428,20 +449,22 @@ Stronger claims require independent replication across datasets, scorers, domain
 
 # 11. Current Research Priorities
 
-1. Preserve the frozen EFGM v2 baseline.
-2. Keep repository terminology/version identity coherent.
-3. Run `EFGM-EXP-0004` on neutral floors, candidate prerequisites, benign controls, and independent invariants.
-4. Run `EFGM-EXP-0005` on sequence identity, intervention, residual-state evidence, and verified recovery.
-5. Run `EFGM-EXP-0006` on independently authored AE-versus-CUE semantic labels within the structural constraint `CUE <= AE`.
-6. Measure inter-rater agreement for EFGM v2 and Agent Governance observations.
-7. Keep real holdout data externally sealed until candidates are frozen.
-8. Test confidence propagation only as an explicit future candidate.
+1. Preserve the original EFGM formulation as immutable historical provenance.
+2. Preserve the frozen EFGM v2 baseline.
+3. Keep repository terminology/version identity coherent.
+4. Run `EFGM-EXP-0004` on neutral floors, candidate prerequisites, benign controls, and independent invariants.
+5. Run `EFGM-EXP-0005` on sequence identity, intervention, residual-state evidence, and verified recovery.
+6. Run `EFGM-EXP-0006` on independently authored AE-versus-CUE semantic labels within the structural constraint `CUE <= AE`.
+7. Measure inter-rater agreement for EFGM v2 and Agent Governance observations.
+8. Keep real holdout data externally sealed until candidates are frozen.
+9. Test confidence propagation only as an explicit future candidate.
 
 ---
 
 # 12. Current Status
 
 ```text
+Original formulation:   T × E = Et ~ F ± e = A|M — historical provenance
 Canonical model:        EFGM v2 — experimental research baseline
 Python package:         0.2.0 — unreleased research package
 Experimental extension: Agent Governance v0.3 — research candidate

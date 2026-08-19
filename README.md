@@ -4,21 +4,42 @@ EFGM is an experimental governance and measurement framework for evaluating whet
 
 EFGM is **not** a proven scientific law, compliance standard, or production-ready risk engine. It is an executable research prototype intended for controlled, falsification-oriented validation.
 
-## Version identity
+## Provenance and version identity
 
-Use these identities consistently:
+EFGM has four distinct conceptual/operational layers. They should not be conflated:
 
 ```text
+Original formulation:   T × E = Et ~ F ± e = A|M
+Historical operational: EFGM v1 — Coherent Flow
 Canonical model:        EFGM v2 — Decision Integrity
 Python package:         0.2.0
 Experimental extension: Agent Governance v0.3
 ```
 
-Package version `0.2.0` is an unreleased research package identity; it is **not** the name of the canonical model. Agent Governance v0.3 is an experimental research extension and does not replace EFGM v2.
+The original formulation is preserved as historical provenance. It is a conceptual expression, not the current scoring equation. EFGM v1 is a later coherent-flow operationalization. EFGM v2 is the canonical operational research model. Agent Governance v0.3 is a later experimental extension and does not replace EFGM v2. Package version `0.2.0` is an unreleased research package identity; it is **not** a model name.
+
+### Original EFGM formulation
+
+```text
+T × E = Et ~ F ± e = A|M
+```
+
+Historical meanings:
+
+```text
+T   = Time
+E   = Energy / Capability
+Et  = Energy Transfer
+F   = Flow
+e   = Entropy
+A|M = Alignment / Misalignment
+```
+
+This notation is preserved without retroactively inserting later v1/v2 equations, Agent Governance constructs, or experimental findings into the original hypothesis. See [`docs/original-efgm-formula.md`](docs/original-efgm-formula.md) and [`docs/efgm-provenance-audit.md`](docs/efgm-provenance-audit.md).
 
 ## Canonical model — EFGM v2
 
-The authoritative definition is [`docs/model-specification-v2.md`](docs/model-specification-v2.md). Metric scoring guidance is in [`docs/scoring-rubric-v2.md`](docs/scoring-rubric-v2.md). Older v1 material is retained only for compatibility/history and must not be treated as the current decision-integrity model.
+The authoritative definition is [`docs/model-specification-v2.md`](docs/model-specification-v2.md). Metric scoring guidance is in [`docs/scoring-rubric-v2.md`](docs/scoring-rubric-v2.md). Older v1 material is retained only for compatibility/history and must not be treated as either the original conceptual formula or the current decision-integrity model.
 
 ```text
 Ei = weighted input entropy
@@ -47,6 +68,8 @@ OD = OQ - DQ
 | `DQ` | Decision quality |
 | `OQ` | Outcome quality |
 | `OD` | Outcome divergence (`OQ - DQ`) |
+
+These are v2 definitions. In particular, v2 `T` is Observation Maturity / Sequence Continuity and should not be confused with the original formulation's historical `T = Time`.
 
 ### DQ and CRC are intentionally separate
 
@@ -125,7 +148,7 @@ Every Agent Governance v0.3 result records:
 
 ## Experimental extension — Agent Governance v0.3
 
-Agent Governance v0.3 is an **experimental autonomous-agent research extension to EFGM v2**. Its central hypothesis is:
+Agent Governance v0.3 is an **experimental autonomous-agent research extension to EFGM v2**. It is a later research layer, not part of the original EFGM formula or frozen v2 baseline. Its central hypothesis is:
 
 > High coherent task flow can coexist with weak governance integrity.
 
@@ -207,7 +230,7 @@ These are experimental research signals, not production containment attestations
 
 See [`research/EFGM_V0_3_GOVERNED_AGENTIC_FLOW.md`](research/EFGM_V0_3_GOVERNED_AGENTIC_FLOW.md).
 
-## v1 — compatibility model
+## v1 — historical operationalization / compatibility model
 
 V1 remains available for historical examples and compatibility inputs:
 
@@ -215,6 +238,8 @@ V1 remains available for historical examples and compatibility inputs:
 Q = (T × E × Fq)^(1/3)
 F = Q / (1 + e)
 ```
+
+V1 is a later operationalization of the coherent-flow concept. It is **not** the preserved original expression `T × E = Et ~ F ± e = A|M`.
 
 Use it explicitly:
 
@@ -298,6 +323,8 @@ See [`research/README.md`](research/README.md) and [`validation/test-plan.md`](v
 Detect entropy → Protect verified flow → Restore coherence → Reassess
 ```
 
+This is a later governance principle developed by the research program; it is not part of the preserved original EFGM expression.
+
 ## Information handling
 
 Use public, simulated, or sanitized examples. Do not add credentials, personal information, restricted architecture, confidential incident data, real sealed-holdout contents/labels, or unapproved client material.
@@ -305,6 +332,7 @@ Use public, simulated, or sanitized examples. Do not add credentials, personal i
 ## Status
 
 ```text
+Original formulation:   T × E = Et ~ F ± e = A|M — historical provenance
 Canonical model:        EFGM v2 — experimental research baseline
 Package version:        0.2.0 — unreleased research package
 Experimental extension: Agent Governance v0.3 — research candidate

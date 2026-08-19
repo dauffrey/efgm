@@ -2,27 +2,39 @@
 
 ## Purpose
 
-This glossary separates the **canonical EFGM v2 decision-integrity model**, the **historical v1 coherent-flow model**, the **Python package version**, and the **experimental Agent Governance v0.3 extension**.
+This glossary separates four distinct provenance layers: the **original EFGM conceptual formulation**, the **historical v1 coherent-flow operationalization**, the **canonical EFGM v2 decision-integrity model**, and the **experimental Agent Governance v0.3 extension**.
 
 ```text
-Canonical model:        EFGM v2
+Original formulation:   T × E = Et ~ F ± e = A|M
+Historical operational: EFGM v1 — Coherent Flow
+Canonical model:        EFGM v2 — Decision Integrity
 Python package:         0.2.0
 Experimental extension: Agent Governance v0.3
 ```
 
-If this glossary conflicts with `docs/model-specification-v2.md`, the canonical v2 specification and executable implementation take precedence for EFGM v2 research.
+The original formulation is preserved as historical provenance. It is not a scoring equation and must not be retrospectively rewritten as v1, v2, or Agent Governance. EFGM v1 is a later operationalization of the coherent-flow idea; EFGM v2 is the current canonical research model; Agent Governance v0.3 is a later experimental extension.
+
+If this glossary conflicts with `docs/model-specification-v2.md`, the canonical v2 specification and executable implementation take precedence for EFGM v2 research. Historical provenance of the original formulation is documented separately and does not override later versioned model definitions.
 
 ---
 
-# 1. Model Versions
+# 1. Model Versions and Provenance
 
-## EFGM v1 — Historical Coherent-Flow Model
+## Original EFGM Conceptual Formulation
+
+```text
+T × E = Et ~ F ± e = A|M
+```
+
+This is the preserved original EFGM expression. In its original conceptual vocabulary, `T` represented Time, `E` Energy / Capability, `Et` Energy Transfer, `F` Flow, `e` Entropy, and `A|M` Alignment / Misalignment. It predates the versioned executable models below and should not be described as though it were itself EFGM v1 or v2.
+
+## EFGM v1 — Historical Coherent-Flow Operationalization
 
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-Retained for compatibility and conceptual history. It is **not** the canonical model for new decision-integrity research.
+A later operationalization derived from the coherent-flow concept. Retained for compatibility and conceptual history. It is **not** the original EFGM formula and is **not** the canonical model for new decision-integrity research.
 
 ## EFGM v2 — Canonical Decision-Integrity Baseline
 
@@ -37,13 +49,15 @@ OutcomeConfidence = DQ × (1 - H)
 OD = OQ - DQ
 ```
 
+EFGM v2 is a later, versioned decision-integrity model. Its symbols and equations must be interpreted according to the v2 specification rather than projected backward onto the original formulation.
+
 ## Package `0.2.0`
 
 The current unreleased Python package identity. Package `0.2.0` is not a model name and should not be called “EFGM v0.2.”
 
 ## Agent Governance v0.3 — Experimental Extension
 
-An autonomous-agent research extension that keeps EFGM v2 task/decision flow separate from governance integrity and agency amplification. It is not part of the frozen EFGM v2 baseline.
+An autonomous-agent research extension that keeps EFGM v2 task/decision flow separate from governance integrity and agency amplification. It is not part of the original formulation, v1, or the frozen EFGM v2 baseline.
 
 ---
 
@@ -51,7 +65,7 @@ An autonomous-agent research extension that keeps EFGM v2 task/decision flow sep
 
 ## `T` — Observation Maturity / Sequence Continuity
 
-How mature, stable, and continuous the observation sequence is for the assessed decision. `T` is not literal elapsed clock time.
+How mature, stable, and continuous the observation sequence is for the assessed decision. `T` is not literal elapsed clock time in v2; this differs intentionally from the original formulation's historical use of `T` as Time.
 
 ## `C` — Capability Suitability
 
@@ -376,17 +390,30 @@ Comparator whose criteria are not simply derived from EFGM's own composite score
 
 ---
 
-# 7. Historical v1 Terms
+# 7. Historical Original and v1 Terms
 
-Use only for historical conceptual discussion or explicit v1 compatibility scoring:
+The same symbols may have different meanings across provenance layers. Do not silently substitute one layer's semantics into another.
 
-- `E` — Energy / Capability / Capacity;
+### Original formulation
+
+```text
+T × E = Et ~ F ± e = A|M
+```
+
+- `T` — Time;
+- `E` — Energy / Capability;
 - `Et` — Energy Transfer;
-- `F` — Coherent Flow Score;
-- `e` — single aggregate Entropy Load;
-- `A|M` — Alignment / Misalignment conceptual outcome.
+- `F` — Flow;
+- `e` — Entropy;
+- `A|M` — Alignment / Misalignment.
 
-Do not substitute these for canonical EFGM v2 constructs in new research.
+### Later v1 operationalization
+
+```text
+F = (T × E × Fq) / (1 + e)
+```
+
+V1 introduced an executable coherent-flow score and `Fq`. Use v1 terminology only for historical operational discussion or explicit v1 compatibility scoring. Do not substitute original/v1 terms for canonical EFGM v2 constructs in new research.
 
 ---
 
@@ -395,5 +422,7 @@ Do not substitute these for canonical EFGM v2 constructs in new research.
 ```text
 Detect entropy → Protect verified flow → Restore coherence → Reassess
 ```
+
+This governance loop is a later research principle, not part of the preserved original formula.
 
 EFGM scores and Agent Governance diagnostics are research indicators, not proof of truth, safety, compliance, or production readiness.
