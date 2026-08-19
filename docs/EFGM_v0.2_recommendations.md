@@ -1,6 +1,12 @@
 # EFGM v0.2 Recommendations — Historical Design Rationale
 
-This file records the transition from the original coherent-flow model to the v2 decision-integrity architecture. It is retained as historical design rationale, **not** as the authoritative current specification.
+This file records the transition from the **early v1 coherent-flow implementation lineage** to the v2 decision-integrity architecture. It is retained as historical design rationale, **not** as the authoritative current specification and **not** as the original EFGM conceptual record.
+
+The original EFGM conceptual formulation predates this implementation lineage and is preserved separately in [`original-efgm-formula.md`](original-efgm-formula.md):
+
+```text
+T × E = Et ~ F ± e = A|M
+```
 
 The current v2 baseline is defined by:
 
