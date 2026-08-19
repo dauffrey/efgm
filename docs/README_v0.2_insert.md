@@ -1,12 +1,20 @@
 ## Recommended v0.2 Scoring Direction
 
-The original v0.1 equation is intentionally lightweight:
+The original EFGM conceptual formulation predates the v1 scoring prototype and is preserved separately in [`original-efgm-formula.md`](original-efgm-formula.md):
+
+```text
+T × E = Et ~ F ± e = A|M
+```
+
+The early v1 operational prototype equation was intentionally lightweight:
 
 ```text
 F = (T × E × Fq) / (1 + e)
 ```
 
-Based on scenario testing, the recommended v0.2 direction is to separate coherence, grounding, entropy recovery, decision quality, and outcome quality.
+This operational equation was a later formalization of the broader concept; it should not be described as the exact original EFGM formula.
+
+Based on scenario testing, the recommended v0.2 direction was to separate coherence, grounding, entropy recovery, decision quality, and outcome quality.
 
 ### Geometric Mean Update
 
