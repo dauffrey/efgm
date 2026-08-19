@@ -1,22 +1,33 @@
 {
   "experiment_id": "EFGM-EXP-0009",
   "title": "Direct deterministic test of original EFGM variables",
-  "status": "executed_result_frozen",
+  "status": "executed_result_frozen_with_reproducibility_correction",
   "classification": "FALSIFIED",
   "original_formulation": "T × E = Et ~ F ± e = A|M",
-  "execution": {
+  "scientific_execution": {
     "pr_number": 21,
     "head_sha": "ecb6f0e92f42f514a3fcae1f9e01fe22297b971c",
     "github_actions_workflow": "EFGM Check",
     "github_actions_run_number": 202,
     "github_actions_run_id": 32207981318,
     "python": "3.12.13",
-    "pr_merge_test_sha": "0eb83fe81c5e140f00eb2deb7bb01159789c120d"
+    "pr_merge_test_sha": "0eb83fe81c5e140f00eb2deb7bb01159789c120d",
+    "runtime_specific_dataset_sha256": "3497ade43a30a581893de21cb4e73eb5c2817b72861eb6ad0f8466f49891f6ae"
+  },
+  "reproducibility_correction": {
+    "reason": "Cross-Python CI exposed least-significant floating-point serialization differences in the dataset custody hash. Scientific calculations, trajectory factors, labels, criteria, AUC values, and classification were not changed.",
+    "failed_verification_run_number": 204,
+    "failed_verification_run_id": 32208236741,
+    "observed_python_3_11_runtime_specific_sha256": "e64cbf016bbfa297afec1a8c33c8584e563bda53edb88c20aafbef7c5f76cc58",
+    "correction": "Canonicalize dataset-identity float fields to fixed 12-decimal strings before JSON hashing; retain full in-memory floats for all scientific calculations.",
+    "canonical_float_decimals": 12,
+    "canonical_dataset_sha256": "486dad48b16659ee5a87c7b5767e1c6ea8ad906bf09a7343e02328181efa3e97",
+    "scientific_result_changed": false
   },
   "dataset": {
     "version": "original-formula-synthetic-v0.1",
     "seed": "EFGM-EXP-0009-FROZEN-SEED-2026-08-18",
-    "sha256": "3497ade43a30a581893de21cb4e73eb5c2817b72861eb6ad0f8466f49891f6ae",
+    "sha256": "486dad48b16659ee5a87c7b5767e1c6ea8ad906bf09a7343e02328181efa3e97",
     "trajectory_count": 200,
     "aligned_count": 44,
     "misaligned_count": 156,
