@@ -56,6 +56,9 @@ jobs:
       - name: Run EFGM-EXP-0010 trajectory coherence test
         if: matrix.python-version == '3.12'
         run: python -m efgm.exp0010_trajectory_coherence --format markdown
+      - name: Generate EFGM-EXP-0011 fresh holdout manifest without scoring
+        if: matrix.python-version == '3.12'
+        run: python -m efgm.exp0011_coupled_state --format json
       - name: Build distributable wheel
         run: python -m build --wheel
       - name: Verify packaged config and experiment CLIs from installed wheel
@@ -73,3 +76,4 @@ jobs:
           python -m efgm.exp0008_phase2_calibration --format json > /tmp/efgm-exp0008-phase2-smoke.json
           python -m efgm.exp0009_original_formula --format json > /tmp/efgm-exp0009-smoke.json
           python -m efgm.exp0010_trajectory_coherence --format json > /tmp/efgm-exp0010-smoke.json
+          python -m efgm.exp0011_coupled_state --format json > /tmp/efgm-exp0011-manifest-smoke.json
