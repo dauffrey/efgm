@@ -63,4 +63,11 @@ def test_exp0011_manifest_does_not_expose_scientific_scoring():
     }
     assert manifest["scenario_count"] == 240
     assert manifest["observation_count"] == 720
-    assert manifest["minority_class_fraction"] >= 0.15
+
+    # Preserve the preregistered validity failure as immutable custody evidence.
+    # The frozen minimum remains 0.15; this holdout produced 35/240 = 0.145833...,
+    # therefore no scientific AUC/comparator evaluation is authorized.
+    assert manifest["aligned_count"] + manifest["misaligned_count"] == 240
+    assert min(manifest["aligned_count"], manifest["misaligned_count"]) == 35
+    assert manifest["minority_class_fraction"] == 35 / 240
+    assert manifest["minority_class_fraction"] < 0.15
