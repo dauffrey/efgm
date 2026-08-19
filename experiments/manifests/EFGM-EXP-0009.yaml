@@ -1,0 +1,87 @@
+experiment_id: EFGM-EXP-0009
+title: Direct deterministic test of original EFGM variables
+status: preregistered_deterministic
+research_type: synthetic_falsification
+original_formulation: "T × E = Et ~ F ± e = A|M"
+
+purpose: >-
+  Test whether deterministic synthetic trajectory measurements corresponding to
+  the preserved original EFGM variables jointly discriminate independently
+  defined aligned/stable versus misaligned/degraded terminal outcomes.
+
+provenance_boundary:
+  original_formula_is_preserved: true
+  original_formula_is_not_rewritten_as_algebra: true
+  experiment_proxy_is_not_canonical_efgm: true
+  changes_efgm_v2: false
+  changes_agent_governance_v0_3: false
+  changes_exp0008: false
+
+operationalization_for_this_experiment_only:
+  T: fraction of the planned eight-step horizon completed before terminal reserve exhaustion
+  E: frozen capability setting for the trajectory
+  Et: normalized cumulative capability actually transferred into synthetic action
+  F: normalized realized productive progress toward the synthetic task objective
+  e: mean externally generated disturbance burden across executed steps
+  A: terminal progress at least 0.55 and terminal reserve at least 0.10
+  M: terminal state not satisfying A
+  joint_proxy: "(T * E * Et * F)^(1/4) / (1 + e)"
+  note: >-
+    The joint proxy is an experiment-only monotonic operationalization used to
+    test the original variables jointly. It is not claimed to be the original
+    formula or a proposed canonical scoring equation.
+
+dataset:
+  version: original-formula-synthetic-v0.1
+  seed: EFGM-EXP-0009-FROZEN-SEED-2026-08-18
+  deterministic: true
+  autonomous_agent: false
+  external_network: false
+  planned_trajectories: 200
+  factors:
+    capability: [0.30, 0.45, 0.60, 0.75, 0.90]
+    transfer_policy: [0.45, 0.65, 0.85, 1.00]
+    entropy_band: [0.10, 0.25, 0.40, 0.55, 0.70]
+    replicates: 2
+  labels_are_generated_from: terminal synthetic progress and reserve only
+  labels_are_not_generated_from:
+    - joint_proxy
+    - EFGM_v1_score
+    - EFGM_v2_DQ
+    - Agent_Governance_GI_AE_CUE
+
+primary_hypothesis: >-
+  The original-variable joint relationship contains discriminative information
+  about A versus M beyond capability or entropy alone and beyond realized flow
+  alone in this deterministic synthetic environment.
+
+frozen_success_criteria:
+  validity:
+    minority_outcome_fraction_gte: 0.15
+  H1:
+    joint_proxy_roc_auc_gte: 0.75
+  H2:
+    joint_proxy_auc_margin_over_best_of_E_only_and_entropy_only_gte: 0.05
+  H3:
+    joint_proxy_auc_margin_over_F_only_gte: 0.02
+  survived_only_if: all_validity_H1_H2_H3_pass
+  otherwise: FALSIFIED
+
+comparators:
+  - T_only
+  - E_only
+  - Et_only
+  - F_only
+  - entropy_only
+
+claim_limits:
+  - synthetic deterministic evidence only
+  - no claim that the original notation is a literal algebraic law
+  - no claim of external validity for real AI agents
+  - no scoring-model promotion from this experiment alone
+  - a falsification is retained unchanged rather than tuned away
+
+execution:
+  module: efgm.exp0009_original_formula
+  ci_python: "3.12"
+  result_must_be_recorded_after_first_execution: true
