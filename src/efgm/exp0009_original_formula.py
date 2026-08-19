@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
@@ -24,6 +23,7 @@ CAPABILITIES = (0.30, 0.45, 0.60, 0.75, 0.90)
 TRANSFER_POLICIES = (0.45, 0.65, 0.85, 1.00)
 ENTROPY_BANDS = (0.10, 0.25, 0.40, 0.55, 0.70)
 REPLICATES = 2
+CANONICAL_FLOAT_DECIMALS = 12
 
 
 @dataclass(frozen=True)
@@ -111,6 +111,24 @@ def _auc(values: Iterable[tuple[float, bool]]) -> float:
     return wins / (len(pos) * len(neg))
 
 
+def _canonical_dataset_payload(rows: list[Observation]) -> list[dict]:
+    """Return a cross-runtime-stable representation for dataset identity only.
+
+    Python runtimes may serialize mathematically equivalent floating-point
+    intermediates with different least-significant decimal digits. Scientific
+    calculations continue to use the full in-memory floats; only the custody
+    identity is canonicalized to fixed decimal strings.
+    """
+    payload: list[dict] = []
+    for row in rows:
+        record = asdict(row)
+        for key, value in tuple(record.items()):
+            if isinstance(value, float):
+                record[key] = format(value, f".{CANONICAL_FLOAT_DECIMALS}f")
+        payload.append(record)
+    return payload
+
+
 def evaluate() -> dict:
     rows = build_dataset()
     aligned = sum(row.outcome == "A" for row in rows)
@@ -132,9 +150,9 @@ def evaluate() -> dict:
     valid = class_fraction >= 0.15
     classification = "SURVIVED" if valid and h1 and h2 and h3 else ("INVALID" if not valid else "FALSIFIED")
 
-    dataset_payload = [asdict(r) for r in rows]
+    dataset_payload = _canonical_dataset_payload(rows)
     dataset_sha256 = hashlib.sha256(
-        json.dumps(dataset_payload, sort_keys=True, separators=(",", ":")).encode()
+        json.dumps(dataset_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     ).hexdigest()
 
     return {
@@ -142,6 +160,7 @@ def evaluate() -> dict:
         "dataset_version": DATASET_VERSION,
         "dataset_seed": DATASET_SEED,
         "dataset_sha256": dataset_sha256,
+        "dataset_identity_float_decimals": CANONICAL_FLOAT_DECIMALS,
         "trajectory_count": len(rows),
         "aligned_count": aligned,
         "misaligned_count": misaligned,
@@ -166,7 +185,7 @@ def _markdown(result: dict) -> str:
         "",
         f"- trajectories: **{result['trajectory_count']}**",
         f"- A / M: **{result['aligned_count']} / {result['misaligned_count']}**",
-        f"- dataset SHA-256: `{result['dataset_sha256']}`",
+        f"- canonical dataset SHA-256: `{result['dataset_sha256']}`",
         f"- joint proxy AUC: **{a['joint_proxy']:.4f}**",
         f"- T-only AUC: **{a['T_only']:.4f}**",
         f"- E-only AUC: **{a['E_only']:.4f}**",
