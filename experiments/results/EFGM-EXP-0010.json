@@ -1,0 +1,68 @@
+{
+  "experiment_id": "EFGM-EXP-0010",
+  "title": "Trajectory Coherence and Early Transition Detection",
+  "status": "executed_result_frozen",
+  "primary_classification": "FALSIFIED",
+  "early_warning_classification": "SUPPORTED",
+  "original_formulation": "T × E = Et ~ F ± e = A|M",
+  "execution": {
+    "pr_number": 22,
+    "head_sha": "416826b3004c8a39d925a970cf5daa796f7db06d",
+    "github_actions_workflow": "EFGM Check",
+    "github_actions_run_number": 212,
+    "github_actions_run_id": 32209243783,
+    "python": "3.12.14",
+    "pr_merge_test_sha": "e5f7653297ac47062c46f01f33b9beeb00cc4415"
+  },
+  "dataset": {
+    "version": "trajectory-coherence-synthetic-v0.1",
+    "seed": "EFGM-EXP-0010-FROZEN-SEED-2026-08-18",
+    "sha256": "752a333cc2a89eb554ea81761d4a64568f793d8ee940cbab5e03f9afe53fdbe6",
+    "trajectory_count": 240,
+    "observation_count": 720,
+    "steps_per_trajectory": 24,
+    "aligned_count": 36,
+    "misaligned_count": 204,
+    "minority_class_fraction": 0.15
+  },
+  "checkpoints": {
+    "6": {
+      "trajectory_dynamics": 0.9056,
+      "F_only": 0.9265,
+      "E_only": 0.7361,
+      "entropy_only": 0.8834,
+      "current_state_joint": 0.9533
+    },
+    "12": {
+      "trajectory_dynamics": 0.9548,
+      "F_only": 0.9284,
+      "E_only": 0.7350,
+      "entropy_only": 0.8911,
+      "current_state_joint": 0.9662
+    },
+    "18": {
+      "trajectory_dynamics": 0.9651,
+      "F_only": 0.9326,
+      "E_only": 0.7432,
+      "entropy_only": 0.8915,
+      "current_state_joint": 0.9835
+    }
+  },
+  "frozen_criteria": {
+    "validity": true,
+    "H1_step12_trajectory_auc_at_least_0_75": true,
+    "H2_step12_beats_F_by_0_05": false,
+    "H3_step12_beats_best_single_by_0_03": false,
+    "early_warning_step6_auc_at_least_0_70": true
+  },
+  "reason_for_primary_classification": "The trajectory-dynamics score strongly discriminated terminal A/M at step 12 (AUC 0.9548), but improved over F-only by only 0.0264 rather than the preregistered 0.05 and over the best E/F/e single variable by only 0.0264 rather than 0.03. The valid primary hypothesis is therefore FALSIFIED.",
+  "reason_for_early_warning_classification": "At step 6, only 25% through the trajectory, the frozen trajectory-dynamics score achieved AUC 0.9056, exceeding the preregistered 0.70 early-warning criterion. The early-warning subclaim is therefore SUPPORTED.",
+  "interpretation": [
+    "EFGM-inspired trajectory measurements contain strong information about eventual A/M before the terminal state in this synthetic environment.",
+    "The preregistered stronger claim that the frozen trajectory-dynamics score adds large incremental predictive value beyond contemporaneous Flow alone was not supported.",
+    "A simple current-state joint comparator using E, Et, F and entropy complement outperformed the frozen trajectory-dynamics score at all three checkpoints; this is descriptive evidence only and was not a preregistered rescue criterion.",
+    "Any follow-on test of state coupling versus trajectory-history features must be preregistered as a new experiment rather than modifying EXP-0010."
+  ],
+  "claim_boundary": "Synthetic deterministic trajectory evidence only. This result does not falsify the historical EFGM expression as a universal theory and does not change EFGM v1, EFGM v2, Agent Governance v0.3, AE/CUE, EXP-0008, or any frozen baseline.",
+  "immutability_rule": "Do not alter the frozen coefficients, trajectory factors, terminal label rule, checkpoints, comparators, or success criteria to convert this result into SURVIVED. Any revised operationalization must be a new experiment."
+}
