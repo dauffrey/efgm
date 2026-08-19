@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from efgm.exp0010_trajectory_coherence import CHECKPOINTS, HORIZON, build_dataset, evaluate
 
 
@@ -48,3 +51,23 @@ def test_exp0010_result_contract():
         }
         assert all(0.0 <= value <= 1.0 for value in checkpoint.values())
     assert abs(sum(result["frozen_weights"].values()) - 1.0) < 1e-12
+
+
+def test_exp0010_frozen_result_matches_deterministic_evaluator():
+    result_path = Path(__file__).parents[1] / "experiments" / "results" / "EFGM-EXP-0010.json"
+    frozen = json.loads(result_path.read_text(encoding="utf-8"))
+    current = evaluate()
+
+    assert frozen["primary_classification"] == current["classification"]
+    assert frozen["early_warning_classification"] == current["early_warning_classification"]
+    assert frozen["dataset"]["sha256"] == current["dataset_sha256"]
+    assert frozen["dataset"]["trajectory_count"] == current["trajectory_count"]
+    assert frozen["dataset"]["observation_count"] == current["observation_count"]
+    assert frozen["dataset"]["aligned_count"] == current["aligned_count"]
+    assert frozen["dataset"]["misaligned_count"] == current["misaligned_count"]
+    assert frozen["frozen_criteria"] == current["criteria"]
+
+    for checkpoint, frozen_values in frozen["checkpoints"].items():
+        current_values = current["checkpoints"][checkpoint]
+        for metric, frozen_value in frozen_values.items():
+            assert round(current_values[metric], 4) == frozen_value
