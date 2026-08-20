@@ -9,6 +9,12 @@ from efgm.exp0011b_coupled_state import (
 )
 
 
+EXPECTED_DATASET_SHA256 = "7e4e481f4ab234c6b0ce3eddfe193bae3714542483a89ad2d26ab508e4e75b3c"
+EXPECTED_ALIGNED_COUNT = 37
+EXPECTED_MISALIGNED_COUNT = 251
+EXPECTED_MINORITY_FRACTION = 37 / 288
+
+
 def test_exp0011b_holdout_is_deterministic():
     assert dataset_manifest() == dataset_manifest()
 
@@ -40,7 +46,7 @@ def test_exp0011b_checkpoint_measurements_are_normalized():
         assert 0.0 <= row.e <= 1.0
 
 
-def test_exp0011b_manifest_is_preexecution_only_and_valid():
+def test_exp0011b_manifest_is_preexecution_only_and_invalid():
     manifest = dataset_manifest()
     assert manifest["scientific_scoring_exposed"] is False
     assert manifest["scenario_count"] == 288
@@ -49,4 +55,8 @@ def test_exp0011b_manifest_is_preexecution_only_and_valid():
     assert manifest["seed_end"] == 120288
     assert manifest["seed_count"] == 288
     assert manifest["checkpoints"] == [6, 12, 18]
-    assert manifest["minority_class_fraction"] >= 0.15
+    assert manifest["aligned_count"] == EXPECTED_ALIGNED_COUNT
+    assert manifest["misaligned_count"] == EXPECTED_MISALIGNED_COUNT
+    assert manifest["minority_class_fraction"] == EXPECTED_MINORITY_FRACTION
+    assert manifest["minority_class_fraction"] < 0.15
+    assert manifest["dataset_sha256"] == EXPECTED_DATASET_SHA256
