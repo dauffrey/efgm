@@ -16,7 +16,7 @@ The resulting dataset identity and class balance are:
 - misaligned terminal class: `251`
 - minority-class fraction: `0.1284722222222222`
 - required minimum: `0.15`
-- canonical dataset SHA-256: `7e4e481f4ab234c6b0ce3eddfe193bae3714542483a89ad2d26ab508e4e75b3c`
+- canonical dataset SHA-256: `d2154f50297fab422eccd589aabc9cd807e4fb9b5a818783f0ed86014abf322f`
 
 Therefore the preregistered validity gate failed before scientific scoring.
 
@@ -35,3 +35,7 @@ Per the frozen contract, execution stops here. Any successor design must be expl
 ## Reproducibility boundary
 
 The invalid-result record is bound to the deterministic generator output above. CI must reproduce the exact class counts, minority fraction, dataset dimensions, and canonical dataset SHA-256 while continuing to assert that `scientific_scoring_exposed` is `false`.
+
+## Corrective identity note
+
+EFGM Check #226 independently reproduced the class counts and minority fraction but exposed that the initially recorded dataset SHA-256 was incorrect. The authoritative deterministic SHA-256 reproduced by the GitHub-hosted Python 3.10 and 3.12 executions is `d2154f50297fab422eccd589aabc9cd807e4fb9b5a818783f0ed86014abf322f`. This correction changes dataset identity metadata only; it does not alter generation, labels, validity criteria, or scientific authorization state.
