@@ -2,8 +2,9 @@
 
 ## Status
 
-Exploratory result only. This note does not modify the canonical EFGM v2
-equation, frozen experiment results, or any production classifier.
+Exploratory result only. This note is a cautionary re-analysis of the frozen
+`EFGM-EXP-0010` dataset; it does not modify the canonical EFGM v2 equation,
+any frozen experiment result, or any production classifier.
 
 ## Empirical observation
 
@@ -14,13 +15,13 @@ label as:
 progress >= 0.50 and reserve >= 0.08
 ```
 
-At the 50% checkpoint, the simple conjunctive proxy
+A raw conjunctive proxy
 
 ```text
-B = min(F, E)
+B_raw = min(F, E)
 ```
 
-produced ROC-AUC `0.9967` against terminal A/M. The frozen comparators produced:
+reaches ROC-AUC `0.9967` at the 50% checkpoint. The frozen comparators are:
 
 | Comparator | ROC-AUC |
 |---|---:|
@@ -28,14 +29,21 @@ produced ROC-AUC `0.9967` against terminal A/M. The frozen comparators produced:
 | `E` only | 0.7350 |
 | frozen trajectory-dynamics score | 0.9548 |
 | frozen current-state joint score | 0.9662 |
-| candidate `min(F, E)` | 0.9967 |
+| raw `min(F, E)` | 0.9967 |
 
-This is a descriptive re-analysis of the frozen dataset, not a new
-preregistered result. The improvement is checkpoint-specific: `min(F, E)` has
-AUC `0.9265` at step 6 and `0.8599` at step 18. That pattern is consistent
-with a bottleneck becoming informative near the point where both progress and
-reserve must be adequate, but it also makes overfitting to the synthetic
-terminal rule a serious possibility.
+This is not a valid breakthrough candidate because `F` is already a normalized
+success margin while `E` is raw reserve. The terminal rule requires reserve to
+exceed `0.08`, so the scale-normalized version is `E / 0.08`, not `E`.
+Under the comparable normalization,
+
+```text
+B_tau = min(F, E / 0.08)
+```
+
+the step-12 AUC drops to `0.9284`, matching `F` only. The apparent gain is
+therefore an artifact of arbitrary unit choice and not a robust bottleneck
+metric. The raw `min(F, E)` should be treated as a descriptive, unnormalized
+post-hoc feature only.
 
 ## Mathematical interpretation
 
@@ -45,27 +53,20 @@ The current geometric composite rewards multiplicative sufficiency:
 Q = (x1 * ... * xn)^(1/n)
 ```
 
-The candidate bottleneck statistic instead models conjunctive feasibility:
-
-```text
-B = min(x1, ..., xn)
-```
-
-`B` is invariant to compensating improvements in one dimension when another
-dimension remains limiting. This matches requirements of the form "make enough
-progress while retaining enough reserve” better than an average or product.
-It is therefore a candidate **diagnostic or gate**, not an unconditional
-replacement for the geometric mean.
-
-For differently scaled variables, a future experiment must use normalized
-success margins rather than raw values:
+A true bottleneck gate would instead model conjunctive feasibility using
+compatible normalized margins, for example:
 
 ```text
 B_tau = min(F / tau_F, E / tau_E)
 ```
 
-with `tau_F` and `tau_E` fixed before evaluation and learned only from
-development data if learning is part of the preregistration.
+with `tau_F` and `tau_E` fixed before evaluation or inferred only from an
+explicitly preregistered development procedure. In the frozen EXP-0010 data,
+the raw `min(F, E)` improvement disappears once the reserve variable is placed
+on the same success scale as the terminal rule. This means the reported gain is
+not currently evidence for a canonical bottleneck integrity model and should be
+rejected unless a normalized, preregistered experiment shows it again on an
+independent dataset.
 
 ## Required falsification test
 
