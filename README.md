@@ -1,5 +1,7 @@
 # Entropy-Flow Governance Model (EFGM)
 
+> **Research program status — convergence notice (2026-09).** This repository remains the canonical provenance and broad measurement/governance research record for EFGM. New work whose primary claim is **predicting consequential loss of agent control before a conventional safety boundary is crossed** is being concentrated in [`dauffrey/CGS`](https://github.com/dauffrey/CGS). [`dauffrey/EFGM-artificial-homeostasis`](https://github.com/dauffrey/EFGM-artificial-homeostasis) remains a separate mechanism-discovery laboratory. Existing EFGM models, experiments, frozen baselines, negative results, and evidence remain authoritative within their original scope and are **not superseded, merged, or rewritten** by this convergence. Ideas may transfer to CGS only through explicit prospective validation; evidence does not transfer automatically.
+
 EFGM is an experimental governance and measurement framework for evaluating whether AI-assisted reasoning, software delivery, operational workflows, and autonomous-agent activity remain coherent, grounded, calibrated, traceable, and governed while entropy accumulates.
 
 EFGM is **not** a proven scientific law, compliance standard, or production-ready risk engine. It is an executable research prototype intended for controlled, falsification-oriented validation.
