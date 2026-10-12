@@ -49,7 +49,7 @@ def assess_interpretability_claim(record: object) -> EvidenceDisposition:
     if (type(record["protocol_frozen_before_evaluation"]) is not bool
             or type(record["known_counterexample_count"]) is not int
             or record["known_counterexample_count"] < 0
-            or any(record[k] not in _STATES or type(record[k]) is not str for k in _CHECKS)):
+            or any(type(record[k]) is not str or record[k] not in _STATES for k in _CHECKS)):
         return EvidenceDisposition("INVALID", ("invalid_evidence_fields",))
 
     reasons = []
