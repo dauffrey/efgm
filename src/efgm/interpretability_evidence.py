@@ -40,7 +40,7 @@ def assess_interpretability_claim(record: object) -> EvidenceDisposition:
     texts = ("claim_id", "mechanism", "proposer_id", "evaluator_id")
     hashes = ("model_sha256", "protocol_sha256", "development_dataset_sha256",
               "evaluation_dataset_sha256", "evidence_manifest_sha256")
-    if record["schema_version"] != "interpretability-evidence/0.1":
+    if type(record["schema_version"]) is not str or record["schema_version"] != "interpretability-evidence/0.1":
         return EvidenceDisposition("INVALID", ("unsupported_schema_version",))
     if any(type(record[k]) is not str or not record[k].strip() or record[k] != record[k].strip() for k in texts):
         return EvidenceDisposition("INVALID", ("invalid_text_identity",))
