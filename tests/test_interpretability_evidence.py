@@ -85,3 +85,18 @@ def test_cannot_self_validate_by_modifying_a_result():
     result = assess_interpretability_claim(packet())
     assert result.scientific_claim_validated is False
     assert result.grants_authority is False
+
+
+def test_schema_version_type_is_checked_before_comparison():
+    class AdversarialValue:
+        def __ne__(self, other):
+            raise AssertionError("untrusted comparison must not execute")
+
+    for malformed in (None, 1, [], {}, AdversarialValue()):
+        example = packet()
+        example["schema_version"] = malformed
+        result = assess_interpretability_claim(example)
+        assert result.status == "INVALID"
+        assert result.reasons == ("unsupported_schema_version",)
+        assert result.scientific_claim_validated is False
+        assert result.grants_authority is False
