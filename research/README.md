@@ -24,6 +24,10 @@ Evaluate externally sealed holdout
 Accept / reject / remain inconclusive
 ```
 
+## Prospective causal interpretability / oversight track
+
+[Interpretability and governability program](INTERPRETABILITY_AND_GOVERNABILITY_PROGRAM.md) establishes falsification-first evidence standards for mechanistic explanations and independent AI oversight. Its packet gate tests only declared record completeness, not scientific validity; this prospective track does not alter the frozen execution sequence, sealed holdout custody or authority boundaries below.
+
 ## Current execution sequence
 
 The post-PR-#9 research program is deliberately sequenced so that discovered failures are tested before new model promotion:

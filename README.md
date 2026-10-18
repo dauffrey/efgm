@@ -294,6 +294,10 @@ result = score_decision_efgm(assessment, require_provenance=True)
 
 The v1 API remains available as `EFGMInput` and `score_efgm`. Agent Governance v0.3 APIs are exported as experimental research interfaces.
 
+## New prospective research — causal interpretability and governability
+
+The [interpretability and governability research program](research/INTERPRETABILITY_AND_GOVERNABILITY_PROGRAM.md) defines scoped, falsifiable causal-explanation and oversight questions. A separate `efgm.interpretability_evidence` gate performs only untrusted evidence-packet completeness checks; it **never** proves a mechanism, certifies safety, or grants authority. This is proposal/phase-0 infrastructure, not a new EFGM model version or scientific result.
+
 ## Research controls
 
 EFGM should advance only if controlled testing shows that it is understandable, repeatable, evidence-traceable, actionable, and more useful than simpler alternatives. The research program should actively attempt to falsify EFGM rather than optimize tests to make it appear successful.
